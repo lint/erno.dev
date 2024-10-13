@@ -7,9 +7,42 @@ specifies that any unauthenticated user can "create", "read", "update",
 and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
-  Todo: a
+  Topic: a
     .model({
-      content: a.string(),
+      topic_id: a.id(),
+      name: a.string(),
+      max_rating: a.integer(),
+      length: a.integer(),
+      ratings: a.hasMany("Rating", "topic_id"),
+    })
+    .authorization((allow) => [allow.guest()]),
+  Subject: a
+    .model({
+      topic_id: a.id(),
+      subject_id: a.id(),
+      topic: a.belongsTo("Topic", "topic_id"),
+      name: a.string(),
+      ratings: a.hasMany("Rating", "subject_id"),
+    })
+    .authorization((allow) => [allow.guest()]),
+  Rating: a
+    .model({
+      rating_id: a.id(),
+      topic_id: a.id(),
+      subject_id: a.id(),
+      user_id: a.id(),
+      topic: a.belongsTo("Topic", "topic_id"),
+      subject: a.belongsTo("Subject", "subject_id"),
+      user: a.belongsTo("User", "user_id"),
+      value: a.integer(),
+      index: a.integer(),
+    })
+    .authorization((allow) => [allow.guest()]),
+  User: a
+    .model({
+      user_id: a.id(),
+      name: a.string(),
+      ratings: a.hasMany("Rating", "user_id"),
     })
     .authorization((allow) => [allow.guest()]),
 });
