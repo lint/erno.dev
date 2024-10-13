@@ -1,8 +1,8 @@
 import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../amplify/data/resource";
-import './style.css';
+import type { Schema } from "../../amplify/data/resource";
+import '../css/style.css';
 import { Amplify } from 'aws-amplify';
-import outputs from '../amplify_outputs.json';
+import outputs from '../../amplify_outputs.json';
 
 Amplify.configure(outputs);
 
