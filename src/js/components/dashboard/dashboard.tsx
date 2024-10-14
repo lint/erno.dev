@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Toolbar from './toolbar';
+import Toolbar from './toolbar.tsx';
 
 export default function Dashboard() {
 

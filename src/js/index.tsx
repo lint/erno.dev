@@ -12,7 +12,7 @@ import Dashboard from './components/dashboard/dashboard.tsx'
 // amplify
 import { Amplify } from 'aws-amplify';
 import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../../amplify/data/resource";
+import type { Schema } from "../../amplify/data/resource.ts";
 import outputs from '../../amplify_outputs.json';
 
 // configure amplify
