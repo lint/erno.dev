@@ -11,6 +11,7 @@ import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 import ErrorPage from './pages/error';
 import TopicsPage from './pages/topics';
 import HomePage from './pages/home';
+import CreateTopicPage from './pages/create_topic';
 
 // amplify
 import { Amplify } from 'aws-amplify';
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
     {
         path: "/topics/",
         element: <TopicsPage />,
+    },
+    {
+        path: "/topics/create/",
+        element: <CreateTopicPage />,
     },
 ]);
 

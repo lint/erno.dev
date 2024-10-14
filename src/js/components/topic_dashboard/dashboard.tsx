@@ -1,14 +1,14 @@
 
 import React from 'react';
-import Toolbar from './toolbar';
+import TopicDashboardToolbarItems from './toolbar_items';
 
-export default function Dashboard() {
+export default function TopicDashboard() {
 
     return (
         <div id="dashboard">
             <div id="dashboard-content">
                 
-                <Toolbar />
+                <TopicDashboardToolbarItems />
                 
                 <div id="dashboard-view">
                     <div id="dashboard-list-container">

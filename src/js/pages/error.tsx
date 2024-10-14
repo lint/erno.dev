@@ -1,15 +1,14 @@
 
 import React from 'react';
-import Navbar from '../components/navbar/navbar'
+import BasePage from '../components/layout/base_page';
 
 export default function ErrorPage() {
 
     return (
-        <div>
-            <Navbar />
+        <BasePage>
             <div>
                 404
             </div>
-        </div>
+        </BasePage>
     );
 }

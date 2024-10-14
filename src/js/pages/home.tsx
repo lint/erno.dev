@@ -1,19 +1,18 @@
 
 import React from 'react';
-import Navbar from '../components/navbar/navbar'
+import BasePage from '../components/layout/base_page';
 
 export default function HomePage() {
 
     return (
-        <div>
-            <Navbar />
+        <BasePage>
             <div>
-                <ul>
+            <ul>
                     <li>
                         <a href="/topics">topics</a>
                     </li>
                 </ul>
             </div>
-        </div>
+        </BasePage>
     );
 }
