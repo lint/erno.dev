@@ -1,6 +1,7 @@
+
 import React from 'react';
-import BasePage from '../../components/layout/base_page';
 import { useRouteError, isRouteErrorResponse } from "react-router-dom";
+import BasePage from '../../components/layout/base_page';
 
 export default function ErrorPage() {
 

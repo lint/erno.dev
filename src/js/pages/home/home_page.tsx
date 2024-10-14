@@ -1,6 +1,6 @@
 
 import React from 'react';
-import BasePage from '../components/layout/base_page';
+import BasePage from '../../components/layout/base_page';
 
 export default function HomePage() {
 

@@ -8,10 +8,10 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 
 // react components
-import ErrorPage from './pages/error/page.tsx';
-import TopicsPage from './pages/topics';
-import HomePage from './pages/home';
-import CreateTopicPage from './pages/create_topic';
+import HomePage from './pages/home/home_page';
+import ErrorPage from './pages/error/error_page';
+import TopicsPage from './pages/topics/topics_page';
+import CreateTopicPage from './pages/topics/create_topic_page';
 
 // amplify
 import { Amplify } from 'aws-amplify';
