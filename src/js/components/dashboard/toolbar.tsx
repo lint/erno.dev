@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Create from './create.tsx';
+import Create from './create';
 
 export default function Toolbar() {
 
