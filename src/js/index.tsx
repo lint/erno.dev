@@ -15,13 +15,13 @@ import CreateTopicPage from './pages/create_topic';
 
 // amplify
 import { Amplify } from 'aws-amplify';
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../../amplify/data/resource";
+// import { generateClient } from "aws-amplify/data";
+// import type { Schema } from "../../amplify/data/resource";
 import outputs from '../../amplify_outputs.json';
 
 // configure amplify
 Amplify.configure(outputs);
-const client = generateClient<Schema>();
+// const client = generateClient<Schema>();
 
 // configure react
 const root = createRoot(document.getElementById('app')!);

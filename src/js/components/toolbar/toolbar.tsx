@@ -1,12 +1,15 @@
 
 import React from 'react';
-import ParentProps from '../interfaces/parent_props';
 
-export default function Toolbar({children}: ParentProps) {
+export interface ToolbarItems {
+    items: React.ReactNode;
+}
+
+export default function Toolbar({items}: ToolbarItems) {
     
     return (
         <div id="toolbar">
-            {children}
+            {items}
         </div>
     );
 }

@@ -6,8 +6,9 @@ import TopicDashboard from '../components/topic_dashboard/dashboard';
 export default function TopicsPage() {
 
     return (
-        <BasePage>
-            <TopicDashboard />
-        </BasePage>
+        <BasePage 
+            toolbar_items={<></>} 
+            page_content={<TopicDashboard/>} 
+        />
     );
 }

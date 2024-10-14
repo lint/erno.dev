@@ -2,30 +2,23 @@
 import React from 'react';
 import Navbar from '../navbar/navbar';
 import Toolbar from '../toolbar/toolbar';
-import ParentProps from '../interfaces/parent_props';
 
-export default function BasePage({children}: ParentProps) {
-// const BasePage: React.FC<ParentProps> = ({ children }) => {
-    
-    // let toolbar_items = null;
+export interface BasePageProps {
+    page_content: React.ReactNode;
+    toolbar_items: React.ReactNode;
+};
 
-    // if (children && children.length >= 2) {
-    //     toolbar_items = children[0];
-    // }
-
+export default function BasePage({page_content, toolbar_items}: BasePageProps) {
 
     return (
         <div>
             <Navbar />
-            <Toolbar>
-            </Toolbar>
+            <Toolbar items={toolbar_items}/>
             <div id="page-content-container">
                 <div id="page-content">
-                    {children}
+                    {page_content}
                 </div>
             </div>
         </div>
     );
 }
-
-// export default BasePage;

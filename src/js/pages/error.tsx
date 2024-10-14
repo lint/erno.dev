@@ -5,10 +5,13 @@ import BasePage from '../components/layout/base_page';
 export default function ErrorPage() {
 
     return (
-        <BasePage>
-            <div>
-                404
-            </div>
-        </BasePage>
+        <BasePage
+            toolbar_items={<></>} 
+            page_content={            
+                <div>
+                    404
+                </div>
+            }
+        />
     );
 }
