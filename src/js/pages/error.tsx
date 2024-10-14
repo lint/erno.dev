@@ -6,7 +6,8 @@ export default function ErrorPage() {
 
     return (
         <BasePage
-            toolbar_items={<></>} 
+            left_toolbar_items={<></>}
+            right_toolbar_items={<></>}
             page_content={            
                 <div>
                     404

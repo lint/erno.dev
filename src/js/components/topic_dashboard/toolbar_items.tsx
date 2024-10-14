@@ -2,7 +2,7 @@
 import React from 'react';
 // import Create from './create';
 
-export default function TopicDashboardToolbarItems() {
+export default function TopicDashboardRightToolbarItems() {
 
     function handleSelectAll() {
 
@@ -13,15 +13,22 @@ export default function TopicDashboardToolbarItems() {
     }
 
     return (
-        <div id="dashboard-toolbar-items">
-            <div id="select-all-button-container" className="dashboard-toolbar-item">
-                <button id="select-all-button" onClick={handleSelectAll}>Select All</button>
+        <div id="dashboard-right-toolbar-items" className="toolbar-items">
+            <div className="toolbar-item">
+                <button onClick={handleSelectAll}>Select All</button>
             </div>
-            <div id="create-button-container" className="dashboard-toolbar-item">
+            <div className="toolbar-item">
                 <a href="/topics/create">
-                    <button id="create-button" onClick={handleCreate}>+ Create</button>
+                    <button onClick={handleCreate}>+ Create</button>
                 </a>
             </div>
         </div>
+    );
+}
+
+export function TopicDashboardLeftToolbarItems() {
+
+    return (
+        <></>
     );
 }

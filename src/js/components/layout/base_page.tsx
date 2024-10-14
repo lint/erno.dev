@@ -5,15 +5,16 @@ import Toolbar from '../toolbar/toolbar';
 
 export interface BasePageProps {
     page_content: React.ReactNode;
-    toolbar_items: React.ReactNode;
+    left_toolbar_items: React.ReactNode;
+    right_toolbar_items: React.ReactNode;
 };
 
-export default function BasePage({page_content, toolbar_items}: BasePageProps) {
+export default function BasePage({page_content, left_toolbar_items, right_toolbar_items}: BasePageProps) {
 
     return (
         <div>
             <Navbar />
-            <Toolbar items={toolbar_items}/>
+            <Toolbar left={left_toolbar_items} right={right_toolbar_items}/>
             <div id="page-content-container">
                 <div id="page-content">
                     {page_content}

@@ -2,14 +2,16 @@
 import React from 'react';
 
 export interface ToolbarItems {
-    items: React.ReactNode;
+    left: React.ReactNode;
+    right: React.ReactNode;
 }
 
-export default function Toolbar({items}: ToolbarItems) {
+export default function Toolbar({left, right}: ToolbarItems) {
     
     return (
         <div id="toolbar">
-            {items}
+            {left}
+            {right}
         </div>
     );
 }

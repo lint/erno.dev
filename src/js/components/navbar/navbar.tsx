@@ -9,13 +9,11 @@ export default function Navbar() {
 
     return (
         <div id="navbar">
-            <div id="navbar-title-container">
-                <a id="navbar-title" href="/">grissy.net</a>
+            <div className="navbar-control">
+                <a className="navbar-control" href="/">grissy.net</a>
             </div>
-            <div id="navbar-settings-container">
-                <div id="navbar-settings-button" className="navbar-text" onClick={handleSettings}>
-                    <i id="navbar-settings-icon" className="material-icons">settings</i>
-                </div>
+            <div className="navbar-control" onClick={handleSettings}>
+                <i className="material-icons">settings</i>
             </div>
         </div>
     );
