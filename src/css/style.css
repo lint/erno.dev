@@ -50,6 +50,36 @@ body, html {
 }
 
 .toolbar-item {
+  display: flex; 
+  align-items: center;
+  height: 100%;
+  cursor: pointer;
+  padding: 0 10px;
+  border-bottom: 4px solid #F8F8F8;
+  box-sizing: border-box;
+}
+
+.toolbar-item:hover {
+  background-color: white;
+  border-bottom: 4px solid #061937;
+}
+
+.toolbar-item:active {
+  background-color: lightgray;
+  /* border-bottom: 4px solid orange; */
+}
+
+.toolbar-item-active {
+  /* TODO: make this class toggle for current page item */
+  background-color: lightgray;
+  border-bottom: 4px solid orange;
+}
+
+.toolbar-item button {
+  transform: translateY(4px);
+}
+
+.toolbar-button {
 
 }
 
@@ -112,4 +142,8 @@ body, html {
 
 .ultra-large-text {
   font-size: 64px;
+}
+
+.unset {
+  all: unset;
 }
