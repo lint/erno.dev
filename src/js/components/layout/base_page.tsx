@@ -1,7 +1,6 @@
 
 import React from 'react';
 import Navbar from '../navbar/navbar';
-import Toolbar from '../toolbar/toolbar';
 
 export interface BasePageProps {
     page_content: React.ReactNode;
@@ -13,8 +12,7 @@ export default function BasePage({page_content, left_toolbar_items, right_toolba
 
     return (
         <div>
-            <Navbar />
-            <Toolbar left={left_toolbar_items} right={right_toolbar_items}/>
+            <Navbar left={left_toolbar_items} right={right_toolbar_items}/>
             <div id="page-content-container">
                 <div id="page-content">
                     {page_content}
