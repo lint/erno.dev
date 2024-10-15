@@ -12,7 +12,7 @@ export default function TopicDashboardRightToolbarItems() {
     }
 
     return (
-        <div id="dashboard-right-toolbar-items" className="toolbar-items">
+        <div className="toolbar-items">
             <div className="toolbar-button">
                 <button onClick={handleSelectAll}>Select All</button>
             </div>

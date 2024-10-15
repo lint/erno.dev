@@ -2,6 +2,7 @@
 import React from 'react';
 import { useRouteError, isRouteErrorResponse } from "react-router-dom";
 import BasePage from '../../components/layout/base_page';
+import ToolbarNavItems from '../../components/toolbar/nav_items';
 
 export default function ErrorPage() {
 
@@ -21,7 +22,7 @@ export default function ErrorPage() {
 
     return (
         <BasePage
-            left_toolbar_items={<></>}
+            left_toolbar_items={<ToolbarNavItems />}
             right_toolbar_items={<></>}
             page_content={            
                 <div id="error-container">

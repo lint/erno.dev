@@ -1,13 +1,13 @@
 
 import React from 'react';
 import BasePage from '../../components/layout/base_page';
-import ToolbarItem from '../../components/toolbar/toolbar_item';
+import ToolbarNavItems from '../../components/toolbar/nav_items';
 
 export default function HomePage() {
 
     return (
         <BasePage
-            left_toolbar_items={<ToolbarItem text="Topics" url="/topics" callback={()=>{}}/>}
+            left_toolbar_items={<ToolbarNavItems />}
             right_toolbar_items={<div></div>}
             page_content={<></>}
         />

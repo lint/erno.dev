@@ -9,8 +9,13 @@ export interface ToolbarItemProps {
 
 export default function ToolbarItem({text, url, callback}: ToolbarItemProps) {
 
+    let cls = "toolbar-item";
+    if (url.toLowerCase() == location.pathname.toLowerCase()) {
+        cls += " toolbar-item-active";
+    }    
+
     return (
-        <div className="toolbar-item">
+        <div className={cls}>
             <a className="unset" href={url}>
                 <button className="unset" onClick={callback}>{text}</button>
             </a>
