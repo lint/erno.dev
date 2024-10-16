@@ -58,9 +58,17 @@ body, html {
   display: flex; 
   align-items: center;
   cursor: pointer;
-  padding: 0 10px;
   border-bottom: 4px solid #F8F8F8;
   box-sizing: border-box;
+}
+
+.toolbar-item-link {
+  all: unset;
+  transform: translateY(4px);
+  height: 100%;
+  width: 100%;
+  padding: 0 10px;
+  display: inline-block;
 }
 
 .toolbar-item:hover:not(.toolbar-item-active) {
@@ -74,14 +82,8 @@ body, html {
 } */
 
 .toolbar-item-active {
-  /* TODO: make this class toggle for current page item */
-  /* background-color: lightgray; */
   background-color: white;
   border-bottom: 4px solid orange;
-}
-
-.toolbar-item button {
-  transform: translateY(4px);
 }
 
 .toolbar-button {

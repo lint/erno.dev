@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export interface NavbarItems {
     left: React.ReactNode;
@@ -8,19 +9,17 @@ export interface NavbarItems {
 
 export default function Navbar({left, right}: NavbarItems) {
 
-    function handleSettings() {
-
-    }
-
     return (
         <div id="page-header">
             
             <div id="navbar">
-                <div className="navbar-control">
-                    <a className="navbar-control" href="/">grissy.net</a>
+                <div>
+                    <Link className="navbar-control" to="/">grissy.net</Link>
                 </div>
-                <div className="navbar-control" onClick={handleSettings}>
-                    <i className="material-icons">settings</i>
+                <div>
+                    <Link className="navbar-control" to="/settings">
+                        <i className="material-icons">settings</i>
+                    </Link>
                 </div>
             </div>
 

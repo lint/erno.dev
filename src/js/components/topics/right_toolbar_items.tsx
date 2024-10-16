@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function TopicDashboardRightToolbarItems() {
 
@@ -17,9 +18,9 @@ export default function TopicDashboardRightToolbarItems() {
                 <button onClick={handleSelectAll}>Select All</button>
             </div>
             <div className="toolbar-button">
-                <a href="/topics/create">
+                <Link to="/topics/create">
                     <button onClick={handleCreate}>+ Create</button>
-                </a>
+                </Link>
             </div>
         </div>
     );

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export interface ToolbarItemProps {
     text: string;
@@ -16,9 +17,7 @@ export default function ToolbarItem({text, url, callback}: ToolbarItemProps) {
 
     return (
         <div className={cls}>
-            <a className="unset" href={url}>
-                <button className="unset" onClick={callback}>{text}</button>
-            </a>
+            <Link className="toolbar-item-link" to={url} onClick={callback}>{text}</Link>
         </div>
     );
 }
