@@ -2,7 +2,6 @@
 import React from 'react';
 import ToolbarItem from './toolbar_item';
 
-
 export default function ToolbarNavItems() {
 
     return (

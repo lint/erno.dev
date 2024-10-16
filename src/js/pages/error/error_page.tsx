@@ -3,20 +3,21 @@ import React from 'react';
 import { useRouteError, isRouteErrorResponse } from "react-router-dom";
 import BasePage from '../../components/layout/base_page';
 import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
+import ErrorDisplay from '../../components/error/error_display';
 
 export default function ErrorPage() {
 
-    const error = useRouteError();
+    const err = useRouteError();
     let message: string;
 
-    if (isRouteErrorResponse(error)) {
-        message = String(error.status);
-    } else if (error instanceof Error) {
-        message = error.message;
-    } else if (typeof error === 'string') {
-        message = error;
+    if (isRouteErrorResponse(err)) {
+        message = String(err.status);
+    } else if (err instanceof Error) {
+        message = err.message;
+    } else if (typeof err === 'string') {
+        message = err;
     } else {
-        console.error(error);
+        console.error(err);
         message = 'Unknown error';
     }
 
@@ -24,16 +25,7 @@ export default function ErrorPage() {
         <BasePage
             left_toolbar_items={<ToolbarNavItems />}
             right_toolbar_items={<></>}
-            page_content={            
-                <div id="error-container">
-                    <div className="ultra-large-text">
-                        {message}
-                    </div>
-                    <div className="large-text">
-                        {"Sorry, the site experienced an unexpected error."}
-                    </div>
-                </div>
-            }
+            page_content={<ErrorDisplay status={message}/>}
         />
     );
 }
