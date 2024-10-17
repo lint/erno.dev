@@ -2,6 +2,7 @@
 import React from 'react';
 import ContentHeader from '../layout/content/header';
 import TextField from '../forms/text_field';
+import './topics.css';
 
 export default function TopicCreateForm() {
     

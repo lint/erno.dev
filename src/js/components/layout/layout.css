@@ -1,0 +1,31 @@
+
+#page-content-container {
+    height: calc(100vh - 80px);
+    /* padding: 10px; */
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+}
+    
+#page-content {
+    width: 100%;
+    height: 100%;
+    /* max-width: 1280px; */
+    /* border: 2px solid gray; */
+    /* border-radius: 5px; */
+    margin-left: 10px;
+    overflow: hidden;
+    background-color: white;
+}
+    
+.content-header {
+    height: 36px;
+    border-bottom: 3px solid orange;
+}
+    
+.content-header-text {
+    padding: 10px;
+    font-size: 18px;
+}

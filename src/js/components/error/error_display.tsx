@@ -1,5 +1,6 @@
 
 import React from 'react';
+import './error.css';
 
 export interface ErrorDisplayProps {
     status: string;

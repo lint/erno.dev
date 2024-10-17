@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ToolbarItem from './toolbar_item';
+import './navbar.css';
 
 export default function ToolbarNavItems() {
 

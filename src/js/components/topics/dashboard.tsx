@@ -1,5 +1,6 @@
 
 import React from 'react';
+import './topics.css';
 
 export default function TopicDashboard() {
 

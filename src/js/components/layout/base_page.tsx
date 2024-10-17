@@ -1,6 +1,7 @@
 
 import React from 'react';
 import Navbar from '../navbar/navbar';
+import './layout.css';
 
 export interface BasePageProps {
     page_content: React.ReactNode;
