@@ -99,7 +99,7 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #E9EBEC ;
+  background-color: white;
 }
 
 #page-content {
@@ -108,8 +108,19 @@ body, html {
   /* max-width: 1280px; */
   /* border: 2px solid gray; */
   /* border-radius: 5px; */
+  margin-left: 10px;
   overflow: hidden;
-  background-color:white;
+  background-color: white;
+}
+
+.content-header {
+  height: 36px;
+  border-bottom: 3px solid orange;
+}
+
+.content-header-text {
+  padding: 10px;
+  font-size: 18px;
 }
 
 /* -------------------------------- dashboard ------------------------------- */
