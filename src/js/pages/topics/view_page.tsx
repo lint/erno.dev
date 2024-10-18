@@ -6,15 +6,17 @@ import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
 import BasePage from '../base_page';
 import { useParams } from 'react-router-dom';
 import ErrorDisplay from '../../components/error/error_display';
-import { TopicDoesExist } from '../../components/api/topic';
+import { GetTopic } from '../../components/api/topic';
 
 export default function TopicViewPage() {
 
     const { topic_id } = useParams();
+    
     let content;
+    let topic = topic_id != null ? GetTopic(topic_id) : null;
 
-    if (topic_id != null && TopicDoesExist(topic_id)) {
-        content = <TopicView topic_id={topic_id} />
+    if (topic != null) {
+        content = <TopicView topic={topic} />
     } else {
         content = <ErrorDisplay status="404"/>
     }

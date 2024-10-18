@@ -4,6 +4,7 @@ import { TopicCreateFormButton } from './create_form';
 import './topics.css';
 import ContentHeader from '../general/content_header';
 import { useNavigate } from 'react-router-dom';
+import SegmentSelect from '../general/segment_select';
 
 export interface TopicDashboardRightToolbarItemsProps {
     view_mode_callback: (params: any) => any;
@@ -13,7 +14,13 @@ export interface TopicDashboardRightToolbarItemsProps {
 export function TopicDashboardRightToolbarItems({is_grid_view, view_mode_callback}:TopicDashboardRightToolbarItemsProps) {
     return (
         <div className="toolbar-items">
-            <TopicDashboardViewModeButton is_grid_view={is_grid_view} view_mode_callback={view_mode_callback}/>
+            <SegmentSelect 
+                controlClass="segment-select-control" 
+                activeClass="segment-select-control-active" 
+                activeIndex={is_grid_view ? 0 : 1}
+                values={["grid", "list"]}
+                callback={view_mode_callback}
+            />
             <TopicCreateFormButton className="common-button" text="+ Create" />
         </div>
     );
@@ -72,25 +79,6 @@ export function TopicDashboardEmptyView() {
                     There are no topics yet...
                 </div>
                 <TopicCreateFormButton className="dashboard-empty-create-button" text="Create New Topic" />
-            </div>
-        </div>
-    );
-}
-
-export interface TopicDashboardViewModeButtonProps {
-    view_mode_callback: (params: any) => any;
-    is_grid_view: boolean;
-}
-
-export function TopicDashboardViewModeButton({ view_mode_callback, is_grid_view }: TopicDashboardViewModeButtonProps) {
-    return (
-        <div className="dashboard-view-mode-control">
-            <div className={is_grid_view ? "dashboard-view-mode-control-active" : ""}>
-                <button onClick={view_mode_callback}>grid</button>
-            </div>
-            <div className="dashboard-view-mode-control-separator"></div>
-            <div className={!is_grid_view ? "dashboard-view-mode-control-active" : ""}>
-                <button onClick={view_mode_callback}>list</button>
             </div>
         </div>
     );

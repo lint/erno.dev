@@ -27,6 +27,7 @@
     all: unset;
     border: 1px solid gray;
     padding: 2px;
+    background-color: white;
 }
 
 .form-required input {
@@ -38,22 +39,6 @@
     color: red;
     transform: translateX(8px);
     position: absolute;
-}
-
-.form-group {
-    padding: 5px 10px 10px 0px;
-}
-
-.form-group:not(:last-child) {
-    border-bottom: 2px solid lightgray;
-}
-
-.form-group-header {
-    margin-bottom: 10px;
-}
-
-.form-group-content {
-    padding-left: 10px;
 }
 
 .submit-cancel-container {
@@ -70,6 +55,6 @@
     font-size: 0.75em;
 }
 
-.submit-button {
+/* .submit-button {
 
-}
+} */
