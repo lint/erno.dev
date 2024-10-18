@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useRouteError, isRouteErrorResponse } from "react-router-dom";
-import BasePage from '../../components/layout/base_page';
+import BasePage from '../base_page';
 import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
 import ErrorDisplay from '../../components/error/error_display';
 
