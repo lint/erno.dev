@@ -3,6 +3,7 @@ import React from 'react';
 import GetTopics from '../api/topic';
 import { TopicCreateFormButton } from './create_form';
 import './topics.css';
+import ContentHeader from '../general/content_header';
 
 export interface TopicDashboardRightToolbarItemsProps {
     view_mode_callback: (params: any) => any;
@@ -10,7 +11,6 @@ export interface TopicDashboardRightToolbarItemsProps {
 }
 
 export function TopicDashboardRightToolbarItems({is_grid_view, view_mode_callback}:TopicDashboardRightToolbarItemsProps) {
-
     return (
         <div className="toolbar-items">
             <TopicDashboardViewModeButton is_grid_view={is_grid_view} view_mode_callback={view_mode_callback}/>
@@ -19,18 +19,54 @@ export function TopicDashboardRightToolbarItems({is_grid_view, view_mode_callbac
     );
 }
 
-export function TopicDashboardListView() {
+export interface TopicDashboardViewProps {
+    topics: any[];
+}
+
+export function TopicDashboardListView({ topics }: TopicDashboardViewProps) {
     return (
-        <div>
-            list
+        <div id="dashboard-view-content">
+            <div id="dashboard-list-view">
+                <ul>
+                    {topics.map(topic => (
+                        <li key={"key-" + topic["name"]}>
+                            <span>{topic["name"]}</span>
+                        </li>                        
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 }
 
-export function TopicDashboardGridView() {
+export function TopicDashboardGridView({ topics }: TopicDashboardViewProps) {
     return (
-        <div>
-            grid
+        <div id="dashboard-view-content">
+            <div id="dashboard-grid-view">
+                {topics.map(topic => (
+                    <div className="dashboard-grid-cell" key={"key-" + topic["name"]}>
+                        <div className="dashboard-grid-cell-preview">
+
+                        </div>
+                        <div className="dashboard-grid-cell-title">
+                            <span>{topic["name"]}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export function TopicDashboardEmptyView() {   
+    return (
+        <div id="dashboard-error-content">
+            <div id="dashboard-empty-container">
+                <div id="dashboard-empty-message">
+                    There are no topics yet...
+                </div>
+                <TopicCreateFormButton className="dashboard-empty-create-button" text="Create New Topic" />
+            </div>
         </div>
     );
 }
@@ -40,8 +76,7 @@ export interface TopicDashboardViewModeButtonProps {
     is_grid_view: boolean;
 }
 
-export function TopicDashboardViewModeButton({view_mode_callback, is_grid_view}: TopicDashboardViewModeButtonProps) {
-
+export function TopicDashboardViewModeButton({ view_mode_callback, is_grid_view }: TopicDashboardViewModeButtonProps) {
     return (
         <div className="dashboard-view-mode-control">
             <div className={is_grid_view ? "dashboard-view-mode-control-active" : ""}>
@@ -62,20 +97,19 @@ export interface TopicDashboardProps {
 export default function TopicDashboard({ is_grid_view }: TopicDashboardProps) {
 
     let topics = GetTopics();
-    let no_topics_comp = <div id="dashboard-empty-container">
-        <div id="dashboard-empty-message">
-            There are no topics yet...
-        </div>
-        <TopicCreateFormButton className="dashboard-empty-create-button" text="Create New Topic" />
-    </div>;
-    let yes_topics_comp = <div id="dashboard-content">
-        {is_grid_view ? <TopicDashboardGridView /> : <TopicDashboardListView />}
-    </div>;
+    let content;
 
-    let content = topics.length > 0 ? yes_topics_comp : no_topics_comp;
+    if (topics == null || topics.length === 0) {
+        content = <TopicDashboardEmptyView />;
+    } else if (is_grid_view) {
+        content = <TopicDashboardGridView topics={topics} />;
+    } else {
+        content = <TopicDashboardListView topics={topics} />;
+    }
 
     return (
         <div id="dashboard">
+            <ContentHeader text="Dashboard" />
             {content}
         </div>
     );
