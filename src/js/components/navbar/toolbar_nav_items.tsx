@@ -7,8 +7,8 @@ export default function ToolbarNavItems() {
 
     return (
         <div className="toolbar-items">
-            <ToolbarItem text="Topics" url="/topics" callback={()=>{}} />
-            <ToolbarItem text="Test" url="/test" callback={()=>{}} />
+            <ToolbarItem text="Topics" url="/topics" />
+            <ToolbarItem text="Test" url="/test" />
         </div>
     );
 }

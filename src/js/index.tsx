@@ -58,22 +58,8 @@ export default function App() {
 // listen for when the page is ready
 document.addEventListener("DOMContentLoaded", function () {
     root.render(<App />);
-    highlight_active_toolbar_item();
 });
 
-// apply styles to active toolbar item
-function highlight_active_toolbar_item() {
-
-    document.querySelectorAll(".toolbar-item").forEach(item => {
-        item.classList.remove("toolbar-item-active");
-    });
-
-    let active_item = document.querySelector(".toolbar-item a[href='" + location.pathname + "']");
-    if (active_item != null) {
-        active_item.closest(".toolbar-item")?.classList.add("toolbar-item-active");
-    }
-}
- 
 // document.addEventListener("DOMContentLoaded", function () {
 //     const todos: Array<Schema["Todo"]["type"]> = [];
 //     const todoList = document.getElementById("todoList") as HTMLUListElement;
