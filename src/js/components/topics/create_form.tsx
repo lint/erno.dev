@@ -1,6 +1,6 @@
 
 import React from 'react';
-import ContentHeader from '../layout/content/header';
+import ContentHeader from '../general/content_header';
 import TextField from '../forms/text_field';
 import FormGroup from '../forms/form_group';
 import SubmitCancelButtons from '../forms/submit_cancel';
