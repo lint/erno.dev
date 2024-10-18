@@ -1,7 +1,4 @@
 
-#dashboard {
-
-}
 
 #create-topic-form {
     margin-top: 10px;
@@ -9,4 +6,57 @@
     background-color: #F8F8F8;
     border: 1px solid #EEEEEE;
     border-radius: 5px;
+}
+
+.dashboard-view-mode-control {
+    border-radius: 5px;
+    border: 1px solid lightgray;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.dashboard-view-mode-control button {
+    all: unset;
+    padding: 5px 8px;
+    font-size: 0.75em;
+}
+
+.dashboard-view-mode-control-separator {
+    border-left: 1px solid lightgray;
+    border-right: 1px solid lightgray;
+    box-sizing: border-box;
+}
+
+.dashboard-view-mode-control-active {
+    background-color: #1553B8;
+    color: white;
+}
+
+#dashboard {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+
+#dashboard-empty-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    font-size: 1.25em;
+}
+
+.dashboard-empty-create-button {
+    all: unset;
+    color: #1553B8;
+    text-decoration-line: underline;
+    cursor: pointer;
+}
+
+
+#dashboard-content {
+
 }

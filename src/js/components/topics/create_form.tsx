@@ -4,7 +4,30 @@ import ContentHeader from '../layout/content/header';
 import TextField from '../forms/text_field';
 import FormGroup from '../forms/form_group';
 import SubmitCancelButtons from '../forms/submit_cancel';
+import { setCookie } from '../../util/cookies';
+import { Link } from 'react-router-dom';
+
 import './topics.css';
+
+export interface TopicCreateFormButtonProps {
+    className: string;
+    text: string;
+}
+
+export function TopicCreateFormButton({className, text}: TopicCreateFormButtonProps) {
+    
+    function handle_create() {
+        if (location.pathname !== "/topics/create") {
+            setCookie("create-topic-url-ref", location.pathname, 0);
+        }
+    }
+
+    return (
+        <Link className="unset" to="/topics/create">
+            <button className={className} onClick={handle_create}>{text}</button>
+        </Link>
+    );
+}
 
 export default function TopicCreateForm() {
     
