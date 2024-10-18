@@ -1,6 +1,4 @@
 
-/* ---------------------------------- main ---------------------------------- */
-
 body, html {
     height: 100%;
     width: 100%;
@@ -9,7 +7,15 @@ body, html {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
-/* --------------------------------- common --------------------------------- */
+.common-button {
+    all: unset;
+    background-color: #1553B8;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.75em;
+}
 
 .text-1 {
     font-size: 1em;

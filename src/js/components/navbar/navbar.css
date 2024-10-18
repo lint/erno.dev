@@ -75,6 +75,7 @@
 .toolbar-item-active {
     background-color: white;
     border-bottom: 4px solid orange;
+    font-weight: 600;
 }
 
 .toolbar-button {

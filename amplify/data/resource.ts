@@ -11,8 +11,6 @@ const schema = a.schema({
     .model({
       topic_id: a.id(),
       name: a.string(),
-      rating_max: a.integer(),
-      rating_min: a.integer(),
       length: a.integer(),
       ratings: a.hasMany("Rating", "topic_id"),
       subjects: a.hasMany("Subject", "topic_id"),

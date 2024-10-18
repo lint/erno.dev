@@ -1,20 +1,32 @@
 
 .form-field {
     margin-bottom: 5px;
+    display: flex;
+    font-size: 0.75em;
 }
 
 .form-field-title {
-    padding-right: 10px;
-    vertical-align: middle;
+    width: 150px;
+    padding-right: 30px;
+    display: flex;
+    justify-content: flex-end;
+    font-weight: bold;
+    align-items: center;
 }
 
-.form-field-input-wrapper {
+.form-field-title label {
     vertical-align: middle;
 }
 
 .form-field-input {
+    vertical-align: middle;
+    /* font-size: 1em; */
+}
+
+.form-field-input input {
     all: unset;
     border: 1px solid gray;
+    padding: 2px;
 }
 
 .form-required input {
@@ -23,10 +35,17 @@
 
 .form-required .form-field-title::after {
     content: "*";
+    color: red;
+    transform: translateX(8px);
+    position: absolute;
 }
 
 .form-group {
+    padding: 5px 10px 10px 0px;
+}
 
+.form-group:not(:last-child) {
+    border-bottom: 2px solid lightgray;
 }
 
 .form-group-header {
@@ -35,4 +54,22 @@
 
 .form-group-content {
     padding-left: 10px;
+}
+
+.submit-cancel-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: right;
+}
+
+.cancel-button {
+    all: unset;
+    text-decoration-line: underline;
+    cursor: pointer;
+    font-size: 0.75em;
+}
+
+.submit-button {
+
 }

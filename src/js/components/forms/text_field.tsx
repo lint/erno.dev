@@ -31,8 +31,8 @@ export default function TextField({title, placeholder, input_id, is_required, mi
             <span className="form-field-title">
                 <label htmlFor={input_id}>{title}</label>
             </span>
-            <span className="form-field-input-wrapper">
-                <input className="form-field-input" type="text" id={input_id} name={input_id} required={is_required} onInput={onInput} minLength={min_len} maxLength={max_len} size={size} defaultValue={value} placeholder={placeholder}/>
+            <span className="form-field-input">
+                <input type="text" id={input_id} name={input_id} required={is_required} onInput={onInput} minLength={min_len} maxLength={max_len} size={size} defaultValue={value} placeholder={placeholder}/>
             </span>
         </div>
     );

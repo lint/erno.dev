@@ -12,7 +12,7 @@ export default function FormGroup({children, title}: FormGroupProps) {
     return (
         <div className="form-group">
             <div className="form-group-header">
-                <span className="text-1d25">{title}</span>
+                <span>{title}</span>
             </div>
             <div className="form-group-content">
                 {children}
