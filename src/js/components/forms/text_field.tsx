@@ -7,25 +7,32 @@ export interface TextFieldProps {
     placeholder: string;
     input_id: string;
     is_number: boolean;
-    required: boolean;
+    is_required: boolean;
+    min_len: number;
+    max_len: number;
+    size: number;
+    value: string;
 }
 
-export default function TextField({title, placeholder, input_id} : TextFieldProps) {
+export default function TextField({title, placeholder, input_id, is_required, min_len, max_len, size, value, is_number}: TextFieldProps) {
 
-    // <input type="text" id="num-buildings-input" name="num_buildings" required minlength="1" maxlength="8" size="10" value="25" placeholder="e.g. 25"
-    // oninput="this.value = this.value.replace(/\D/g, '');"/>
+    function number_field_validation() {
+        let num_input = document.getElementById(input_id) as HTMLInputElement;
+        if (num_input) {
+            num_input.value = num_input.value.replace(/\D/g, '');
+        }
+    }
 
-    // let number_input = <input type="text" id={input_id} name="topic_name" placeholder={placeholder} />;
-    // let string_input = <input type="text" id={input_id} name="topic_name" placeholder={placeholder} />;
+    let onInput = is_number ? number_field_validation : () => {};
+    let required_cls = is_required ? " form-required" : "";
 
     return (
-        <div className="form-field-container">
+        <div className={"form-field" + required_cls}>
             <span className="form-field-title">
-                
                 <label htmlFor={input_id}>{title}</label>
             </span>
-            <span className="form-field-input">
-                <input type="text" id={input_id} name="topic_name" placeholder={placeholder} />
+            <span className="form-field-input-wrapper">
+                <input className="form-field-input" type="text" id={input_id} name={input_id} required={is_required} onInput={onInput} minLength={min_len} maxLength={max_len} size={size} defaultValue={value} placeholder={placeholder}/>
             </span>
         </div>
     );

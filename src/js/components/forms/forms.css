@@ -1,0 +1,38 @@
+
+.form-field {
+    margin-bottom: 5px;
+}
+
+.form-field-title {
+    padding-right: 10px;
+    vertical-align: middle;
+}
+
+.form-field-input-wrapper {
+    vertical-align: middle;
+}
+
+.form-field-input {
+    all: unset;
+    border: 1px solid gray;
+}
+
+.form-required input {
+    background-color: #FFFFCC;
+}
+
+.form-required .form-field-title::after {
+    content: "*";
+}
+
+.form-group {
+
+}
+
+.form-group-header {
+    margin-bottom: 10px;
+}
+
+.form-group-content {
+    padding-left: 10px;
+}
