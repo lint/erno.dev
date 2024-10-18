@@ -4,6 +4,21 @@ import GetTopics from '../api/topic';
 import { TopicCreateFormButton } from './create_form';
 import './topics.css';
 
+export interface TopicDashboardRightToolbarItemsProps {
+    view_mode_callback: (params: any) => any;
+    is_grid_view: boolean;
+}
+
+export function TopicDashboardRightToolbarItems({is_grid_view, view_mode_callback}:TopicDashboardRightToolbarItemsProps) {
+
+    return (
+        <div className="toolbar-items">
+            <TopicDashboardViewModeButton is_grid_view={is_grid_view} view_mode_callback={view_mode_callback}/>
+            <TopicCreateFormButton className="common-button" text="+ Create" />
+        </div>
+    );
+}
+
 export function TopicDashboardListView() {
     return (
         <div>
@@ -21,20 +36,20 @@ export function TopicDashboardGridView() {
 }
 
 export interface TopicDashboardViewModeButtonProps {
-    viewModeOnClick: (params: any) => any;
+    view_mode_callback: (params: any) => any;
     is_grid_view: boolean;
 }
 
-export function TopicDashboardViewModeButton({viewModeOnClick, is_grid_view}: TopicDashboardViewModeButtonProps) {
+export function TopicDashboardViewModeButton({view_mode_callback, is_grid_view}: TopicDashboardViewModeButtonProps) {
 
     return (
         <div className="dashboard-view-mode-control">
             <div className={is_grid_view ? "dashboard-view-mode-control-active" : ""}>
-                <button onClick={viewModeOnClick}>grid</button>
+                <button onClick={view_mode_callback}>grid</button>
             </div>
             <div className="dashboard-view-mode-control-separator"></div>
             <div className={!is_grid_view ? "dashboard-view-mode-control-active" : ""}>
-                <button onClick={viewModeOnClick}>list</button>
+                <button onClick={view_mode_callback}>list</button>
             </div>
         </div>
     );

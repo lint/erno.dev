@@ -41,7 +41,6 @@
     justify-content: center;
 }
 
-
 #dashboard-empty-container {
     display: flex;
     flex-direction: row;
@@ -55,7 +54,6 @@
     text-decoration-line: underline;
     cursor: pointer;
 }
-
 
 #dashboard-content {
 

@@ -6,8 +6,15 @@ import FormGroup from '../forms/form_group';
 import SubmitCancelButtons from '../forms/submit_cancel';
 import { setCookie } from '../../util/cookies';
 import { Link } from 'react-router-dom';
-
 import './topics.css';
+
+export function TopicCreateRightToolbarItems() {
+    return (
+        <div className="toolbar-items">
+            <TopicCreateFormButton className="common-button" text="+ Create" />
+        </div>
+    );
+}
 
 export interface TopicCreateFormButtonProps {
     className: string;
@@ -18,7 +25,7 @@ export function TopicCreateFormButton({className, text}: TopicCreateFormButtonPr
     
     function handle_create() {
         if (location.pathname !== "/topics/create") {
-            setCookie("create-topic-url-ref", location.pathname, 0);
+            setCookie("create-topic-url-ref", location.pathname, 365);
         }
     }
 

@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
-import BasePage from '../../components/layout/base_page';
-import TopicDashboard from '../../components/topics/dashboard';
-import TopicDashboardRightToolbarItems from '../../components/topics/toolbar_items';
+import TopicDashboard, { TopicDashboardRightToolbarItems } from '../../components/topics/dashboard';
 import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
+import BasePage from '../base_page';
 
 export default function TopicsPage() {
 
@@ -18,7 +17,7 @@ export default function TopicsPage() {
     return (
         <BasePage
             left_toolbar_items={<ToolbarNavItems />}
-            right_toolbar_items={<TopicDashboardRightToolbarItems is_grid_view={is_grid_view} viewModeOnClick={handle_view_mode}/>}
+            right_toolbar_items={<TopicDashboardRightToolbarItems is_grid_view={is_grid_view} view_mode_callback={handle_view_mode}/>}
             page_content={<TopicDashboard is_grid_view={is_grid_view} />} 
         />
     );
