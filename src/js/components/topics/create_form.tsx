@@ -3,8 +3,8 @@ import React from 'react';
 import TextField from '../forms/text_field';
 import ContentGroup from '../general/content_group';
 import SubmitCancelButtons from '../forms/submit_cancel';
-import { setCookie } from '../../util/cookies';
-import { Link } from 'react-router-dom';
+import { getCookie, setCookie } from '../../util/cookies';
+import { Link, useNavigate } from 'react-router-dom';
 import './topics.css';
 import ContentContainer from '../general/content_container';
 
@@ -37,16 +37,27 @@ export function TopicCreateFormButton({className, text}: TopicCreateFormButtonPr
 }
 
 export default function TopicCreateForm() {
+    
+    const navigate = useNavigate();
+
+    function handle_cancel() {
+        navigate(getCookie("create-topic-url-ref") ?? "/topics");
+    }
+
+    function handle_submit() {
+
+    }
+
     return (
         <ContentContainer header_text="Create Topic">
             <>
             <div>
                 <ContentGroup title="Setup">
                     <>
-                    <TextField title="Topic Name" input_id="create-form-input-title" is_number={false} is_required={true} placeholder="My New Topic" value="" size={30} min_len={1} max_len={256} />
-                    <TextField title="Users" input_id="create-form-input-num-users" is_number={true} is_required={false} placeholder="2" value="" size={5} min_len={1} max_len={4} />
-                    <TextField title="Subjects" input_id="create-form-input-num-subjects" is_number={true} is_required={false} placeholder="6" value="" size={5} min_len={1} max_len={4} />
-                    <TextField title="Entries" input_id="create-form-input-num-entries" is_number={true} is_required={false} placeholder="4" value="" size={5} min_len={1} max_len={4} />
+                    <TextField title="Topic Name" input_id="create-form-input-title" is_number={false} is_required={true} placeholder="My New Topic" value="" size={30} min_len={1} max_len={256} editable={true} />
+                    <TextField title="Users" input_id="create-form-input-num-users" is_number={true} is_required={false} placeholder="2" value="" size={5} min_len={1} max_len={4} editable={true} />
+                    <TextField title="Subjects" input_id="create-form-input-num-subjects" is_number={true} is_required={false} placeholder="6" value="" size={5} min_len={1} max_len={4} editable={true} />
+                    <TextField title="Entries" input_id="create-form-input-num-entries" is_number={true} is_required={false} placeholder="4" value="" size={5} min_len={1} max_len={4} editable={true}/>
                     </>
                 </ContentGroup>
                 <ContentGroup title="Import">
@@ -59,7 +70,7 @@ export default function TopicCreateForm() {
                     </>
                 </ContentGroup>
             </div>
-            <SubmitCancelButtons />
+            <SubmitCancelButtons onCancel={handle_cancel} onSubmit={handle_submit}/>
             </>
         </ContentContainer>
     );

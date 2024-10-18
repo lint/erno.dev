@@ -3,10 +3,16 @@ const topics = [
     {
         name: "topic 1",
         topic_id: "1",
+        num_users: 2,
+        num_subjects: 6, 
+        num_entries: 4,
     },
     {
         name: "topic 2",
         topic_id: "2",
+        num_users: 2,
+        num_subjects: 6, 
+        num_entries: 4,
     }
 ];
 

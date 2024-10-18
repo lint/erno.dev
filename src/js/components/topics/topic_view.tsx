@@ -5,30 +5,98 @@ import ContentContainer from '../general/content_container';
 import ContentGroup from '../general/content_group';
 import { getCookie, setCookie } from '../../util/cookies';
 import SegmentSelect from '../general/segment_select';
+import TextField from '../forms/text_field';
+import SubmitCancelButtons from '../forms/submit_cancel';
+
+export interface TopicViewProps {
+    topic: any;
+}
+
+export interface TopicViewDetailsViewProps {
+    topic: any;
+    callback: () => any;
+}
 
 export function TopicViewPlotView() {
     return (
         <div>plot</div>
     );
 }
-export function TopicViewDetailsView() {
+
+export function TopicViewDetailsView({topic, callback}: TopicViewDetailsViewProps) {
+
+    const [isEditing, setIsEditing] = useState(false);
+
+    let editButton = (
+        <div id="topic-details-edit-button-container">
+            <button className="common-button" onClick={() => setIsEditing(true)}>Edit</button>
+        </div>
+    );
+    let submitCancelButtons = <SubmitCancelButtons onCancel={() => setIsEditing(false)} onSubmit={()=>{
+        topic.name = (document.getElementById("edit-form-input-title") as HTMLInputElement).value;
+        topic.num_users = (document.getElementById("edit-form-input-num-users") as HTMLInputElement).value;
+        topic.num_subjects = (document.getElementById("edit-form-input-num-subjects") as HTMLInputElement).value;
+        topic.num_entries = (document.getElementById("edit-form-input-num-entries") as HTMLInputElement).value;
+        setIsEditing(false);
+        callback();
+    }}/>;
+    let bottomAction = isEditing ? submitCancelButtons : editButton;
+
     return (
-        <div>details</div>
+        <>
+        <TextField title="Topic Name" 
+            input_id="edit-form-input-title" 
+            is_number={false}
+            is_required={false} 
+            placeholder={topic.name}
+            value={topic.name}
+            size={30}
+            min_len={1}
+            max_len={256}
+            editable={isEditing}
+        />
+        <TextField title="Users" 
+            input_id="edit-form-input-num-users" 
+            is_number={true} 
+            is_required={false}
+            placeholder={topic.num_users}
+            value={topic.num_users}
+            size={5} 
+            min_len={1}
+            max_len={4}
+            editable={isEditing}
+        />
+        <TextField title="Subjects" 
+            input_id="edit-form-input-num-subjects" 
+            is_number={true}
+            is_required={false} 
+            placeholder={topic.num_subjects}
+            value={topic.num_subjects}
+            size={5}
+            min_len={1}
+            max_len={4}
+            editable={isEditing}
+        />
+        <TextField title="Entries" 
+            input_id="edit-form-input-num-entries"
+            is_number={true} 
+            is_required={false}
+            placeholder={topic.num_entries} 
+            value={topic.num_entries}
+            size={5}
+            min_len={1} 
+            max_len={4}
+            editable={isEditing}
+        />
+        {bottomAction}
+        </>
     );
 }
-export function TopicViewDetailsEditView() {
-    return (
-        <div>details edit</div>
-    );
-}
+
 export function TopicViewDataView() {
     return (
         <div>data</div>
     );
-}
-
-export interface TopicViewProps {
-    topic: any;
 }
 
 export default function TopicView({ topic }: TopicViewProps) {
@@ -37,14 +105,12 @@ export default function TopicView({ topic }: TopicViewProps) {
     let cookie_id = "topic-current-view-" + topic.topic_id;
     let topic_current_view = getCookie(cookie_id);
     let [currentView, setCurrentView] = useState(topic_current_view);
+    let [refresh, setRefresh] = useState(false);
 
     let content;
     let activeIndex = 0;
     if (currentView === "details") {
-        content = <TopicViewDetailsView />;
-        activeIndex = 2;
-    } else if (currentView === "details-edit") {
-        content = <TopicViewDetailsEditView />;
+        content = <TopicViewDetailsView topic={topic} callback={()=>{setRefresh(!refresh)}}/>;
         activeIndex = 2;
     } else if (currentView === "data") {
         content = <TopicViewDataView />
