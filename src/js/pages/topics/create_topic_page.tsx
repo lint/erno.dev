@@ -1,6 +1,6 @@
 
 import React from 'react';
-import BasePage from '../../components/layout/base_page';
+import BasePage from '../base_page';
 import TopicCreateForm from '../../components/topics/create_form';
 import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
 import { TopicCreateRightToolbarItems } from '../../components/topics/toolbar_items';
