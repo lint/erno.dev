@@ -1,9 +1,9 @@
 
 import React from 'react';
-import GetTopics from '../api/topic';
 import { TopicCreateFormButton } from './create_form';
 import './topics.css';
 import ContentHeader from '../general/content_header';
+import { useNavigate } from 'react-router-dom';
 
 export interface TopicDashboardRightToolbarItemsProps {
     view_mode_callback: (params: any) => any;
@@ -24,12 +24,15 @@ export interface TopicDashboardViewProps {
 }
 
 export function TopicDashboardListView({ topics }: TopicDashboardViewProps) {
+    
+    const navigate = useNavigate();
+
     return (
         <div id="dashboard-view-content">
             <div id="dashboard-list-view">
                 <ul>
                     {topics.map(topic => (
-                        <li key={"key-" + topic["name"]}>
+                        <li key={"key-" + topic["topic_id"]} onClick={() => navigate("/topics/" + topic["topic_id"])}>
                             <span>{topic["name"]}</span>
                         </li>                        
                     ))}
@@ -40,11 +43,14 @@ export function TopicDashboardListView({ topics }: TopicDashboardViewProps) {
 }
 
 export function TopicDashboardGridView({ topics }: TopicDashboardViewProps) {
+
+    const navigate = useNavigate();
+
     return (
         <div id="dashboard-view-content">
             <div id="dashboard-grid-view">
                 {topics.map(topic => (
-                    <div className="dashboard-grid-cell" key={"key-" + topic["name"]}>
+                    <div className="dashboard-grid-cell" key={"key-" + topic["name"]} onClick={() => navigate("/topics/" + topic["topic_id"])}>
                         <div className="dashboard-grid-cell-preview">
 
                         </div>
@@ -92,11 +98,11 @@ export function TopicDashboardViewModeButton({ view_mode_callback, is_grid_view 
 
 export interface TopicDashboardProps {
     is_grid_view: boolean;
+    topics: any[];
 }
 
-export default function TopicDashboard({ is_grid_view }: TopicDashboardProps) {
+export default function TopicDashboard({ is_grid_view, topics }: TopicDashboardProps) {
 
-    let topics = GetTopics();
     let content;
 
     if (topics == null || topics.length === 0) {

@@ -5,7 +5,7 @@ import TopicCreateForm from '../../components/topics/create_form';
 import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
 import { TopicCreateRightToolbarItems } from '../../components/topics/create_form';
 
-export default function CreateTopicPage() {
+export default function TopicCreatePage() {
 
     return (
         <BasePage
