@@ -1,6 +1,6 @@
 
 import React from 'react';
-import BasePage from '../../components/layout/base_page';
+import BasePage from '../base_page';
 import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
 
 export default function HomePage() {
