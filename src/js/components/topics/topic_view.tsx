@@ -7,6 +7,7 @@ import { getCookie, setCookie } from '../../util/cookies';
 import SegmentSelect from '../general/segment_select';
 import TextField from '../forms/text_field';
 import SubmitCancelButtons from '../forms/submit_cancel';
+import GridInput from '../forms/grid_input';
 
 export interface TopicViewProps {
     topic: any;
@@ -94,8 +95,13 @@ export function TopicViewDetailsView({topic, callback}: TopicViewDetailsViewProp
 }
 
 export function TopicViewDataView() {
+
+    let data = [["col1", "col2", "col3"], [1, 2, 3]];
+
     return (
-        <div>data</div>
+        <div>
+            <GridInput data={data}/>
+        </div>
     );
 }
 

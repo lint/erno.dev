@@ -58,3 +58,27 @@
 /* .submit-button {
 
 } */
+
+/* .grid-input-container {
+} */
+
+.grid-input-table {
+    background-color: white;
+    border: 1px solid gray;
+    border-spacing: 0;
+}
+
+/* .grid-input-row {
+} */
+
+.grid-input-cell {
+    border: 1px solid gray;
+}
+
+.grid-input-cell:first-child {
+    font-weight: bold
+}
+
+.grid-input-cell input {
+    all:unset;
+}
