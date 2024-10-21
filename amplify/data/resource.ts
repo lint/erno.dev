@@ -1,33 +1,28 @@
+
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any unauthenticated user can "create", "read", "update", 
-and "delete" any "Todo" records.
-=========================================================================*/
 const schema = a.schema({
   Topic: a
     .model({
-      topic_id: a.id(),
+      topic_id: a.id().required(),
       name: a.string(),
       length: a.integer(),
       ratings: a.hasMany("Rating", "topic_id"),
       subjects: a.hasMany("Subject", "topic_id"),
     })
-    .authorization((allow) => [allow.guest()]),
+    .identifier(["topic_id"]),
   Subject: a
     .model({
-      subject_id: a.id(),
+      subject_id: a.id().required(),
       name: a.string(),
       topic_id: a.id(),
       topic: a.belongsTo("Topic", "topic_id"),
       ratings: a.hasMany("Rating", "subject_id"),
     })
-    .authorization((allow) => [allow.guest()]),
+    .identifier(["subject_id"]),
   Rating: a
     .model({
-      rating_id: a.id(),
+      rating_id: a.id().required(),
       value: a.integer(),
       index: a.integer(),
       topic_id: a.id(),
@@ -37,15 +32,16 @@ const schema = a.schema({
       subject: a.belongsTo("Subject", "subject_id"),
       user: a.belongsTo("User", "user_id"),
     })
-    .authorization((allow) => [allow.guest()]),
+    .identifier(["rating_id"]),
   User: a
     .model({
-      user_id: a.id(),
+      user_id: a.id().required(),
       name: a.string(),
       ratings: a.hasMany("Rating", "user_id"),
     })
-    .authorization((allow) => [allow.guest()]),
-});
+    .identifier(["user_id"]),
+})
+.authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
 

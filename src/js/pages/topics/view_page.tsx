@@ -1,22 +1,45 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import TopicView from '../../components/topics/topic_view';
 import { TopicCreateRightToolbarItems } from '../../components/topics/create_form';
 import ToolbarNavItems from '../../components/navbar/toolbar_nav_items';
 import BasePage from '../base_page';
 import { useParams } from 'react-router-dom';
 import ErrorDisplay from '../../components/error/error_display';
-import { GetTopic } from '../../components/api/topic';
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "../../../../amplify/data/resource";
+
+const client = generateClient<Schema>();
+
+export interface TopicViewPageState {
+    topic?: any;
+}
 
 export default function TopicViewPage() {
-
-    const { topic_id } = useParams();
     
-    let content;
-    let topic = topic_id != null ? GetTopic(topic_id) : null;
+    const { topic_id } = useParams();
 
-    if (topic != null) {
-        content = <TopicView topic={topic} />
+    const getTopic = async () => {
+
+        if (topic_id == null) {
+            return;
+        }
+
+        const {data, errors} = await client.models.Topic.get({topic_id: topic_id});
+
+        if (errors != null) {
+            console.log("Errors ", errors);
+            return;
+        }
+        setState({ topic: data } as TopicViewPageState);
+    }
+
+    useEffect(() => { getTopic() }, []);
+    const [state, setState] = useState({} as TopicViewPageState);
+
+    let content;
+    if (state != null && state.topic != null) {
+        content = <TopicView topic={state.topic} />
     } else {
         content = <ErrorDisplay status="404"/>
     }

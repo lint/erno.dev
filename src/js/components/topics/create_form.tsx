@@ -8,6 +8,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import './topics.css';
 import ContentContainer from '../general/content_container';
 import UserDataGridInput from './user_data_input';
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "../../../../amplify/data/resource";
+
+const client = generateClient<Schema>();
 
 export function TopicCreateRightToolbarItems() {
     return (
@@ -41,25 +45,51 @@ export default function TopicCreateForm() {
     
     const navigate = useNavigate();
 
-    function handle_cancel() {
+    function cancelCreate() {
         navigate(getCookie("create-topic-url-ref") ?? "/topics");
     }
 
-    function handle_submit() {
+    const createTopic = async () => {
 
+        let name        = (document.getElementById("create-form-input-title") as HTMLInputElement).value;
+        // let numUsers    = (document.getElementById("create-form-input-num-users") as HTMLInputElement).value;
+        // let numSubjects = (document.getElementById("create-form-input-num-subjects") as HTMLInputElement).value;
+        let numEntries  = (document.getElementById("create-form-input-num-entries") as HTMLInputElement).value;
+
+        client.models.Topic.list().then(res => {
+
+            if (!res.data || res.errors) {
+                throw new Error("Error getting topics:" + res.errors);
+            }
+
+            let topics = res.data;
+            let max_id = 0;
+            topics.forEach(topic => {
+                if (Number(topic.topic_id) > Number(max_id)) {
+                    max_id = Number(topic.topic_id);
+                }
+            });
+            max_id++;
+
+            return client.models.Topic.create({
+                name: name,
+                length: Number(numEntries),
+                topic_id: String(max_id),
+            });
+
+        }).then(res => {
+
+            if (!res.data || res.errors) {
+                throw new Error("Error creating topic:" + res.errors);
+            }
+
+            navigate("/topics");
+
+        }).catch(error => {
+            console.error("Error: ", error);
+            alert("Failed to create topic...");
+        });
     }
-
-    let gridData = [["", "col2", "col3"], ["Person1", 2, 3], ["Person2", 3, 4]];
-    let picklistData = [
-        {
-            text: "User 1",
-            value: "user_1"
-        },
-        {
-            text: "User 2",
-            value: "user_2"
-        }
-    ];
 
     return (
         <ContentContainer header_text="Create Topic">
@@ -80,11 +110,11 @@ export default function TopicCreateForm() {
                 </ContentGroup>
                 <ContentGroup title="Input">
                     <>
-                    <UserDataGridInput users={picklistData} ratings={gridData} callback={()=>{}} picklistEditable={true} gridEditable={true} />
+                    <UserDataGridInput users={[]} ratings={[]} callback={()=>{}} picklistEditable={true} gridEditable={true} />
                     </>
                 </ContentGroup>
             </div>
-            <SubmitCancelButtons onCancel={handle_cancel} onSubmit={handle_submit}/>
+            <SubmitCancelButtons onCancel={cancelCreate} onSubmit={createTopic}/>
             </>
         </ContentContainer>
     );

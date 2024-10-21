@@ -8,6 +8,10 @@ import SegmentSelect from '../general/segment_select';
 import TextField from '../forms/text_field';
 import SubmitCancelButtons from '../forms/submit_cancel';
 import UserDataGridInput from './user_data_input';
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "../../../../amplify/data/resource";
+
+const client = generateClient<Schema>();
 
 export interface TopicViewProps {
     topic: any;
@@ -45,8 +49,16 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
         topic.num_users = (document.getElementById("edit-form-input-num-users") as HTMLInputElement).value;
         topic.num_subjects = (document.getElementById("edit-form-input-num-subjects") as HTMLInputElement).value;
         topic.num_entries = (document.getElementById("edit-form-input-num-entries") as HTMLInputElement).value;
-        setIsEditing(false);
-        callback();
+        
+        console.log(topic);
+        client.models.Topic.update(topic)
+        .catch(error => {
+            console.log("error: ", error);
+        }).finally(() => {
+            setIsEditing(false);
+            callback();
+        });
+
     }}/>;
     let bottomAction = isEditing ? submitCancelButtons : editButton;
 
@@ -135,25 +147,13 @@ export default function TopicView({ topic }: TopicViewProps) {
     let [currentView, setCurrentView] = useState(topic_current_view);
     let [refresh, setRefresh] = useState(false);
 
-    let gridData = [["", "col2", "col3"], ["Person1", 2, 3], ["Person2", 3, 4]];
-    let picklistData = [
-        {
-            text: "User 1",
-            value: "user_1"
-        },
-        {
-            text: "User 2",
-            value: "user_2"
-        }
-    ];
-
     let content;
     let activeIndex = 0;
     if (currentView === "details") {
         content = <TopicViewDetailsView topic={topic} callback={()=>{setRefresh(!refresh)}}/>;
         activeIndex = 2;
     } else if (currentView === "data") {
-        content = <TopicViewDataView users={picklistData} ratings={gridData} subjects={[]} callback={()=>{}}/>
+        content = <TopicViewDataView users={[]} ratings={[]} subjects={[]} callback={()=>{}}/>
         activeIndex = 1;
     } else {
         content = <TopicViewPlotView />;
