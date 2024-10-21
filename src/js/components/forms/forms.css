@@ -37,15 +37,14 @@
 .form-required .form-field-title::after {
     content: "*";
     color: red;
-    transform: translateX(8px);
-    position: absolute;
+    transform: translateX(4px);
 }
 
 .submit-cancel-container {
     display: flex;
     flex-direction: row;
     gap: 10px;
-    justify-content: right;
+    justify-content: left;
 }
 
 .cancel-button {
@@ -73,12 +72,28 @@
 
 .grid-input-cell {
     border: 1px solid gray;
+    padding: 4px;
 }
+
+/* .grid-input-cell:focus-within {
+    border: 1px solid #1553B8;
+} */
 
 .grid-input-cell:first-child {
     font-weight: bold
 }
 
+.grid-input-cell:first-child input {
+    all: unset;
+}
+
 .grid-input-cell input {
-    all:unset;
+    margin: 2px;
+}
+
+/* .grid-input-locked {
+} */
+
+.grid-input-locked input {
+    all: unset;
 }

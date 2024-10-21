@@ -7,14 +7,21 @@ import { getCookie, setCookie } from '../../util/cookies';
 import SegmentSelect from '../general/segment_select';
 import TextField from '../forms/text_field';
 import SubmitCancelButtons from '../forms/submit_cancel';
-import GridInput from '../forms/grid_input';
+import UserDataGridInput from './user_data_input';
 
 export interface TopicViewProps {
     topic: any;
 }
 
-export interface TopicViewDetailsViewProps {
+export interface TopicViewCallbackProps {
     topic: any;
+    callback: () => any;
+}
+
+export interface TopicViewDataProps {
+    ratings: any[];
+    users: any[];
+    subjects: any[];
     callback: () => any;
 }
 
@@ -24,7 +31,7 @@ export function TopicViewPlotView() {
     );
 }
 
-export function TopicViewDetailsView({topic, callback}: TopicViewDetailsViewProps) {
+export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) {
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -44,63 +51,78 @@ export function TopicViewDetailsView({topic, callback}: TopicViewDetailsViewProp
     let bottomAction = isEditing ? submitCancelButtons : editButton;
 
     return (
-        <>
-        <TextField title="Topic Name" 
-            input_id="edit-form-input-title" 
-            is_number={false}
-            is_required={false} 
-            placeholder={topic.name}
-            value={topic.name}
-            size={30}
-            min_len={1}
-            max_len={256}
-            editable={isEditing}
-        />
-        <TextField title="Users" 
-            input_id="edit-form-input-num-users" 
-            is_number={true} 
-            is_required={false}
-            placeholder={topic.num_users}
-            value={topic.num_users}
-            size={5} 
-            min_len={1}
-            max_len={4}
-            editable={isEditing}
-        />
-        <TextField title="Subjects" 
-            input_id="edit-form-input-num-subjects" 
-            is_number={true}
-            is_required={false} 
-            placeholder={topic.num_subjects}
-            value={topic.num_subjects}
-            size={5}
-            min_len={1}
-            max_len={4}
-            editable={isEditing}
-        />
-        <TextField title="Entries" 
-            input_id="edit-form-input-num-entries"
-            is_number={true} 
-            is_required={false}
-            placeholder={topic.num_entries} 
-            value={topic.num_entries}
-            size={5}
-            min_len={1} 
-            max_len={4}
-            editable={isEditing}
-        />
-        {bottomAction}
-        </>
+        <div className="topic-view-content">
+            <div>
+                <TextField title="Topic Name" 
+                    input_id="edit-form-input-title" 
+                    is_number={false}
+                    is_required={false} 
+                    placeholder={topic.name}
+                    value={topic.name}
+                    size={30}
+                    min_len={1}
+                    max_len={256}
+                    editable={isEditing}
+                />
+                <TextField title="Users" 
+                    input_id="edit-form-input-num-users" 
+                    is_number={true} 
+                    is_required={false}
+                    placeholder={topic.num_users}
+                    value={topic.num_users}
+                    size={5} 
+                    min_len={1}
+                    max_len={4}
+                    editable={isEditing}
+                />
+                <TextField title="Subjects" 
+                    input_id="edit-form-input-num-subjects" 
+                    is_number={true}
+                    is_required={false} 
+                    placeholder={topic.num_subjects}
+                    value={topic.num_subjects}
+                    size={5}
+                    min_len={1}
+                    max_len={4}
+                    editable={isEditing}
+                />
+                <TextField title="Entries" 
+                    input_id="edit-form-input-num-entries"
+                    is_number={true} 
+                    is_required={false}
+                    placeholder={topic.num_entries} 
+                    value={topic.num_entries}
+                    size={5}
+                    min_len={1} 
+                    max_len={4}
+                    editable={isEditing}
+                />
+            </div>
+            
+            {bottomAction}
+        </div>
     );
 }
 
-export function TopicViewDataView() {
+export function TopicViewDataView({users, ratings, callback }: TopicViewDataProps) {
 
-    let data = [["col1", "col2", "col3"], [1, 2, 3]];
+    const [isEditing, setIsEditing] = useState(false);
+
+    let editButton = (
+        <div id="topic-data-edit-button-container">
+            <button className="common-button" onClick={() => setIsEditing(true)}>Edit</button>
+        </div>
+    );
+    let submitCancelButtons = <SubmitCancelButtons onCancel={() => setIsEditing(false)} onSubmit={()=>{
+        setIsEditing(false);
+        callback();
+    }}/>;
+    let bottomAction = isEditing ? submitCancelButtons : editButton;
 
     return (
-        <div>
-            <GridInput data={data}/>
+        <div className="topic-view-content">
+            <UserDataGridInput users={users} ratings={ratings} callback={()=>{}} picklistEditable={!isEditing} gridEditable={isEditing} />
+            {bottomAction}
         </div>
     );
 }
@@ -113,13 +135,25 @@ export default function TopicView({ topic }: TopicViewProps) {
     let [currentView, setCurrentView] = useState(topic_current_view);
     let [refresh, setRefresh] = useState(false);
 
+    let gridData = [["", "col2", "col3"], ["Person1", 2, 3], ["Person2", 3, 4]];
+    let picklistData = [
+        {
+            text: "User 1",
+            value: "user_1"
+        },
+        {
+            text: "User 2",
+            value: "user_2"
+        }
+    ];
+
     let content;
     let activeIndex = 0;
     if (currentView === "details") {
         content = <TopicViewDetailsView topic={topic} callback={()=>{setRefresh(!refresh)}}/>;
         activeIndex = 2;
     } else if (currentView === "data") {
-        content = <TopicViewDataView />
+        content = <TopicViewDataView users={picklistData} ratings={gridData} subjects={[]} callback={()=>{}}/>
         activeIndex = 1;
     } else {
         content = <TopicViewPlotView />;

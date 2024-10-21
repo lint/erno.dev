@@ -72,3 +72,7 @@
     background-color: #1553B8;
     color: white;
 }
+
+.picklist label {
+    margin-right: 10px;
+}

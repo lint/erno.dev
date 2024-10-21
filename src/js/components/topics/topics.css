@@ -108,5 +108,24 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
-    justify-content: right;
+    justify-content: left;
+}
+
+#topic-data-edit-button-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: left;
+}
+
+.topic-view-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.topic-user-grid-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }

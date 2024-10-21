@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { numberFieldValidation } from '../../util/validation';
 import './forms.css';
 
 export interface TextFieldProps {
@@ -17,14 +18,7 @@ export interface TextFieldProps {
 
 export default function TextField({title, placeholder, input_id, is_required, min_len, max_len, size, value, is_number, editable}: TextFieldProps) {
 
-    function number_field_validation() {
-        let num_input = document.getElementById(input_id) as HTMLInputElement;
-        if (num_input) {
-            num_input.value = num_input.value.replace(/\D/g, '');
-        }
-    }
-
-    let onInput = is_number ? number_field_validation : () => {};
+    let onInput = is_number ? numberFieldValidation : () => {};
     let required_cls = is_required ? " form-required" : "";
 
     let textInput = <input type="text" id={input_id} name={input_id} required={is_required} onInput={onInput} minLength={min_len} maxLength={max_len} size={size} defaultValue={value} placeholder={placeholder}/>;
