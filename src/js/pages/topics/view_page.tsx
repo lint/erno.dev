@@ -8,11 +8,13 @@ import { useParams } from 'react-router-dom';
 import ErrorDisplay from '../../components/error/error_display';
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../../amplify/data/resource";
+import { PageLoadingSpinner } from '../../components/general/loading_spinner';
 
 const client = generateClient<Schema>();
 
 export interface TopicViewPageState {
     topic?: any;
+    isLoading: boolean;
 }
 
 export default function TopicViewPage() {
@@ -31,15 +33,17 @@ export default function TopicViewPage() {
             console.log("Errors ", errors);
             return;
         }
-        setState({ topic: data } as TopicViewPageState);
+        setState({ topic: data, isLoading:false } as TopicViewPageState);
     }
 
     useEffect(() => { getTopic() }, []);
-    const [state, setState] = useState({} as TopicViewPageState);
+    const [state, setState] = useState({ isLoading:true } as TopicViewPageState);
 
     let content;
     if (state != null && state.topic != null) {
         content = <TopicView topic={state.topic} />
+    } else if (state.isLoading) {
+        content = <PageLoadingSpinner showText={false} />
     } else {
         content = <ErrorDisplay status="404"/>
     }

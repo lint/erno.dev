@@ -5,6 +5,7 @@ import './topics.css';
 import ContentHeader from '../general/content_header';
 import { useNavigate } from 'react-router-dom';
 import SegmentSelect from '../general/segment_select';
+import { PageLoadingSpinner } from '../general/loading_spinner';
 
 export interface TopicDashboardRightToolbarItemsProps {
     view_mode_callback: (params: any) => any;
@@ -87,13 +88,16 @@ export function TopicDashboardEmptyView() {
 export interface TopicDashboardProps {
     is_grid_view: boolean;
     topics: any[];
+    isLoading: boolean;
 }
 
-export default function TopicDashboard({ is_grid_view, topics }: TopicDashboardProps) {
+export default function TopicDashboard({ is_grid_view, topics, isLoading }: TopicDashboardProps) {
 
     let content;
 
-    if (topics == null || topics.length === 0) {
+    if (isLoading) {
+        content = <PageLoadingSpinner showText={false}/>;
+    } else if (topics == null || topics.length === 0) {
         content = <TopicDashboardEmptyView />;
     } else if (is_grid_view) {
         content = <TopicDashboardGridView topics={topics} />;

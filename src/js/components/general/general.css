@@ -1,4 +1,12 @@
 
+.centered-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 100%;
+}
+
 .content-header {
     height: 36px;
     border-bottom: 3px solid orange;
@@ -75,4 +83,38 @@
 
 .picklist label {
     margin-right: 10px;
+}
+
+.loading-container {
+    display: flex; 
+    flex-direction: row;
+    gap: 10px;
+    /* height: 20px; */
+    margin: 10px;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+
+}
+
+@keyframes spin {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.loading-spinner {
+    border: 0.42em solid #F8F8F8;
+    border-top: 0.42em solid #1553B8;
+    border-radius: 50%;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    aspect-ratio: 1;
+    animation: spin 2s linear infinite;
+}
+
+.page-loading-container {
+    height: 84px;
 }

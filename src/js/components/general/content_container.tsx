@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ContentHeader from './content_header';
+import './general.css';
 
 export interface ContentContainerProps {
     children: React.ReactElement;

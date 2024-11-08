@@ -19,6 +19,7 @@ export default function TopicsDashboardPage() {
             return;
         }
         setTopics(data);
+        setIsLoading(false);
     }
 
     useEffect(() => { getTopics() }, []);
@@ -26,6 +27,7 @@ export default function TopicsDashboardPage() {
     let is_grid_cookie = getCookie("dashboard-grid-view-enabled");
     const [is_grid_view, set_is_grid_view] = useState((is_grid_cookie == null || is_grid_cookie === "true"));
     const [topics, setTopics] = useState(Array(0));
+    const [isLoading, setIsLoading] = useState(true);
 
     function handle_view_mode(event: React.MouseEvent<HTMLButtonElement>) {
         const button: HTMLButtonElement = event.currentTarget;
@@ -38,7 +40,7 @@ export default function TopicsDashboardPage() {
         <BasePage
             left_toolbar_items={<ToolbarNavItems />}
             right_toolbar_items={<TopicDashboardRightToolbarItems is_grid_view={is_grid_view} view_mode_callback={handle_view_mode} />}
-            page_content={<TopicDashboard is_grid_view={is_grid_view} topics={topics} />} 
+            page_content={<TopicDashboard is_grid_view={is_grid_view} topics={topics} isLoading={isLoading} />} 
         />
     );
 }
