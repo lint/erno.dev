@@ -73,6 +73,8 @@
 .grid-input-cell {
     border: 1px solid gray;
     padding: 4px;
+    height: 24px;
+    width: 48px;
 }
 
 /* .grid-input-cell:focus-within {
@@ -96,4 +98,5 @@
 
 .grid-input-locked input {
     all: unset;
+    cursor: default;
 }

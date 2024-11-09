@@ -52,10 +52,11 @@ export default function TopicCreateForm() {
     const createTopic = async () => {
 
         let name        = (document.getElementById("create-form-input-title") as HTMLInputElement).value;
-        // let numUsers    = (document.getElementById("create-form-input-num-users") as HTMLInputElement).value;
-        // let numSubjects = (document.getElementById("create-form-input-num-subjects") as HTMLInputElement).value;
-        let numEntries  = (document.getElementById("create-form-input-num-entries") as HTMLInputElement).value;
+        let numUsers    = (document.getElementById("create-form-input-num-users") as HTMLInputElement).value ?? 1;
+        let numSubjects = (document.getElementById("create-form-input-num-subjects") as HTMLInputElement).value ?? 2;
+        let numEntries  = (document.getElementById("create-form-input-num-entries") as HTMLInputElement).value ?? 4;
 
+        // TODO: getting the next ID can be done in a much better way
         client.models.Topic.list().then(res => {
 
             if (!res.data || res.errors) {
@@ -73,7 +74,9 @@ export default function TopicCreateForm() {
 
             return client.models.Topic.create({
                 name: name,
-                length: Number(numEntries),
+                input_num_entries: Number(numEntries),
+                input_num_users: Number(numUsers),
+                input_num_subjects: Number(numSubjects),
                 topic_id: String(max_id),
             });
 
@@ -110,7 +113,16 @@ export default function TopicCreateForm() {
                 </ContentGroup>
                 <ContentGroup title="Input">
                     <>
-                    <UserDataGridInput users={[]} ratings={[]} callback={()=>{}} picklistEditable={true} gridEditable={true} />
+                    <UserDataGridInput 
+                        users={[]} 
+                        ratings={[]} 
+                        picklistCallback={()=>{}} 
+                        gridCallback={()=>{}} 
+                        inputNumEntries={0} 
+                        inputNumSubjects={0} 
+                        picklistEditable={true} 
+                        gridEditable={true} 
+                    />
                     </>
                 </ContentGroup>
             </div>

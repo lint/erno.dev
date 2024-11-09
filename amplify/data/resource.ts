@@ -6,9 +6,12 @@ const schema = a.schema({
     .model({
       topic_id: a.id().required(),
       name: a.string(),
-      length: a.integer(),
+      input_num_users: a.integer(),
+      input_num_entries: a.integer(),
+      input_num_subjects: a.integer(),
       ratings: a.hasMany("Rating", "topic_id"),
       subjects: a.hasMany("Subject", "topic_id"),
+      users: a.hasMany("User", "topic_id"),
     })
     .identifier(["topic_id"]),
   Subject: a
@@ -38,6 +41,8 @@ const schema = a.schema({
       user_id: a.id().required(),
       name: a.string(),
       ratings: a.hasMany("Rating", "user_id"),
+      topic_id: a.id(),
+      topic: a.belongsTo("Topic", "topic_id"),
     })
     .identifier(["user_id"]),
 })

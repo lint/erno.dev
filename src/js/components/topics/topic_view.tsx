@@ -10,6 +10,7 @@ import SubmitCancelButtons from '../forms/submit_cancel';
 import UserDataGridInput from './user_data_input';
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../../amplify/data/resource";
+import createRatingsGridForTopic, { createUserListForTopic } from '../../util/topics';
 
 const client = generateClient<Schema>();
 
@@ -22,13 +23,6 @@ export interface TopicViewCallbackProps {
     callback: () => any;
 }
 
-export interface TopicViewDataProps {
-    ratings: any[];
-    users: any[];
-    subjects: any[];
-    callback: () => any;
-}
-
 export function TopicViewPlotView() {
     return (
         <div>plot</div>
@@ -36,6 +30,7 @@ export function TopicViewPlotView() {
 }
 
 export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) {
+    console.log(topic)
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -45,11 +40,25 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
         </div>
     );
     let submitCancelButtons = <SubmitCancelButtons onCancel={() => setIsEditing(false)} onSubmit={()=>{
-        topic.name = (document.getElementById("edit-form-input-title") as HTMLInputElement).value;
-        topic.num_users = (document.getElementById("edit-form-input-num-users") as HTMLInputElement).value;
-        topic.num_subjects = (document.getElementById("edit-form-input-num-subjects") as HTMLInputElement).value;
-        topic.num_entries = (document.getElementById("edit-form-input-num-entries") as HTMLInputElement).value;
-        
+
+        let name = (document.getElementById("edit-form-input-title") as HTMLInputElement).value;
+        let inputNumUsers =  (document.getElementById("edit-form-input-num-users") as HTMLInputElement).value;
+        let inputNumEntries = (document.getElementById("edit-form-input-num-entries") as HTMLInputElement).value;
+        let inputNumSubjects = (document.getElementById("edit-form-input-num-subjects") as HTMLInputElement).value;
+
+        if (name) {
+            topic.name = name;
+        }
+        if (inputNumUsers) {
+            topic.input_num_users = inputNumUsers;
+        }
+        if (inputNumEntries) {
+            topic.input_num_entries = inputNumEntries;
+        }
+        if (inputNumSubjects) {
+            topic.input_num_subjects = inputNumSubjects;
+        }
+
         console.log(topic);
         client.models.Topic.update(topic)
         .catch(error => {
@@ -80,8 +89,8 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
                     input_id="edit-form-input-num-users" 
                     is_number={true} 
                     is_required={false}
-                    placeholder={topic.num_users}
-                    value={topic.num_users}
+                    placeholder={topic.input_num_users}
+                    value={topic.input_num_users}
                     size={5} 
                     min_len={1}
                     max_len={4}
@@ -91,8 +100,8 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
                     input_id="edit-form-input-num-subjects" 
                     is_number={true}
                     is_required={false} 
-                    placeholder={topic.num_subjects}
-                    value={topic.num_subjects}
+                    placeholder={topic.input_num_subjects}
+                    value={topic.input_num_subjects}
                     size={5}
                     min_len={1}
                     max_len={4}
@@ -102,8 +111,8 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
                     input_id="edit-form-input-num-entries"
                     is_number={true} 
                     is_required={false}
-                    placeholder={topic.num_entries} 
-                    value={topic.num_entries}
+                    placeholder={topic.input_num_entries} 
+                    value={topic.input_num_entries}
                     size={5}
                     min_len={1} 
                     max_len={4}
@@ -116,7 +125,7 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
     );
 }
 
-export function TopicViewDataView({users, ratings, callback }: TopicViewDataProps) {
+export function TopicViewDataView({ topic, callback }: TopicViewCallbackProps) {
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -130,10 +139,23 @@ export function TopicViewDataView({users, ratings, callback }: TopicViewDataProp
         callback();
     }}/>;
     let bottomAction = isEditing ? submitCancelButtons : editButton;
+    
+    let gridCallback = function (rowIndex: number, entryIndex: number, value: string) {
+        console.log("user grid callback: rowIndex: ", rowIndex, "entryIndex: ", entryIndex, "value: ", value);
+    }
 
     return (
         <div className="topic-view-content">
-            <UserDataGridInput users={users} ratings={ratings} callback={()=>{}} picklistEditable={!isEditing} gridEditable={isEditing} />
+            <UserDataGridInput 
+                users={createUserListForTopic(topic)} 
+                ratings={createRatingsGridForTopic(topic, null)} 
+                picklistCallback={()=>{}} 
+                gridCallback={gridCallback} 
+                inputNumEntries={Number(topic.input_num_entries)} 
+                inputNumSubjects={Number(topic.input_num_subjects)} 
+                picklistEditable={!isEditing} 
+                gridEditable={isEditing} 
+            />
             {bottomAction}
         </div>
     );
@@ -153,7 +175,7 @@ export default function TopicView({ topic }: TopicViewProps) {
         content = <TopicViewDetailsView topic={topic} callback={()=>{setRefresh(!refresh)}}/>;
         activeIndex = 2;
     } else if (currentView === "data") {
-        content = <TopicViewDataView users={[]} ratings={[]} subjects={[]} callback={()=>{}}/>
+        content = <TopicViewDataView topic={topic} callback={()=>{}}/>
         activeIndex = 1;
     } else {
         content = <TopicViewPlotView />;
