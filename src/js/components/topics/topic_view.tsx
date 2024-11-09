@@ -212,7 +212,15 @@ export default function TopicView({ topic }: TopicViewProps) {
                 setUsers(res.users as any[]);
             }
         })
-        
+
+        // const sub = client.models.User.observeQuery().subscribe({
+        //     next(data) {
+        //         setUsers([...data.items])
+        //     }
+        // });
+        // return () => sub.unsubscribe();
+
+
         // .then((res) => {
         //     let topicUsers: any[] | ((prevState: never[]) => never[]) = [];
         //     if (res) {

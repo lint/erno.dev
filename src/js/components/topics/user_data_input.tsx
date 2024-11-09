@@ -24,21 +24,15 @@ export interface UserDataGridInputProps {
 export default function UserDataGridInput({ratings, users, inputNumEntries, inputNumSubjects, picklistEditable, gridEditable, picklistCallback, gridCallback}: UserDataGridInputProps) {
 
     const [isEditingUserName, setIsEditingUserName] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(users.length > 0 ? users[0] : null);
+    const [selectedPicklistIndex, setSelectedPicklistIndex] = useState(-1);
     const [refresh, setRefresh] = useState(false);
 
-    if (!selectedUser && users.length > 0) {
-        setSelectedUser(users[0]);
+    if (selectedPicklistIndex < 0 && users.length > 0) {
+        setSelectedPicklistIndex(0);
     }
 
-    let userName = selectedUser ? selectedUser.name : "User";
-    console.log("UserDataGridInput: users: ", users);
-    console.log("selectedUser: ", selectedUser, "userName: ", userName)
-    console.log(users.length); 
-
-    // TODO: issue where editing the user name when you first load in does not update the name in the picklist
-    // it looks like that updating the selectedUser does not update the users array in the picklist? since even though the user is updated, the createUserFromUsers call still prints the user as having the original username
-    // however, after selecting an option in the picklist, editing the name works as expected
+    let selectedUser = selectedPicklistIndex >= 0 ? users[selectedPicklistIndex] : null;
+    let userName = selectedUser ? selectedUser.name : "";
 
     let submitCancelButtons = (
         <>
@@ -74,10 +68,10 @@ export default function UserDataGridInput({ratings, users, inputNumEntries, inpu
 
     function picklistCallbackHook(params: any) {
 
-        let selectedIndex = params.target.selectedIndex;
+        let newSelectedIndex = params.target.selectedPicklistIndex;
 
-        if (selectedIndex < users.length) {
-            setSelectedUser(users[selectedIndex]);
+        if (newSelectedIndex < users.length) {
+            setSelectedPicklistIndex(newSelectedIndex);
         }
 
         picklistCallback(params);
@@ -86,7 +80,7 @@ export default function UserDataGridInput({ratings, users, inputNumEntries, inpu
     return (
         <div className="topic-user-grid-input-container">
             <div className="topic-editable-picklist-container">
-                <Picklist data={createUserNameListFromUsers(users)} callback={picklistCallbackHook} labelText="User:" editable={picklistEditable}/>
+                <Picklist data={createUserNameListFromUsers(users)} callback={picklistCallbackHook} labelText="User:" editable={picklistEditable && !isEditingUserName}/>
                 {editButton}
             </div>
             <GridInput data={ratings} minRows={inputNumSubjects+1} minCols={inputNumEntries+1} editable={gridEditable} callback={gridCallback}/>
