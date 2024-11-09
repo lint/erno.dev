@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './topics.css';
 import ContentContainer from '../general/content_container';
 import ContentGroup from '../general/content_group';
@@ -10,7 +10,7 @@ import SubmitCancelButtons from '../forms/submit_cancel';
 import UserDataGridInput from './user_data_input';
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../../amplify/data/resource";
-import createRatingsGridForTopic, { createUserListForTopic } from '../../util/topics';
+import createRatingsGridForTopic, { getTopicUsers } from '../../util/topics';
 
 const client = generateClient<Schema>();
 
@@ -20,6 +20,7 @@ export interface TopicViewProps {
 
 export interface TopicViewCallbackProps {
     topic: any;
+    users?: any;
     callback: () => any;
 }
 
@@ -40,6 +41,8 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
         </div>
     );
     let submitCancelButtons = <SubmitCancelButtons onCancel={() => setIsEditing(false)} onSubmit={()=>{
+
+        // TODO: editing topic name needs to be validated similar to on creation
 
         let name = (document.getElementById("edit-form-input-title") as HTMLInputElement).value;
         let inputNumUsers =  (document.getElementById("edit-form-input-num-users") as HTMLInputElement).value;
@@ -125,16 +128,28 @@ export function TopicViewDetailsView({topic, callback}: TopicViewCallbackProps) 
     );
 }
 
-export function TopicViewDataView({ topic, callback }: TopicViewCallbackProps) {
+export function TopicViewDataView({ topic, users, callback }: TopicViewCallbackProps) {
 
     const [isEditing, setIsEditing] = useState(false);
 
     let editButton = (
         <div id="topic-data-edit-button-container">
-            <button className="common-button" onClick={() => setIsEditing(true)}>Edit</button>
+            <button className="common-button" onClick={() => {
+                
+                // TODO: need to replace all cell values with their placeholders, so that all changes are cancelled
+                // also need to make sure that user names are not updated
+
+
+                setIsEditing(true)
+            }} >
+                Edit
+            </button>
         </div>
     );
     let submitCancelButtons = <SubmitCancelButtons onCancel={() => setIsEditing(false)} onSubmit={()=>{
+        
+        // TODO: you need to iterate over the grid and picklist data, extract the values, and update the ratings, subjects (name), users (name)
+        
         setIsEditing(false);
         callback();
     }}/>;
@@ -147,7 +162,7 @@ export function TopicViewDataView({ topic, callback }: TopicViewCallbackProps) {
     return (
         <div className="topic-view-content">
             <UserDataGridInput 
-                users={createUserListForTopic(topic)} 
+                users={users} 
                 ratings={createRatingsGridForTopic(topic, null)} 
                 picklistCallback={()=>{}} 
                 gridCallback={gridCallback} 
@@ -168,6 +183,8 @@ export default function TopicView({ topic }: TopicViewProps) {
     let topic_current_view = getCookie(cookie_id);
     let [currentView, setCurrentView] = useState(topic_current_view);
     let [refresh, setRefresh] = useState(false);
+    let [users, setUsers] = useState([] as any[]);
+    console.log("users:", users);
 
     let content;
     let activeIndex = 0;
@@ -175,7 +192,7 @@ export default function TopicView({ topic }: TopicViewProps) {
         content = <TopicViewDetailsView topic={topic} callback={()=>{setRefresh(!refresh)}}/>;
         activeIndex = 2;
     } else if (currentView === "data") {
-        content = <TopicViewDataView topic={topic} callback={()=>{}}/>
+        content = <TopicViewDataView topic={topic} users={users} callback={()=>{setRefresh(!refresh)}}/>
         activeIndex = 1;
     } else {
         content = <TopicViewPlotView />;
@@ -187,6 +204,25 @@ export default function TopicView({ topic }: TopicViewProps) {
         setCurrentView(new_current_view);
         setCookie(cookie_id, new_current_view, 365);
     }
+
+    useEffect(() => { 
+        getTopicUsers(topic).then((res) => {
+            if (res) {
+                // setUsers(res.users.map((user)=>user.name) as string[]);
+                setUsers(res.users as any[]);
+            }
+        })
+        
+        // .then((res) => {
+        //     let topicUsers: any[] | ((prevState: never[]) => never[]) = [];
+        //     if (res) {
+        //         res.forEach((entry) => {
+        //             topicUsers.push(entry);
+        //         })
+        //     }
+        //     setUsers(topicUsers);
+        // })
+    }, []);
     
     return (
         <ContentContainer header_text={topic.name}>

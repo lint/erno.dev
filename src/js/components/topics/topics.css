@@ -38,6 +38,8 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .dashboard-grid-cell {
@@ -128,4 +130,14 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.topic-editable-picklist-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+#topic-user-picklist-editable-container {
+    cursor: pointer;
 }

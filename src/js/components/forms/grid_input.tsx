@@ -8,11 +8,11 @@ export interface GridInputProps {
     minRows?: number;
     minCols?: number;
     editable: boolean;
-    callback: (rowIndex: number, entryIndex: number, value: string) => any;
+    callback?: (rowIndex: number, entryIndex: number, value: string) => any;
 }
 
 export default function GridInput({data, editable, minRows, minCols, callback}: GridInputProps) {
-    console.log(data, editable, minRows, minCols)
+    // console.log(data, editable, minRows, minCols)
 
     if (minCols && data.length > 0 && data[0].length < minCols) {
         let numNewCols = minCols - data[0].length; 
@@ -65,9 +65,11 @@ export default function GridInput({data, editable, minRows, minCols, callback}: 
 
                             let td = (
                                 <td key={"key-cell-"+rowIndex+"-"+entryIndex} className={className}
-                                    onChange={(e)=> { 
-                                        callback(rowIndex, entryIndex, (e.target as HTMLInputElement).value);
-                                    }}
+                                    // onChange={(e)=> { 
+                                    //     if (callback) {
+                                    //         callback(rowIndex, entryIndex, (e.target as HTMLInputElement).value);
+                                    //     }
+                                    // }}
                                 >
                                     {field}        
                                 </td>

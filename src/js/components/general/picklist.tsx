@@ -17,7 +17,7 @@ export default function Picklist({data, callback, id, labelText, editable}: Pick
             <label htmlFor={id}>{labelText}</label>
             <select disabled={!editable} id={id} onChange={callback}>
                 {data.map((entry, entryIndex) => (
-                    <option key={"key-entry-" + entryIndex} defaultValue={entry.value}>{entry.text}</option>
+                    <option key={entryIndex} defaultValue={entry}>{entry}</option>
                 ))}
             </select>
         </div>
