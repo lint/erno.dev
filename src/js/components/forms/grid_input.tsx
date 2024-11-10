@@ -11,7 +11,7 @@ export interface GridInputProps {
     callback?: (rowIndex: number, entryIndex: number, value: string) => any;
 }
 
-export default function GridInput({data, editable, minRows, minCols, callback}: GridInputProps) {
+export default function GridInput({data, editable, minRows, minCols}: GridInputProps) {
     // console.log(data, editable, minRows, minCols)
 
     if (minCols && data.length > 0 && data[0].length < minCols) {

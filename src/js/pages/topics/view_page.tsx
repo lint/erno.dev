@@ -36,12 +36,18 @@ export default function TopicViewPage() {
         setState({ topic: data, isLoading:false } as TopicViewPageState);
     }
 
-    useEffect(() => { getTopic() }, []);
+    function topicUpdateCallback(topic: any) {
+        setState({ topic: topic, isLoading:false } as TopicViewPageState);
+    }
+
+    useEffect(() => { 
+        getTopic();
+    }, []);
     const [state, setState] = useState({ isLoading:true } as TopicViewPageState);
 
     let content;
     if (state != null && state.topic != null) {
-        content = <TopicView topic={state.topic} />
+        content = <TopicView topic={state.topic} topicUpdateCallback={topicUpdateCallback}/>
     } else if (state.isLoading) {
         content = <PageLoadingSpinner showText={false} />
     } else {

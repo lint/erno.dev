@@ -7,23 +7,17 @@ import { getCookie, setCookie } from '../../util/cookies';
 import SegmentSelect from '../general/segment_select';
 import TextField from '../forms/text_field';
 import SubmitCancelButtons from '../forms/submit_cancel';
-import UserDataGridInput from './user_data_input';
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../../amplify/data/resource";
-import createRatingsGridForTopic, { getRatingsForTopic, getSubjectsForTopic, getUsersForTopic } from '../../util/topics';
+import { updateTopic } from '../../util/topics';
+import ParagraphInput from '../forms/paragraph_input';
 
 const client = generateClient<Schema>();
 
 export interface TopicViewProps {
     topic: any;
-}
-
-export interface TopicViewCallbackProps {
-    topic: any;
-    users?: any;
-    ratings?: any;
-    subjects?: any;
-    callback: () => any;
+    callback?: () => any;
+    topicUpdateCallback?: (params: any) => any;
 }
 
 export function TopicViewPlotView() {
@@ -32,8 +26,7 @@ export function TopicViewPlotView() {
     );
 }
 
-export function TopicViewDetailsView({ topic, callback }: TopicViewCallbackProps) {
-    console.log(topic)
+export function TopicViewDetailsView({ topic, callback }: TopicViewProps) {
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -47,30 +40,19 @@ export function TopicViewDetailsView({ topic, callback }: TopicViewCallbackProps
         // TODO: editing topic name needs to be validated similar to on creation
 
         let name = (document.getElementById("edit-form-input-title") as HTMLInputElement).value;
-        let inputNumUsers = (document.getElementById("edit-form-input-num-users") as HTMLInputElement).value;
-        let inputNumEntries = (document.getElementById("edit-form-input-num-entries") as HTMLInputElement).value;
-        let inputNumSubjects = (document.getElementById("edit-form-input-num-subjects") as HTMLInputElement).value;
 
         if (name) {
             topic.name = name;
         }
-        if (inputNumUsers) {
-            topic.input_num_users = inputNumUsers;
-        }
-        if (inputNumEntries) {
-            topic.input_num_entries = inputNumEntries;
-        }
-        if (inputNumSubjects) {
-            topic.input_num_subjects = inputNumSubjects;
-        }
 
-        console.log(topic);
         client.models.Topic.update(topic)
             .catch(error => {
                 console.log("error: ", error);
             }).finally(() => {
                 setIsEditing(false);
-                callback();
+                if (callback) {
+                    callback();
+                }
             });
 
     }} />;
@@ -90,39 +72,6 @@ export function TopicViewDetailsView({ topic, callback }: TopicViewCallbackProps
                     max_len={256}
                     editable={isEditing}
                 />
-                <TextField title="Users"
-                    input_id="edit-form-input-num-users"
-                    is_number={true}
-                    is_required={false}
-                    placeholder={topic.input_num_users}
-                    value={topic.input_num_users}
-                    size={5}
-                    min_len={1}
-                    max_len={4}
-                    editable={isEditing}
-                />
-                <TextField title="Subjects"
-                    input_id="edit-form-input-num-subjects"
-                    is_number={true}
-                    is_required={false}
-                    placeholder={topic.input_num_subjects}
-                    value={topic.input_num_subjects}
-                    size={5}
-                    min_len={1}
-                    max_len={4}
-                    editable={isEditing}
-                />
-                <TextField title="Entries"
-                    input_id="edit-form-input-num-entries"
-                    is_number={true}
-                    is_required={false}
-                    placeholder={topic.input_num_entries}
-                    value={topic.input_num_entries}
-                    size={5}
-                    min_len={1}
-                    max_len={4}
-                    editable={isEditing}
-                />
             </div>
 
             {bottomAction}
@@ -130,21 +79,15 @@ export function TopicViewDetailsView({ topic, callback }: TopicViewCallbackProps
     );
 }
 
-export function TopicViewDataView({ topic, users, subjects, ratings, callback }: TopicViewCallbackProps) {
+export function TopicViewDataView({ topic, topicUpdateCallback }: TopicViewProps) {
 
-    const [isEditingGrid, setIsEditingGrid] = useState(false);
-    const [selectedPicklistIndex, setSelectedPicklistIndex] = useState(-1);
-    let gridData = createRatingsGridForTopic(subjects, ratings, Number(topic.input_num_subjects) + 1, Number(topic.input_num_entries) + 1);
-
-    if (selectedPicklistIndex === -1 && users.length > 0) {
-        setSelectedPicklistIndex(0);
-    }
+    const [isEditing, setIsEditing] = useState(false);
 
     let editButton = (
         <div id="topic-data-edit-button-container">
             <button className="common-button" 
                 onClick={() => {
-                    setIsEditingGrid(true)
+                    setIsEditing(true)
                 }} 
             >
                 Edit
@@ -155,68 +98,62 @@ export function TopicViewDataView({ topic, users, subjects, ratings, callback }:
         <SubmitCancelButtons 
             onCancel={() => {
 
-                setIsEditingGrid(false);
+                setIsEditing(false);
 
-                document.querySelectorAll(".grid-input-cell input").forEach((e) => {
-                    let inputElement = e as HTMLInputElement;
-                    inputElement.value = inputElement.placeholder;
-                });
+                let paragraphInput = document.getElementById("topic-user-data-input") as HTMLTextAreaElement;
+                paragraphInput.value = paragraphInput.placeholder;
+
             }} 
+
             onSubmit={() => {
 
-                // TODO: you need to iterate over the grid and picklist data, extract the values, and update the ratings, subjects (name), users (name)
+                setIsEditing(false);
 
-                setIsEditingGrid(false);
-                callback();
+                let paragraphInput = document.getElementById("topic-user-data-input") as HTMLTextAreaElement;
+                
+                // TODO: i don't know if this updates the topic for the parent element properly
+                // also need to make the update method used in the details page the same
+                // tbh can combine details and data pages...
+
+                if (paragraphInput) {
+                    paragraphInput.placeholder = paragraphInput.value;
+                    
+                    const topicUpdate = {
+                        topic_id: topic.topic_id,
+                        csvData: paragraphInput.value,
+                    };
+                    let updatedTopic = updateTopic(topicUpdate);
+                    if (topicUpdateCallback && updatedTopic) {
+                        topicUpdateCallback(updatedTopic);
+                    }
+                }
             }} 
         />
     );
-    let bottomAction = isEditingGrid ? submitCancelButtons : editButton;
-
-    let gridCallback = function (rowIndex: number, entryIndex: number, value: string) {
-        console.log("user grid callback: rowIndex: ", rowIndex, "entryIndex: ", entryIndex, "value: ", value);
-    }
-
-    let picklistCallback = function (selectedIndex: number) {
-        setSelectedPicklistIndex(selectedIndex);
-    }
+    let bottomAction = isEditing ? submitCancelButtons : editButton;
 
     return (
         <div className="topic-view-content">
-            <UserDataGridInput
-                users={users}
-                ratings={gridData}
-                picklistCallback={picklistCallback}
-                gridCallback={gridCallback}
-                inputNumEntries={Number(topic.input_num_entries)}
-                inputNumSubjects={Number(topic.input_num_subjects)}
-                picklistEditable={!isEditingGrid}
-                gridEditable={isEditingGrid}
-                selectedPicklistIndex={selectedPicklistIndex}
-            />
+            <ParagraphInput title="Data" placeholder={topic.csvData} value={topic.csvData} input_id="topic-user-data-input" is_required={false} editable={isEditing} cols={40} rows={30}/>
             {bottomAction}
         </div>
     );
 }
 
-export default function TopicView({ topic }: TopicViewProps) {
+export default function TopicView({ topic, topicUpdateCallback }: TopicViewProps) {
 
     let values = ["Plot", "Data", "Details"];
     let cookie_id = "topic-current-view-" + topic.topic_id;
     let topic_current_view = getCookie(cookie_id);
     let [currentView, setCurrentView] = useState(topic_current_view);
     let [refresh, setRefresh] = useState(false);
-    let [users, setUsers] = useState([] as any[]);
-    let [ratings, setRatings] = useState([] as any[]);
-    let [subjects, setSubjects] = useState([] as any[]);
-
     let content;
     let activeIndex = 0;
     if (currentView === "details") {
         content = <TopicViewDetailsView topic={topic} callback={() => { setRefresh(!refresh) }} />;
         activeIndex = 2;
     } else if (currentView === "data") {
-        content = <TopicViewDataView topic={topic} users={users} ratings={ratings} subjects={subjects} callback={() => { setRefresh(!refresh) }} />
+        content = <TopicViewDataView topic={topic} topicUpdateCallback={topicUpdateCallback} />
         activeIndex = 1;
     } else {
         content = <TopicViewPlotView />;
@@ -230,22 +167,6 @@ export default function TopicView({ topic }: TopicViewProps) {
     }
 
     useEffect(() => {
-
-        getUsersForTopic(topic).then((res) => {
-            if (res) {
-                setUsers(res as any[]);
-            }
-        });
-        getSubjectsForTopic(topic).then((res) => {
-            if (res) {
-                setSubjects(res as any[]);
-            }
-        });
-        getRatingsForTopic(topic).then((res) => {
-            if (res) {
-                setRatings(res as any[]);
-            }
-        })
 
     }, []);
 
