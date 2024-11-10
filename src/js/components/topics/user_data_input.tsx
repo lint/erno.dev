@@ -19,19 +19,15 @@ export interface UserDataGridInputProps {
     ratings: any[];
     inputNumEntries: number;
     inputNumSubjects: number;
+    selectedPicklistIndex?: number;
 }
 
-export default function UserDataGridInput({ratings, users, inputNumEntries, inputNumSubjects, picklistEditable, gridEditable, picklistCallback, gridCallback}: UserDataGridInputProps) {
+export default function UserDataGridInput({ratings, users, inputNumEntries, inputNumSubjects, picklistEditable, gridEditable, selectedPicklistIndex, picklistCallback, gridCallback}: UserDataGridInputProps) {
 
     const [isEditingUserName, setIsEditingUserName] = useState(false);
-    const [selectedPicklistIndex, setSelectedPicklistIndex] = useState(-1);
     const [refresh, setRefresh] = useState(false);
 
-    if (selectedPicklistIndex < 0 && users.length > 0) {
-        setSelectedPicklistIndex(0);
-    }
-
-    let selectedUser = selectedPicklistIndex >= 0 ? users[selectedPicklistIndex] : null;
+    let selectedUser = selectedPicklistIndex != undefined && selectedPicklistIndex >= 0 ? users[selectedPicklistIndex] : null;
     let userName = selectedUser ? selectedUser.name : "";
 
     let submitCancelButtons = (
@@ -68,13 +64,12 @@ export default function UserDataGridInput({ratings, users, inputNumEntries, inpu
 
     function picklistCallbackHook(params: any) {
 
-        let newSelectedIndex = params.target.selectedPicklistIndex;
+        let newSelectedIndex = params.target.selectedIndex;
+        console.log(params.target, params.target.selectedIndex)
 
         if (newSelectedIndex < users.length) {
-            setSelectedPicklistIndex(newSelectedIndex);
+            picklistCallback(newSelectedIndex);
         }
-
-        picklistCallback(params);
     }
 
     return (
