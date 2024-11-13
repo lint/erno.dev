@@ -7,12 +7,10 @@ import { getCookie, setCookie } from '../../util/cookies';
 import SegmentSelect from '../general/segment_select';
 import TextField from '../forms/text_field';
 import SubmitCancelButtons from '../forms/submit_cancel';
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../../../../amplify/data/resource";
 import { updateTopic } from '../../util/topics';
 import ParagraphInput from '../forms/paragraph_input';
-
-const client = generateClient<Schema>();
+import Papa from 'papaparse';
+import * as Plot from '@observablehq/plot';
 
 export interface TopicViewProps {
     topic: any;
@@ -20,13 +18,43 @@ export interface TopicViewProps {
     topicUpdateCallback?: (params: any) => any;
 }
 
-export function TopicViewPlotView() {
+export function TopicViewPlotView({ topic }: TopicViewProps) {
+
+    let parsedData = Papa.parse(topic.csvData, {
+        header: true,
+        dynamicTyping: true
+    });
+
+    console.log("csvData: ", parsedData);
+
+    useEffect(() => {
+        // TODO: there is definitely a better way to load the plot component. can't seem to find a good way to convert the results of Plot.plot() to be usable by react
+
+        let plot = Plot.plot({
+            marks: [
+                Plot.dot(parsedData.data, { x: "test1", y: "test2" })
+            ]
+        });
+
+        let plotContainer = document.getElementById("topic-plot");
+        if (plotContainer) {
+            plotContainer.innerHTML = "";
+            plotContainer.appendChild(plot);
+        }
+
+    }, []);
+
     return (
-        <div>plot</div>
+        <div className="topic-view-content">
+            <div id="topic-plot-container">
+                <div id="topic-plot"></div>
+            
+            </div>
+        </div>
     );
 }
 
-export function TopicViewDetailsView({ topic, callback }: TopicViewProps) {
+export function TopicViewDetailsView({ topic, topicUpdateCallback }: TopicViewProps) {
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -40,20 +68,15 @@ export function TopicViewDetailsView({ topic, callback }: TopicViewProps) {
         // TODO: editing topic name needs to be validated similar to on creation
 
         let name = (document.getElementById("edit-form-input-title") as HTMLInputElement).value;
-
-        if (name) {
-            topic.name = name;
+        if (!name) {
+            return;
         }
 
-        client.models.Topic.update(topic)
-            .catch(error => {
-                console.log("error: ", error);
-            }).finally(() => {
-                setIsEditing(false);
-                if (callback) {
-                    callback();
-                }
-            });
+        const updatedContents = {
+            topic_id: topic.topic_id,
+            name: name,
+        };
+        updateTopic(updatedContents, topicUpdateCallback, () => {setIsEditing(false);});
 
     }} />;
     let bottomAction = isEditing ? submitCancelButtons : editButton;
@@ -82,6 +105,11 @@ export function TopicViewDetailsView({ topic, callback }: TopicViewProps) {
 export function TopicViewDataView({ topic, topicUpdateCallback }: TopicViewProps) {
 
     const [isEditing, setIsEditing] = useState(false);
+
+    // TODO: needs to be a difference between when the submit request has started / finished
+    // basically showing that the request is loading
+    // currently the text instantly changes color and there is no indication that the request actually went through
+    // could either do a loading spinner on the page, loading cursor, or just different colors of text
 
     let editButton = (
         <div id="topic-data-edit-button-container">
@@ -118,14 +146,11 @@ export function TopicViewDataView({ topic, topicUpdateCallback }: TopicViewProps
                 if (paragraphInput) {
                     paragraphInput.placeholder = paragraphInput.value;
                     
-                    const topicUpdate = {
+                    const updatedContents = {
                         topic_id: topic.topic_id,
                         csvData: paragraphInput.value,
                     };
-                    let updatedTopic = updateTopic(topicUpdate);
-                    if (topicUpdateCallback && updatedTopic) {
-                        topicUpdateCallback(updatedTopic);
-                    }
+                    updateTopic(updatedContents, topicUpdateCallback, () => {setIsEditing(false);});
                 }
             }} 
         />
@@ -134,7 +159,7 @@ export function TopicViewDataView({ topic, topicUpdateCallback }: TopicViewProps
 
     return (
         <div className="topic-view-content">
-            <ParagraphInput title="Data" placeholder={topic.csvData} value={topic.csvData} input_id="topic-user-data-input" is_required={false} editable={isEditing} cols={40} rows={30}/>
+            <ParagraphInput title="Data" placeholder={topic.csvData} value={topic.csvData} input_id="topic-user-data-input" is_required={false} editable={isEditing} cols={40} rows={30} />
             {bottomAction}
         </div>
     );
@@ -146,17 +171,20 @@ export default function TopicView({ topic, topicUpdateCallback }: TopicViewProps
     let cookie_id = "topic-current-view-" + topic.topic_id;
     let topic_current_view = getCookie(cookie_id);
     let [currentView, setCurrentView] = useState(topic_current_view);
-    let [refresh, setRefresh] = useState(false);
+    // let [refresh, setRefresh] = useState(false);
     let content;
     let activeIndex = 0;
+
+    // console.log("TopicView topic:", topic);
+
     if (currentView === "details") {
-        content = <TopicViewDetailsView topic={topic} callback={() => { setRefresh(!refresh) }} />;
+        content = <TopicViewDetailsView topic={topic} topicUpdateCallback={topicUpdateCallback} />;
         activeIndex = 2;
     } else if (currentView === "data") {
         content = <TopicViewDataView topic={topic} topicUpdateCallback={topicUpdateCallback} />
         activeIndex = 1;
     } else {
-        content = <TopicViewPlotView />;
+        content = <TopicViewPlotView topic={topic} topicUpdateCallback={topicUpdateCallback} />;
     }
 
     function handle_view_mode(event: React.MouseEvent<HTMLButtonElement>) {

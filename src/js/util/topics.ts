@@ -72,12 +72,21 @@ export function getUniqueTopicName(topics: any[], name: string) {
     return name;
 }
 
-export async function updateTopic(topic: any) {
-    
-    // TODO:handle errors
-    const { data: updatedTopic } = await client.models.Topic.update(topic);
+export async function updateTopic(topic: any, updateCallback?: (params: any) => any, finallyBlock?: () => any) {
 
-    console.log("updatedTopic: ", updatedTopic);
-
-    return updatedTopic;
+    client.models.Topic.update(topic)
+    .then(updatedTopic => {
+        if (updateCallback && updatedTopic.data) {
+            console.log("topic update callback: ", updatedTopic.data);
+            updateCallback(updatedTopic.data);
+        }
+    })
+    .catch(error => {
+        console.log("Updating topic failed... topic:", topic, "error:", error);
+    })
+    .finally(() => {
+        if (finallyBlock) {
+            finallyBlock();
+        }
+    });
 }

@@ -18,6 +18,14 @@ export default function TopicsDashboardPage() {
             console.log("Errors ", errors);
             return;
         }
+
+        data.sort((a, b) => {
+            if (!a || !b || !a.name || !b.name) {
+                return 0;
+            }
+            return a.name.localeCompare(b.name);
+        })
+
         setTopics(data);
         setIsLoading(false);
     }

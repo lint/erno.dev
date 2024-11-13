@@ -141,3 +141,17 @@
 #topic-user-picklist-editable-container {
     cursor: pointer;
 }
+
+#topic-plot-container {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    margin-top: 10px;
+    
+}
+
+#topic-plot {
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+}
