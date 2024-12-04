@@ -8,7 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 
 // react components
-import HomePage from './pages/home/home_page';
+// import HomePage from './pages/home/home_page';
 import ErrorPage from './pages/error/error_page';
 import TopicsDashboardPage from './pages/topics/dashboard_page';
 import TopicCreatePage from './pages/topics/create_page';
