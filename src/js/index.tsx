@@ -18,6 +18,7 @@ import TopicViewPage from './pages/topics/view_page';
 import { Amplify } from 'aws-amplify';
 import outputs from '../../amplify_outputs.json';
 import TempPage from './pages/temp_page';
+import MapsDashboardPage from './pages/maps/map_dashboard_page';
 
 // configure
 Amplify.configure(outputs);
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
     {
         path: "/topics/:topic_id",
         element: <TopicViewPage />
+    },
+    {
+        path: "/maps",
+        element: <MapsDashboardPage />
     }
 ]);
 
