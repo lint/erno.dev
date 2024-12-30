@@ -50,7 +50,7 @@ export function MapPlot({ width, height }: MapProps) {
             var f = e.selected[0].get('features');
             if (f) {
                 // use f.get("features")
-                console.log("num features:", e.selected[0].get('features').length);
+                console.log("num features:", f.length);
             } else {
                 // bin has no features
                 console.log("num features: 0 (no features array)");
