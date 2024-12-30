@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, Component } from 'react';
-import { Map } from '../../components/plot/map';
+import { MapPlot } from '../../components/plot/map_plot';
 
 export default function MapsDashboardPage() {
 
     return (
-        <Map width={1000} height={600}></Map>
+        <MapPlot width={1600} height={600}></MapPlot>
     );
 }
