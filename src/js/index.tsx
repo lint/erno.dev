@@ -43,11 +43,7 @@ const router = createBrowserRouter([
         element: <TopicViewPage />
     },
     {
-<<<<<<< Updated upstream
-        path: "/maps",
-=======
         path: "/map",
->>>>>>> Stashed changes
         element: <MapsDashboardPage />
     }
 ]);
