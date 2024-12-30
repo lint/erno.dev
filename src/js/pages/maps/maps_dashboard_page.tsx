@@ -3,8 +3,10 @@ import React, { useState, useEffect, Component } from 'react';
 import * as d3 from "d3";
 import * as d3_hex from 'd3-hexbin';
 import { Map } from '../../components/plot/map';
-import { data } from '../../components/plot/data';
+import { data } from '../../components/plot/data2';
 import { FeatureCollection } from 'geojson';
+import { Hexbin } from '../../components/plot/Hexbin';
+import { MapTest } from '../../components/plot/map_test';
 
 // function HexBinMap(dispatch: any, world: any, data: any, nestedData: any, dateFormat: any) {
 
@@ -226,6 +228,8 @@ export default function MapsDashboardPage() {
 
     return (
         // <div id="map-container"></div>
-        <Map width={400} height={600} data={data as FeatureCollection}></Map>
+        // <Map width={1000} height={600} data={data as FeatureCollection}></Map>
+        // <MapTest width={1000} height={600} ></MapTest>
+        <Hexbin data={data} width={400} height={400} />
     );
 }
