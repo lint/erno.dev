@@ -6,7 +6,7 @@ import { Map, View } from 'ol';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector.js';
 import OSM from 'ol/source/OSM';
-import {Select, Modify } from 'ol/interaction';
+import {Select} from 'ol/interaction';
 import Feature, { FeatureLike } from 'ol/Feature.js';
 import Point from 'ol/geom/Point.js';
 import HexBin from 'ol-ext/source/HexBin';
@@ -15,8 +15,9 @@ import Fill from 'ol/style/Fill';
 import Style from 'ol/style/Style';
 import RegularShape from 'ol/style/RegularShape.js';
 import { SelectEvent } from 'ol/interaction/Select';
-import { create } from 'ol/transform';
 import VectorSource from 'ol/source/Vector';
+import VectorImageLayer from 'ol/layer/VectorImage';
+import Layer from 'ol/layer/Layer';
 
 type MapProps = {
     width: number;
@@ -27,11 +28,22 @@ export function MapPlot({ width, height }: MapProps) {
 
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
-    const binLayerRef = useRef<VectorLayer>();
+    const binLayerRef = useRef<Layer>();
+    const tileLayerRef = useRef<Layer>();
     const vectorSourceRef = useRef<VectorSource>();
+    const hexbinRef = useRef<HexBin>();
     const [size, setSize] = useState(200000);
 
-    let style = 'color';
+    // input refs
+    const tileLayerChkboxRef = useRef(null);
+    const binLayerChkboxRef = useRef(null);
+    const asImageChkboxRef = useRef(null);
+    const sizeInputRef = useRef(null);
+    const styleInputRef = useRef(null);
+    const hexLayoutInputRef = useRef(null);
+    const intervalMinInputRef = useRef(null);
+    const intervalMaxInputRef = useRef(null);
+
     let minValue = 0, maxValue = 100; 
     const minRadius = 1;
 
@@ -80,6 +92,8 @@ export function MapPlot({ width, height }: MapProps) {
 
     // determine style for the given bin (f=feature, res=resolutuion)
     function styleForBin(f: FeatureLike, res: number) {
+
+        let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
     
         switch (style){
         // Display a point with a radius 
@@ -124,34 +138,15 @@ export function MapPlot({ width, height }: MapProps) {
         // init and calculate the bins
         const hexbin = new HexBin({
             source: vectorSource,
-            size: size
+            size: size,
+            layout: (hexLayoutInputRef.current ? hexLayoutInputRef.current['value'] : 'pointy') as any
         });
+        hexbinRef.current = hexbin;
 
         // determine the highest and lowest values across all bins
         findValueBounds(hexbin.getFeatures());
 
         return hexbin;
-    }
-
-    // reset, calculate, and display updated hexbins
-    function calcBins() {
-        if (!mapRef.current || !vectorSourceRef.current) return;
-        if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
-
-        // group data points into bins
-        const hexbin = createHexBin(vectorSourceRef.current);
-
-        // create layer to display the bins
-        const binLayer = new VectorLayer({ 
-            source: hexbin, 
-            opacity: .5,
-            style: styleForBin
-        });
-        binLayerRef.current = binLayer;
-    
-        // add bin layer to map
-        mapRef.current.addLayer(binLayer);
-        // map.addLayer(tileLayer);
     }
 
     // find the minimum and maximum values in a given feature set
@@ -173,21 +168,67 @@ export function MapPlot({ width, height }: MapProps) {
         let dl = (maxValue-minValue);
         minValue = Math.max(1,Math.round(dl/4));
         maxValue = Math.round(maxValue - dl/3);
+
+        // update interval min and max fields
+        if (intervalMinInputRef.current) {
+            let minInput = intervalMinInputRef.current as HTMLInputElement;
+            minInput.value = String(minValue);
+        }
+        if (intervalMaxInputRef.current) {
+            let maxInput = intervalMaxInputRef.current as HTMLInputElement;
+            maxInput.value = String(maxValue);
+        }
     }
 
-    function readOptionsInput() {
-        // TODO: better way of doing this
-        let sizeInput = document.getElementById("map-size-input") as HTMLInputElement;
+    // handler for when the interval is manually changed
+    function updateInterval() {
 
-        if (sizeInput) {
-            setSize(Number(sizeInput.value))
+        if (intervalMinInputRef.current) minValue = Number(intervalMinInputRef.current['value']);
+        if (intervalMaxInputRef.current) maxValue = Number(intervalMaxInputRef.current['value']);
+        
+        reloadHexbin();
+    }
+
+    // reload hexbin
+    function reloadHexbin() {
+        if (hexbinRef.current) hexbinRef.current.changed();
+    }
+
+    // reset, calculate, and display updated hexbins
+    function reloadMap() {
+        console.log("reloading map ...");
+
+        if (!mapRef.current || !vectorSourceRef.current) return;
+        if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
+        if (tileLayerRef.current) mapRef.current.removeLayer(tileLayerRef.current);
+
+        // get the current size from input
+        if (sizeInputRef.current) setSize(Number(sizeInputRef.current['value']));
+
+        // group data points into bins
+        const hexbin = createHexBin(vectorSourceRef.current);
+
+        // create layer to display the bins
+        let vClass = asImageChkboxRef.current && asImageChkboxRef.current['checked'] ? VectorLayer : VectorImageLayer;
+        const binLayer = new vClass({ 
+            source: hexbin, 
+            opacity: .5,
+            style: styleForBin
+        });
+        binLayerRef.current = binLayer;
+    
+        // add layers to map
+        if ((!tileLayerChkboxRef.current || tileLayerChkboxRef.current['checked']) && tileLayerRef.current) {
+            mapRef.current.addLayer(tileLayerRef.current);
         }
-
-        calcBins();
+        if (!binLayerChkboxRef.current || binLayerChkboxRef.current['checked']) {
+            mapRef.current.addLayer(binLayer);
+        }
     }
 
     // called when component has mounted
     useEffect(() => {
+        console.log("Map useEffect ...");
         if (!mapContainerRef.current) return;
 
         // initialize the tile layer
@@ -195,6 +236,7 @@ export function MapPlot({ width, height }: MapProps) {
             source: new OSM(), 
             preload: Infinity 
         });
+        tileLayerRef.current = tileLayer;
         
         // initialize the map object
         const map = new Map({
@@ -202,9 +244,7 @@ export function MapPlot({ width, height }: MapProps) {
                 center: [-11000000, 4600000],
                 zoom: 2,
             }),
-            layers: [
-                tileLayer
-            ],
+            layers: [],
             target: mapContainerRef.current
         });
         mapRef.current = map;
@@ -216,11 +256,11 @@ export function MapPlot({ width, height }: MapProps) {
 
         // create vector source to store data points
         const vectorSource = new Vector();
-        addFeatures(2000, vectorSource);
+        addFeatures(20000, vectorSource);
         vectorSourceRef.current = vectorSource;
         
         // calculate the bins for the map
-        calcBins();
+        reloadMap();
 
         return () => map.setTarget('');
     }, []);
@@ -228,9 +268,42 @@ export function MapPlot({ width, height }: MapProps) {
     return (
         <div className='map-container'>
             <div ref={mapContainerRef} style={{ height: height+"px", width: width+"px" }} className="map"/>
-            <div className='map-controls'>
-                <label htmlFor="size">Size:</label>
-                <input id="map-size-input" type="number" min={1000} max={300000} defaultValue={size} step={10000} onChange={readOptionsInput}/>
+            <div>
+                <label htmlFor="map-size-input">Size:</label>
+                <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={300000} defaultValue={size} step={20000} onChange={reloadMap}/>
+
+                <label htmlFor="map-style-input">Style:</label>
+                <select ref={styleInputRef} id="map-style-input" onChange={reloadHexbin}>
+                    <option value="color">Color</option>
+                    <option value="gradient">Gradient</option>
+                    <option value="point">Point</option>
+                </select>
+
+                <label htmlFor="map-hex-layout-input">Style:</label>
+                <select ref={hexLayoutInputRef} id="map-hex-layout-input" onChange={reloadMap}>
+                    <option value="pointy">Pointy</option>
+                    <option value="flat">Flat</option>
+                </select>
+
+                <br/>
+
+                <input ref={asImageChkboxRef} id="map-image-layer-input" type="checkbox" onChange={reloadMap}/>
+                <label htmlFor="map-image-layer-input">bin layer as image</label>
+
+                <input ref={binLayerChkboxRef} id="map-bin-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
+                <label htmlFor="map-bin-layer-input">show bin layer</label>
+
+                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
+                <label htmlFor="map-tile-layer-input">show tile layer</label>
+
+                <br/>
+
+                <label htmlFor="map-size-input">Interval Min:</label>
+                <input ref={intervalMinInputRef} id="map-interval-min-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
+
+                <label htmlFor="map-size-input">Max:</label>
+                <input ref={intervalMaxInputRef} id="map-interval-max-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
+
             </div>
         </div>
         
