@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
 import './map.css';
@@ -35,7 +35,7 @@ export function MapPlot({ width, height }: MapProps) {
     const vectorSourceRef = useRef<VectorSource>();
     const hexbinRef = useRef<HexBin>();
     // const [size, setSize] = useState(2000);
-    let size = 2000;
+    let size = 500;
 
     // input refs
     const tileLayerChkboxRef = useRef(null);
@@ -67,32 +67,32 @@ export function MapPlot({ width, height }: MapProps) {
         }
     }
 
-    // create a set of features on seed points
-    function addRandomFeatures(nb: any, vectorSource: Vector) {
-        if (!mapRef.current) return;
+    // // create a set of features on seed points
+    // function addRandomFeatures(nb: any, vectorSource: Vector) {
+    //     if (!mapRef.current) return;
 
-        let ssize = 20;		// seed size
-        let ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
-        let dx = ext[2]-ext[0];
-        let dy = ext[3]-ext[1];
-        let dl = Math.min(dx,dy);
-        let features=[];
+    //     let ssize = 20;		// seed size
+    //     let ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
+    //     let dx = ext[2]-ext[0];
+    //     let dy = ext[3]-ext[1];
+    //     let dl = Math.min(dx,dy);
+    //     let features=[];
 
-        for (let i=0; i<nb/ssize; ++i){
-            let seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
-            for (let j=0; j<ssize; j++){
-                let f = new Feature(new Point([
-                    seed[0] + dl/10*Math.random(),
-                    seed[1] + dl/10*Math.random()
-                ]));
-                f.set('number', Math.floor(Math.random() * 10));
-                // f.set('id', i*ssize+j);
-                features.push(f);
-            }
-        }
-        vectorSource.clear(true);
-        vectorSource.addFeatures(features);
-    }
+    //     for (let i=0; i<nb/ssize; ++i){
+    //         let seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
+    //         for (let j=0; j<ssize; j++){
+    //             let f = new Feature(new Point([
+    //                 seed[0] + dl/10*Math.random(),
+    //                 seed[1] + dl/10*Math.random()
+    //             ]));
+    //             f.set('number', Math.floor(Math.random() * 10));
+    //             // f.set('id', i*ssize+j);
+    //             features.push(f);
+    //         }
+    //     }
+    //     vectorSource.clear(true);
+    //     vectorSource.addFeatures(features);
+    // }
 
     function addPresetFeatures(vectorSource: Vector) {
         if (!mapRef.current) return;
@@ -100,10 +100,9 @@ export function MapPlot({ width, height }: MapProps) {
         let features=[];
 
         for (let row of data) {
-            let coord = [row['lon'], row['lat']];
-            let newCoord = fromLonLat(coord);
-            let f = new Feature(new Point(newCoord));
-            f.set('number', row['n']);
+            let coord = [row[0], row[1]];
+            let f = new Feature(new Point(fromLonLat(coord)));
+            f.set('number', row[2]);
             features.push(f);
         }
 
@@ -115,12 +114,15 @@ export function MapPlot({ width, height }: MapProps) {
     function styleForBin(f: FeatureLike, res: number) {
 
         let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
+
+        // let value = f.get('features').length;
+        let value = f.get('value');
     
         switch (style){
         // Display a point with a radius 
         // depending on the number of objects in the aggregate.
         case 'point': {
-            var radius = Math.round(size/res +0.5) * Math.min(1,f.get('features').length/maxValue);
+            var radius = Math.round(size/res +0.5) * Math.min(1,value/maxValue);
             if (radius < minRadius) radius = minRadius;
             return	[ new Style({
                 image: new RegularShape({
@@ -137,7 +139,7 @@ export function MapPlot({ width, height }: MapProps) {
         // Display the polygon with a gradient value (opacity) 
         // depending on the number of objects in the aggregate.
         case 'gradient': {
-            var opacity = Math.min(1,f.get('features').length/maxValue);
+            var opacity = Math.min(1,value/maxValue);
             return [ new Style({ fill: new Fill({ color: [0,0,255,opacity] }) }) ];
         }
         // Display the polygon with a color
@@ -145,8 +147,8 @@ export function MapPlot({ width, height }: MapProps) {
         case 'color':
         default: {
             var color;
-            if (f.get('features').length > maxValue) color = [136, 0, 0, 1];
-            else if (f.get('features').length > minValue) color = [255, 165, 0, 1];
+            if (value > maxValue) color = [136, 0, 0, 1];
+            else if (value > minValue) color = [255, 165, 0, 1];
             else color = [0, 136, 0, 1];
             return [ new Style({ fill: new Fill({  color: color }) }) ];
         }
@@ -178,17 +180,35 @@ export function MapPlot({ width, height }: MapProps) {
         minValue = Number.MAX_SAFE_INTEGER;
         maxValue = Number.MIN_SAFE_INTEGER;
 
-        // iterate over every feature set
+        // get the number of features in the set
+        // for (let f of features) {
+        //     let n = f.get('features').length;
+        //     if (n<minValue) minValue = n;
+        //     if (n>maxValue) maxValue = n;
+        // }
+
+        // get the max number of features in the set
         for (let f of features) {
-            let n = f.get('features').length;
-            if (n<minValue) minValue = n;
-            if (n>maxValue) maxValue = n;
+            let fs = f.get('features');
+            let fMin = Number.MAX_SAFE_INTEGER;
+            let fMax = Number.MIN_SAFE_INTEGER;
+
+            for (let ff of fs) {
+                let n = ff.get('number');
+                if (n<fMin) fMin = n;
+                if (n>fMax) fMax = n;
+            }
+
+            (f as Feature).set('value', fMax, true);
+
+            if (fMin<minValue) minValue = fMin;
+            if (fMax>maxValue) maxValue = fMax;
         }
 
         // set new min/max by clipping ends (TODO: why?)
         let dl = (maxValue-minValue);
         minValue = Math.max(1,Math.round(dl/4));
-        maxValue = Math.round(maxValue - dl/3);
+        maxValue = Math.round(maxValue - dl/1.5);
 
         // update interval min and max fields
         if (intervalMinInputRef.current) {
@@ -297,12 +317,12 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <label htmlFor="map-style-input">Style:</label>
                 <select ref={styleInputRef} id="map-style-input" onChange={reloadHexbin}>
-                    <option value="color">Color</option>
                     <option value="gradient">Gradient</option>
+                    <option value="color">Color</option>
                     <option value="point">Point</option>
                 </select>
 
-                <label htmlFor="map-hex-layout-input">Style:</label>
+                <label htmlFor="map-hex-layout-input">Hex Style:</label>
                 <select ref={hexLayoutInputRef} id="map-hex-layout-input" onChange={reloadMap}>
                     <option value="pointy">Pointy</option>
                     <option value="flat">Flat</option>
@@ -316,7 +336,7 @@ export function MapPlot({ width, height }: MapProps) {
                 <input ref={binLayerChkboxRef} id="map-bin-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
                 <label htmlFor="map-bin-layer-input">show bin layer</label>
 
-                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
+                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={false}/>
                 <label htmlFor="map-tile-layer-input">show tile layer</label>
 
                 <br/>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, Component } from 'react';
+import React from 'react';
 import { MapPlot } from '../../components/plot/map_plot';
 
 export default function MapsDashboardPage() {
