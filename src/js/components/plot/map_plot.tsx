@@ -53,6 +53,7 @@ export function MapPlot({ width, height }: MapProps) {
     const colorStepsInputRef = useRef(null);
     const colorScaleInputRef = useRef(null);
     const binOpacityInputRef = useRef(null);
+    const tileOpacityInputRef = useRef(null);
 
     let minValue = 0, maxValue = 100; 
     const minRadius = 1;
@@ -260,6 +261,7 @@ export function MapPlot({ width, height }: MapProps) {
     // reload bins
     function reloadBins() {
         if (binLayerRef.current && binOpacityInputRef.current) binLayerRef.current.setOpacity(Number(binOpacityInputRef.current['value'])/100);
+        if (tileLayerRef.current && tileOpacityInputRef.current) tileLayerRef.current.setOpacity(Number(tileOpacityInputRef.current['value'])/100);
         if (binsRef.current) binsRef.current.changed();
     }
 
@@ -403,8 +405,10 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <br/>
 
-                <label htmlFor="map-bin-opacity-input">Bin Opacity:</label>
-                <input ref={binOpacityInputRef} id="map-color-steps-input" type="number" min={0} max={100} defaultValue={64} step={1} onChange={reloadBins}/>
+                <label htmlFor="map-bin-opacity-input">Bin Layer Opacity:</label>
+                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="number" min={0} max={100} defaultValue={64} step={1} onChange={reloadBins}/>
+                <label htmlFor="map-tile-opacity-input">Tile Layer Opacity:</label>
+                <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="number" min={0} max={100} defaultValue={100} step={1} onChange={reloadBins}/>
 
                 <br/>
 
