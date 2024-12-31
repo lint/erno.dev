@@ -96,6 +96,7 @@ export function MapPlot({ width, height }: MapProps) {
         vectorSource.addFeatures(features);
     }
 
+    // load features from preset data file
     function addPresetFeatures(vectorSource: Vector) {
         if (!mapRef.current) return;
 
@@ -116,8 +117,6 @@ export function MapPlot({ width, height }: MapProps) {
     function styleForHexBin(f: FeatureLike, res: number) {
 
         let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
-
-        // let value = f.get('features').length;
         let value = f.get('value');
     
         switch (style){
@@ -157,7 +156,8 @@ export function MapPlot({ width, height }: MapProps) {
         }
     }
 
-    function styleForGridBin(f: FeatureLike, res: number) {
+    // determines the style for grid bin map
+    function styleForGridBin(f: FeatureLike, _: number) {
         let color;
         let value = f.get('value');
         if (value > minValue+2*(maxValue-minValue)/3) color = [136, 0, 0, .5];
@@ -191,6 +191,9 @@ export function MapPlot({ width, height }: MapProps) {
             size: size,
         });
         binsRef.current = gridBin;
+
+        console.log(gridBin.getFeatures())
+        console.log(gridBin)
 
         // determine the highest and lowest values across all bins
         findValueBounds(gridBin.getFeatures());
