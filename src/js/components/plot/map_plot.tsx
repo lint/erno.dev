@@ -10,6 +10,7 @@ import {Select} from 'ol/interaction';
 import Feature, { FeatureLike } from 'ol/Feature.js';
 import Point from 'ol/geom/Point.js';
 import HexBin from 'ol-ext/source/HexBin';
+import GridBin from 'ol-ext/source/GridBin';
 import { Vector } from 'ol/source';
 import Fill from 'ol/style/Fill';
 import Style from 'ol/style/Style';
@@ -33,7 +34,7 @@ export function MapPlot({ width, height }: MapProps) {
     const binLayerRef = useRef<Layer>();
     const tileLayerRef = useRef<Layer>();
     const vectorSourceRef = useRef<VectorSource>();
-    const hexbinRef = useRef<HexBin>();
+    const binsRef = useRef<VectorSource>();
     // const [size, setSize] = useState(2000);
     let size = 500;
 
@@ -41,8 +42,10 @@ export function MapPlot({ width, height }: MapProps) {
     const tileLayerChkboxRef = useRef(null);
     const binLayerChkboxRef = useRef(null);
     const asImageChkboxRef = useRef(null);
+    const randDataChkboxRef = useRef(null);
     const sizeInputRef = useRef(null);
     const styleInputRef = useRef(null);
+    const binTypeInputRef = useRef(null);
     const hexLayoutInputRef = useRef(null);
     const intervalMinInputRef = useRef(null);
     const intervalMaxInputRef = useRef(null);
@@ -67,32 +70,31 @@ export function MapPlot({ width, height }: MapProps) {
         }
     }
 
-    // // create a set of features on seed points
-    // function addRandomFeatures(nb: any, vectorSource: Vector) {
-    //     if (!mapRef.current) return;
+    // create a set of features on seed points
+    function addRandomFeatures(nb: any, vectorSource: Vector) {
+        if (!mapRef.current) return;
 
-    //     let ssize = 20;		// seed size
-    //     let ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
-    //     let dx = ext[2]-ext[0];
-    //     let dy = ext[3]-ext[1];
-    //     let dl = Math.min(dx,dy);
-    //     let features=[];
+        let ssize = 20;		// seed size
+        let ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
+        let dx = ext[2]-ext[0];
+        let dy = ext[3]-ext[1];
+        let dl = Math.min(dx,dy);
+        let features=[];
 
-    //     for (let i=0; i<nb/ssize; ++i){
-    //         let seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
-    //         for (let j=0; j<ssize; j++){
-    //             let f = new Feature(new Point([
-    //                 seed[0] + dl/10*Math.random(),
-    //                 seed[1] + dl/10*Math.random()
-    //             ]));
-    //             f.set('number', Math.floor(Math.random() * 10));
-    //             // f.set('id', i*ssize+j);
-    //             features.push(f);
-    //         }
-    //     }
-    //     vectorSource.clear(true);
-    //     vectorSource.addFeatures(features);
-    // }
+        for (let i=0; i<nb/ssize; ++i){
+            let seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
+            for (let j=0; j<ssize; j++){
+                let f = new Feature(new Point([
+                    seed[0] + dl/10*Math.random(),
+                    seed[1] + dl/10*Math.random()
+                ]));
+                f.set('number', Math.floor(Math.random() * 10));
+                features.push(f);
+            }
+        }
+        vectorSource.clear(true);
+        vectorSource.addFeatures(features);
+    }
 
     function addPresetFeatures(vectorSource: Vector) {
         if (!mapRef.current) return;
@@ -111,7 +113,7 @@ export function MapPlot({ width, height }: MapProps) {
     }
 
     // determine style for the given bin (f=feature, res=resolutuion)
-    function styleForBin(f: FeatureLike, res: number) {
+    function styleForHexBin(f: FeatureLike, res: number) {
 
         let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
 
@@ -153,7 +155,16 @@ export function MapPlot({ width, height }: MapProps) {
             return [ new Style({ fill: new Fill({  color: color }) }) ];
         }
         }
-    };
+    }
+
+    function styleForGridBin(f: FeatureLike, res: number) {
+        let color;
+        let value = f.get('value');
+        if (value > minValue+2*(maxValue-minValue)/3) color = [136, 0, 0, .5];
+        else if (value > minValue + (maxValue-minValue)/3) color = [255, 165, 0, .5];
+        else color = [0, 136, 0, .5];
+        return [ new Style({ fill: new Fill({  color: color }) }) ];
+    }
 
     // create and return a new hex bin object
     function createHexBin(vectorSource: Vector) {
@@ -164,12 +175,27 @@ export function MapPlot({ width, height }: MapProps) {
             size: size,
             layout: (hexLayoutInputRef.current ? hexLayoutInputRef.current['value'] : 'pointy') as any
         });
-        hexbinRef.current = hexbin;
+        binsRef.current = hexbin;
 
         // determine the highest and lowest values across all bins
         findValueBounds(hexbin.getFeatures());
 
         return hexbin;
+    }
+
+    // create and return a new grid bin object
+    function createGridBin(vectorSource: Vector) {
+        // init and calculate the bins
+        const gridBin = new GridBin({
+            source: vectorSource,
+            size: size,
+        });
+        binsRef.current = gridBin;
+
+        // determine the highest and lowest values across all bins
+        findValueBounds(gridBin.getFeatures());
+
+        return gridBin;
     }
 
     // find the minimum and maximum values in a given feature set
@@ -185,6 +211,7 @@ export function MapPlot({ width, height }: MapProps) {
         //     let n = f.get('features').length;
         //     if (n<minValue) minValue = n;
         //     if (n>maxValue) maxValue = n;
+        //     (f as Feature).set('value', n, true);
         // }
 
         // get the max number of features in the set
@@ -227,12 +254,35 @@ export function MapPlot({ width, height }: MapProps) {
         if (intervalMinInputRef.current) minValue = Number(intervalMinInputRef.current['value']);
         if (intervalMaxInputRef.current) maxValue = Number(intervalMaxInputRef.current['value']);
         
-        reloadHexbin();
+        reloadBins();
     }
 
-    // reload hexbin
-    function reloadHexbin() {
-        if (hexbinRef.current) hexbinRef.current.changed();
+    // reload bins
+    function reloadBins() {
+        if (binsRef.current) binsRef.current.changed();
+    }
+
+    // update data source
+    function updateDataSource() {
+
+        let vectorSource;
+
+        if (vectorSourceRef.current) {
+            vectorSourceRef.current.clear();
+            vectorSource = vectorSourceRef.current;
+        } else {
+            // create vector source to store data points
+            vectorSource = new Vector();
+            vectorSourceRef.current = vectorSource;
+        }
+
+        if (randDataChkboxRef.current && randDataChkboxRef.current['checked']) {
+            addRandomFeatures(20000, vectorSource);
+        } else {
+            addPresetFeatures(vectorSource);
+        }
+
+        reloadMap();
     }
 
     // reset, calculate, and display updated hexbins
@@ -248,14 +298,22 @@ export function MapPlot({ width, height }: MapProps) {
         if (sizeInputRef.current) size = Number(sizeInputRef.current['value']);
 
         // group data points into bins
-        const hexbin = createHexBin(vectorSourceRef.current);
+        let bins;
+        let style;
+        if (binTypeInputRef.current && binTypeInputRef.current['value'] == 'grid') {
+            bins = createGridBin(vectorSourceRef.current);
+            style = styleForGridBin;
+        } else {
+            bins = createHexBin(vectorSourceRef.current);
+            style = styleForHexBin;
+        }
 
         // create layer to display the bins
         let vClass = asImageChkboxRef.current && asImageChkboxRef.current['checked'] ? VectorLayer : VectorImageLayer;
         const binLayer = new vClass({ 
-            source: hexbin, 
-            opacity: .5,
-            style: styleForBin
+            source: bins, 
+            opacity: .75, // TODO: option to change this as user input
+            style: style
         });
         binLayerRef.current = binLayer;
     
@@ -296,14 +354,11 @@ export function MapPlot({ width, height }: MapProps) {
         map.addInteraction(select);
         select.on('select', handleFeatureSelect);
 
-        // create vector source to store data points
-        const vectorSource = new Vector();
-        // addRandomFeatures(20000, vectorSource);
-        addPresetFeatures(vectorSource);
-        vectorSourceRef.current = vectorSource;
+        // load initial data
+        updateDataSource();
         
         // calculate the bins for the map
-        reloadMap();
+        // reloadMap();
 
         return () => map.setTarget('');
     }, []);
@@ -316,11 +371,19 @@ export function MapPlot({ width, height }: MapProps) {
                 <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={100000} defaultValue={size} step={500} onChange={reloadMap}/>
 
                 <label htmlFor="map-style-input">Style:</label>
-                <select ref={styleInputRef} id="map-style-input" onChange={reloadHexbin}>
+                <select ref={styleInputRef} id="map-style-input" onChange={reloadBins}>
                     <option value="gradient">Gradient</option>
                     <option value="color">Color</option>
                     <option value="point">Point</option>
                 </select>
+
+                <label htmlFor="map-bin-type-input">Bin Type:</label>
+                <select ref={binTypeInputRef} id="map-bin-type-input" onChange={reloadMap}>
+                    <option value="hex">Hex</option>
+                    <option value="grid">Grid</option>
+                </select>
+
+                <br/>
 
                 <label htmlFor="map-hex-layout-input">Hex Style:</label>
                 <select ref={hexLayoutInputRef} id="map-hex-layout-input" onChange={reloadMap}>
@@ -338,6 +401,11 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={false}/>
                 <label htmlFor="map-tile-layer-input">show tile layer</label>
+
+                <br/>
+
+                <input ref={randDataChkboxRef} id="map-rand-data-input" type="checkbox" onChange={updateDataSource} defaultChecked={false}/>
+                <label htmlFor="map-rand-data-input">use random data</label>
 
                 <br/>
 
