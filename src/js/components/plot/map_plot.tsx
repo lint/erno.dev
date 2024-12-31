@@ -18,6 +18,8 @@ import { SelectEvent } from 'ol/interaction/Select';
 import VectorSource from 'ol/source/Vector';
 import VectorImageLayer from 'ol/layer/VectorImage';
 import Layer from 'ol/layer/Layer';
+import { data } from '../../data/us_pa_alleghaney_addresses';
+import { fromLonLat } from 'ol/proj';
 
 type MapProps = {
     width: number;
@@ -65,19 +67,20 @@ export function MapPlot({ width, height }: MapProps) {
     }
 
     // create a set of features on seed points
-    function addFeatures(nb: any, vectorSource: Vector) {
+    function addRandomFeatures(nb: any, vectorSource: Vector) {
         if (!mapRef.current) return;
 
-        var ssize = 20;		// seed size
-        var ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
-        var dx = ext[2]-ext[0];
-        var dy = ext[3]-ext[1];
-        var dl = Math.min(dx,dy);
-        var features=[];
-        for (var i=0; i<nb/ssize; ++i){
-            var seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
-            for (var j=0; j<ssize; j++){
-                var f = new Feature(new Point([
+        let ssize = 20;		// seed size
+        let ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
+        let dx = ext[2]-ext[0];
+        let dy = ext[3]-ext[1];
+        let dl = Math.min(dx,dy);
+        let features=[];
+
+        for (let i=0; i<nb/ssize; ++i){
+            let seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
+            for (let j=0; j<ssize; j++){
+                let f = new Feature(new Point([
                     seed[0] + dl/10*Math.random(),
                     seed[1] + dl/10*Math.random()
                 ]));
@@ -86,6 +89,23 @@ export function MapPlot({ width, height }: MapProps) {
                 features.push(f);
             }
         }
+        vectorSource.clear(true);
+        vectorSource.addFeatures(features);
+    }
+
+    function addPresetFeatures(vectorSource: Vector) {
+        if (!mapRef.current) return;
+
+        let features=[];
+
+        for (let row of data) {
+            let coord = [row['lon'], row['lat']];
+            let newCoord = fromLonLat(coord);
+            let f = new Feature(new Point(newCoord));
+            f.set('number', row['n']);
+            features.push(f);
+        }
+
         vectorSource.clear(true);
         vectorSource.addFeatures(features);
     }
@@ -256,7 +276,8 @@ export function MapPlot({ width, height }: MapProps) {
 
         // create vector source to store data points
         const vectorSource = new Vector();
-        addFeatures(20000, vectorSource);
+        // addRandomFeatures(20000, vectorSource);
+        addPresetFeatures(vectorSource);
         vectorSourceRef.current = vectorSource;
         
         // calculate the bins for the map
