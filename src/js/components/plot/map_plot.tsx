@@ -52,6 +52,7 @@ export function MapPlot({ width, height }: MapProps) {
     const intervalMaxInputRef = useRef(null);
     const colorStepsInputRef = useRef(null);
     const colorScaleInputRef = useRef(null);
+    const binOpacityInputRef = useRef(null);
 
     let minValue = 0, maxValue = 100; 
     const minRadius = 1;
@@ -117,7 +118,7 @@ export function MapPlot({ width, height }: MapProps) {
     }
 
     // determine style for the given bin (f=feature, res=resolutuion)
-    function styleForHexBin(f: FeatureLike, res: number) {
+    function styleForBin(f: FeatureLike, res: number) {
 
         let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
         let value = f.get('value');
@@ -161,16 +162,6 @@ export function MapPlot({ width, height }: MapProps) {
             let color = scaledColor ? scaledColor : [0, 0, 255, normal] as any;
             return [ new Style({ fill: new Fill({ color: color }) }) ];
         }}
-    }
-
-    // determines the style for grid bin map
-    function styleForGridBin(f: FeatureLike, _: number) {
-        let color;
-        let value = f.get('value');
-        if (value > maxValue) color = [136, 0, 0, 1];
-        else if (value > minValue) color = [255, 165, 0, 1];
-        else color = [0, 136, 0, 1];
-        return [ new Style({ fill: new Fill({  color: color }) }) ];
     }
 
     // create and return a new hex bin object
@@ -268,6 +259,7 @@ export function MapPlot({ width, height }: MapProps) {
 
     // reload bins
     function reloadBins() {
+        if (binLayerRef.current && binOpacityInputRef.current) binLayerRef.current.setOpacity(Number(binOpacityInputRef.current['value'])/100);
         if (binsRef.current) binsRef.current.changed();
     }
 
@@ -308,21 +300,19 @@ export function MapPlot({ width, height }: MapProps) {
 
         // group data points into bins
         let bins;
-        let style;
         if (binTypeInputRef.current && binTypeInputRef.current['value'] == 'grid') {
             bins = createGridBin(vectorSourceRef.current);
-            style = styleForGridBin;
         } else {
             bins = createHexBin(vectorSourceRef.current);
-            style = styleForHexBin;
         }
 
         // create layer to display the bins
         let vClass = asImageChkboxRef.current && asImageChkboxRef.current['checked'] ? VectorLayer : VectorImageLayer;
+        let opacity = binOpacityInputRef.current ? Number(binOpacityInputRef.current['value']) / 100 : 0.7;
         const binLayer = new vClass({ 
             source: bins, 
-            opacity: .75, // TODO: option to change this as user input
-            style: style
+            opacity: opacity,
+            style: styleForBin
         });
         binLayerRef.current = binLayer;
     
@@ -413,6 +403,11 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <br/>
 
+                <label htmlFor="map-bin-opacity-input">Bin Opacity:</label>
+                <input ref={binOpacityInputRef} id="map-color-steps-input" type="number" min={0} max={100} defaultValue={64} step={1} onChange={reloadBins}/>
+
+                <br/>
+
                 <input ref={randDataChkboxRef} id="map-rand-data-input" type="checkbox" onChange={updateDataSource} defaultChecked={false}/>
                 <label htmlFor="map-rand-data-input">use random data</label>
 
@@ -428,7 +423,7 @@ export function MapPlot({ width, height }: MapProps) {
                 </select>
 
                 <label htmlFor="map-color-steps-input">Num Color Steps:</label>
-                <input ref={colorStepsInputRef} id="map-color-steps-input" type="number" min={0} max={16} defaultValue={5} step={1} onChange={reloadMap}/>
+                <input ref={colorStepsInputRef} id="map-color-steps-input" type="number" min={0} max={16} defaultValue={5} step={1} onChange={reloadBins}/>
 
                 <br/>
 
