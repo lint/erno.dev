@@ -34,7 +34,8 @@ export function MapPlot({ width, height }: MapProps) {
     const tileLayerRef = useRef<Layer>();
     const vectorSourceRef = useRef<VectorSource>();
     const hexbinRef = useRef<HexBin>();
-    const [size, setSize] = useState(200000);
+    // const [size, setSize] = useState(2000);
+    let size = 2000;
 
     // input refs
     const tileLayerChkboxRef = useRef(null);
@@ -223,7 +224,8 @@ export function MapPlot({ width, height }: MapProps) {
         if (tileLayerRef.current) mapRef.current.removeLayer(tileLayerRef.current);
 
         // get the current size from input
-        if (sizeInputRef.current) setSize(Number(sizeInputRef.current['value']));
+        // if (sizeInputRef.current) setSize(Number(sizeInputRef.current['value']));
+        if (sizeInputRef.current) size = Number(sizeInputRef.current['value']);
 
         // group data points into bins
         const hexbin = createHexBin(vectorSourceRef.current);
@@ -261,8 +263,8 @@ export function MapPlot({ width, height }: MapProps) {
         // initialize the map object
         const map = new Map({
             view: new View({
-                center: [-11000000, 4600000],
-                zoom: 2,
+                center: fromLonLat([-80, 40.440]),
+                zoom: 11,
             }),
             layers: [],
             target: mapContainerRef.current
@@ -291,7 +293,7 @@ export function MapPlot({ width, height }: MapProps) {
             <div ref={mapContainerRef} style={{ height: height+"px", width: width+"px" }} className="map"/>
             <div>
                 <label htmlFor="map-size-input">Size:</label>
-                <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={300000} defaultValue={size} step={20000} onChange={reloadMap}/>
+                <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={100000} defaultValue={size} step={500} onChange={reloadMap}/>
 
                 <label htmlFor="map-style-input">Style:</label>
                 <select ref={styleInputRef} id="map-style-input" onChange={reloadHexbin}>
