@@ -21,6 +21,7 @@ import VectorImageLayer from 'ol/layer/VectorImage';
 import Layer from 'ol/layer/Layer';
 import { data } from '../../data/us_pa_alleghaney_addresses';
 import { fromLonLat } from 'ol/proj';
+import chroma from 'chroma-js';
 
 type MapProps = {
     width: number;
@@ -36,7 +37,7 @@ export function MapPlot({ width, height }: MapProps) {
     const vectorSourceRef = useRef<VectorSource>();
     const binsRef = useRef<VectorSource>();
     // const [size, setSize] = useState(2000);
-    let size = 500;
+    let size = 250;
 
     // input refs
     const tileLayerChkboxRef = useRef(null);
@@ -49,6 +50,8 @@ export function MapPlot({ width, height }: MapProps) {
     const hexLayoutInputRef = useRef(null);
     const intervalMinInputRef = useRef(null);
     const intervalMaxInputRef = useRef(null);
+    const colorStepsInputRef = useRef(null);
+    const colorScaleInputRef = useRef(null);
 
     let minValue = 0, maxValue = 100; 
     const minRadius = 1;
@@ -118,12 +121,18 @@ export function MapPlot({ width, height }: MapProps) {
 
         let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
         let value = f.get('value');
+        let normal = Math.min(1,value/maxValue);
+        
+        let numSteps = colorStepsInputRef.current ? Number(colorStepsInputRef.current['value']) : 5;
+        let scaleName = colorScaleInputRef.current ? colorScaleInputRef.current['value'] : 'spectral';
+        let scale = chroma.scale(scaleName).correctLightness();
+        let steppedColors = scale.colors(numSteps);
     
-        switch (style){
-        // Display a point with a radius 
-        // depending on the number of objects in the aggregate.
+        switch (style) {
+
+        // different sized hexagons
         case 'point': {
-            var radius = Math.round(size/res +0.5) * Math.min(1,value/maxValue);
+            let radius = Math.round(size/res +0.5) * Math.min(1,value/maxValue);
             if (radius < minRadius) radius = minRadius;
             return	[ new Style({
                 image: new RegularShape({
@@ -137,32 +146,30 @@ export function MapPlot({ width, height }: MapProps) {
                 //, new Style({ fill: new Fill({color: [0,0,255,.1] }) })
             ];
         }
-        // Display the polygon with a gradient value (opacity) 
-        // depending on the number of objects in the aggregate.
-        case 'gradient': {
-            var opacity = Math.min(1,value/maxValue);
-            return [ new Style({ fill: new Fill({ color: [0,0,255,opacity] }) }) ];
+
+        // sharp transition between colors
+        case 'color': {
+            let index = Math.round(normal * (numSteps - 1));
+            let color = steppedColors[index];
+            return [ new Style({ fill: new Fill({ color: color }) }) ];
         }
-        // Display the polygon with a color
-        // depending on the number of objects in the aggregate.
-        case 'color':
+
+        // smooth transition between colors
+        case 'gradient':
         default: {
-            var color;
-            if (value > maxValue) color = [136, 0, 0, 1];
-            else if (value > minValue) color = [255, 165, 0, 1];
-            else color = [0, 136, 0, 1];
-            return [ new Style({ fill: new Fill({  color: color }) }) ];
-        }
-        }
+            let scaledColor = scale(normal);
+            let color = scaledColor ? scaledColor : [0, 0, 255, normal] as any;
+            return [ new Style({ fill: new Fill({ color: color }) }) ];
+        }}
     }
 
     // determines the style for grid bin map
     function styleForGridBin(f: FeatureLike, _: number) {
         let color;
         let value = f.get('value');
-        if (value > minValue+2*(maxValue-minValue)/3) color = [136, 0, 0, .5];
-        else if (value > minValue + (maxValue-minValue)/3) color = [255, 165, 0, .5];
-        else color = [0, 136, 0, .5];
+        if (value > maxValue) color = [136, 0, 0, 1];
+        else if (value > minValue) color = [255, 165, 0, 1];
+        else color = [0, 136, 0, 1];
         return [ new Style({ fill: new Fill({  color: color }) }) ];
     }
 
@@ -185,15 +192,14 @@ export function MapPlot({ width, height }: MapProps) {
 
     // create and return a new grid bin object
     function createGridBin(vectorSource: Vector) {
+        
         // init and calculate the bins
         const gridBin = new GridBin({
             source: vectorSource,
             size: size,
         });
         binsRef.current = gridBin;
-
-        console.log(gridBin.getFeatures())
-        console.log(gridBin)
+        // gridBin.getSource().set('gridProjection', 'EPSG:'+3857);
 
         // determine the highest and lowest values across all bins
         findValueBounds(gridBin.getFeatures());
@@ -280,7 +286,7 @@ export function MapPlot({ width, height }: MapProps) {
         }
 
         if (randDataChkboxRef.current && randDataChkboxRef.current['checked']) {
-            addRandomFeatures(20000, vectorSource);
+            addRandomFeatures(10000, vectorSource);
         } else {
             addPresetFeatures(vectorSource);
         }
@@ -412,6 +418,20 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <br/>
 
+                <label htmlFor="map-color-scale-input">Color Scale:</label>
+                <select ref={colorScaleInputRef} id="map-color-scale-input" onChange={reloadBins}>
+                    {Object.keys(chroma.brewer).map((key) => {
+                        return (
+                            <option value={key}>{key}</option>
+                        );
+                    })}
+                </select>
+
+                <label htmlFor="map-color-steps-input">Num Color Steps:</label>
+                <input ref={colorStepsInputRef} id="map-color-steps-input" type="number" min={0} max={16} defaultValue={5} step={1} onChange={reloadMap}/>
+
+                <br/>
+
                 <label htmlFor="map-size-input">Interval Min:</label>
                 <input ref={intervalMinInputRef} id="map-interval-min-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
 
@@ -419,6 +439,7 @@ export function MapPlot({ width, height }: MapProps) {
                 <input ref={intervalMaxInputRef} id="map-interval-max-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
 
             </div>
+
         </div>
         
     );
