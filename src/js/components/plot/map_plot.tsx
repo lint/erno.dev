@@ -269,6 +269,7 @@ export function MapPlot({ width, height }: MapProps) {
 
         // set enabled
         if (tileLayerRef.current) tileLayerRef.current.setVisible(!tileLayerChkboxRef.current || tileLayerChkboxRef.current['checked']);
+        if (binLayerRef.current) binLayerRef.current.setVisible(!binLayerChkboxRef.current || binLayerChkboxRef.current['checked']);
 
         // update tile layer url
         if (tileLayerRef.current) {
