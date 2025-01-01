@@ -54,6 +54,7 @@ export function MapPlot({ width, height }: MapProps) {
     const colorScaleInputRef = useRef(null);
     const binOpacityInputRef = useRef(null);
     const tileOpacityInputRef = useRef(null);
+    const tileSourceInputRef = useRef(null);
 
     let minValue = 0, maxValue = 100; 
     const minRadius = 1;
@@ -296,6 +297,14 @@ export function MapPlot({ width, height }: MapProps) {
         if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
         if (tileLayerRef.current) mapRef.current.removeLayer(tileLayerRef.current);
 
+        // create new tile layer
+        let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+        const tileLayer = new TileLayer({
+            source: new OSM({url: tileUrl}), 
+            preload: Infinity 
+        });
+        tileLayerRef.current = tileLayer;
+
         // get the current size from input
         // if (sizeInputRef.current) setSize(Number(sizeInputRef.current['value']));
         if (sizeInputRef.current) size = Number(sizeInputRef.current['value']);
@@ -333,8 +342,9 @@ export function MapPlot({ width, height }: MapProps) {
         if (!mapContainerRef.current) return;
 
         // initialize the tile layer
+        let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
         const tileLayer = new TileLayer({
-            source: new OSM(), 
+            source: new OSM({url: tileUrl}), 
             preload: Infinity 
         });
         tileLayerRef.current = tileLayer;
@@ -400,7 +410,7 @@ export function MapPlot({ width, height }: MapProps) {
                 <input ref={binLayerChkboxRef} id="map-bin-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
                 <label htmlFor="map-bin-layer-input">show bin layer</label>
 
-                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={false}/>
+                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
                 <label htmlFor="map-tile-layer-input">show tile layer</label>
 
                 <br/>
@@ -409,6 +419,18 @@ export function MapPlot({ width, height }: MapProps) {
                 <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="number" min={0} max={100} defaultValue={64} step={1} onChange={reloadBins}/>
                 <label htmlFor="map-tile-opacity-input">Tile Layer Opacity:</label>
                 <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="number" min={0} max={100} defaultValue={100} step={1} onChange={reloadBins}/>
+
+                <br/>
+
+                <label htmlFor="map-tile-source-input">Tile Source:</label>
+                <select ref={tileSourceInputRef} id="map-tile-source-input" onChange={reloadMap}>
+                    <option value="https://tile.openstreetmap.org/{z}/{x}/{y}.png">Default</option>
+                    <option value="https://a.tile.opentopomap.org/{z}/{x}/{y}.png">Topographic</option>
+                    <option value="https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">Humanitarian</option>
+                    <option value="https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png">MemoMaps</option>
+                    <option value="https://s.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png">CyclOSM</option>
+                    <option value="https://tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png">CyclOSM-lite</option>
+                </select>
 
                 <br/>
 
@@ -421,7 +443,7 @@ export function MapPlot({ width, height }: MapProps) {
                 <select ref={colorScaleInputRef} id="map-color-scale-input" onChange={reloadBins}>
                     {Object.keys(chroma.brewer).map((key) => {
                         return (
-                            <option value={key}>{key}</option>
+                            <option value={key} key={key}>{key}</option>
                         );
                     })}
                 </select>
