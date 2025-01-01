@@ -38,6 +38,7 @@ export function MapPlot({ width, height }: MapProps) {
     const binsRef = useRef<VectorSource>();
     // const [size, setSize] = useState(2000);
     let size = 250;
+    let wasImageLayerUsed = true;
 
     // input refs
     const tileLayerChkboxRef = useRef(null);
@@ -259,56 +260,62 @@ export function MapPlot({ width, height }: MapProps) {
         reloadBins();
     }
 
-    // reload bins
-    function reloadBins() {
+    // reload fast visuals
+    function refresh() {
+
+        // set opacity
         if (binLayerRef.current && binOpacityInputRef.current) binLayerRef.current.setOpacity(Number(binOpacityInputRef.current['value'])/100);
         if (tileLayerRef.current && tileOpacityInputRef.current) tileLayerRef.current.setOpacity(Number(tileOpacityInputRef.current['value'])/100);
-        if (binsRef.current) binsRef.current.changed();
+
+        // set enabled
+        if (tileLayerRef.current) tileLayerRef.current.setVisible(!tileLayerChkboxRef.current || tileLayerChkboxRef.current['checked']);
+
+        // update tile layer url
+        if (tileLayerRef.current) {
+            let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+            let osmSource = tileLayerRef.current.getSource() as OSM;
+            osmSource.setUrl(tileUrl);
+        }
     }
 
     // update data source
     function updateDataSource() {
+        if (!vectorSourceRef.current) return;
 
-        let vectorSource;
-
-        if (vectorSourceRef.current) {
-            vectorSourceRef.current.clear();
-            vectorSource = vectorSourceRef.current;
-        } else {
-            // create vector source to store data points
-            vectorSource = new Vector();
-            vectorSourceRef.current = vectorSource;
-        }
+        vectorSourceRef.current.clear();
 
         if (randDataChkboxRef.current && randDataChkboxRef.current['checked']) {
-            addRandomFeatures(10000, vectorSource);
+            addRandomFeatures(10000, vectorSourceRef.current);
         } else {
-            addPresetFeatures(vectorSource);
+            addPresetFeatures(vectorSourceRef.current);
         }
 
         reloadMap();
     }
 
+    // reload bins
+    function reloadBins() {
+        if (binsRef.current) binsRef.current.changed();
+    }
+
+    // reload map on enter press on input fields
+    function handleKeyDown(event: any) {
+        if (event.key === 'Enter') {
+            reloadMap();
+        }
+    }
+
     // reset, calculate, and display updated hexbins
     function reloadMap() {
         console.log("reloading map ...");
-
         if (!mapRef.current || !vectorSourceRef.current) return;
-        if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
-        if (tileLayerRef.current) mapRef.current.removeLayer(tileLayerRef.current);
-
-        // create new tile layer
-        let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-        const tileLayer = new TileLayer({
-            source: new OSM({url: tileUrl}), 
-            preload: Infinity 
-        });
-        tileLayerRef.current = tileLayer;
+        
+        // refresh visual updates
+        refresh();
 
         // get the current size from input
-        // if (sizeInputRef.current) setSize(Number(sizeInputRef.current['value']));
         if (sizeInputRef.current) size = Number(sizeInputRef.current['value']);
-
+        
         // group data points into bins
         let bins;
         if (binTypeInputRef.current && binTypeInputRef.current['value'] == 'grid') {
@@ -317,21 +324,24 @@ export function MapPlot({ width, height }: MapProps) {
             bins = createHexBin(vectorSourceRef.current);
         }
 
-        // create layer to display the bins
-        let vClass = asImageChkboxRef.current && asImageChkboxRef.current['checked'] ? VectorLayer : VectorImageLayer;
-        let opacity = binOpacityInputRef.current ? Number(binOpacityInputRef.current['value']) / 100 : 0.7;
-        const binLayer = new vClass({ 
-            source: bins, 
-            opacity: opacity,
-            style: styleForBin
-        });
-        binLayerRef.current = binLayer;
-    
-        // add layers to map
-        if ((!tileLayerChkboxRef.current || tileLayerChkboxRef.current['checked']) && tileLayerRef.current) {
-            mapRef.current.addLayer(tileLayerRef.current);
-        }
-        if (!binLayerChkboxRef.current || binLayerChkboxRef.current['checked']) {
+        // update bin layer source
+        if (binLayerRef.current) binLayerRef.current.setSource(bins);
+
+        // create new layer to display the bins if necessary
+        let isImageLayer = !(asImageChkboxRef.current && asImageChkboxRef.current['checked']);
+        if (!binLayerRef.current || wasImageLayerUsed != isImageLayer) {
+            console.log("creating bin layer")
+            wasImageLayerUsed = isImageLayer;
+
+            let vClass = isImageLayer ? VectorImageLayer : VectorLayer;
+            let opacity = binOpacityInputRef.current ? Number(binOpacityInputRef.current['value']) / 100 : 0.7;
+
+            const binLayer = new vClass({ 
+                source: bins, 
+                opacity: opacity,
+                style: styleForBin
+            });
+            binLayerRef.current = binLayer;
             mapRef.current.addLayer(binLayer);
         }
     }
@@ -348,6 +358,10 @@ export function MapPlot({ width, height }: MapProps) {
             preload: Infinity 
         });
         tileLayerRef.current = tileLayer;
+
+        // initialize vector source to store data points
+        let vectorSource = new Vector();
+        vectorSourceRef.current = vectorSource;
         
         // initialize the map object
         const map = new Map({
@@ -355,7 +369,7 @@ export function MapPlot({ width, height }: MapProps) {
                 center: fromLonLat([-80, 40.440]),
                 zoom: 11,
             }),
-            layers: [],
+            layers: [tileLayer],
             target: mapContainerRef.current
         });
         mapRef.current = map;
@@ -376,10 +390,10 @@ export function MapPlot({ width, height }: MapProps) {
 
     return (
         <div className='map-container'>
-            <div ref={mapContainerRef} style={{ height: height+"px", width: width+"px" }} className="map"/>
+            <div ref={mapContainerRef} style={{ height: height+"px", width: width+"px"}} className="map"/>
             <div>
                 <label htmlFor="map-size-input">Size:</label>
-                <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={100000} defaultValue={size} step={500} onChange={reloadMap}/>
+                <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={100000} defaultValue={size} step={500} onKeyDown={handleKeyDown} onBlur={()=>reloadMap()} />
 
                 <label htmlFor="map-style-input">Style:</label>
                 <select ref={styleInputRef} id="map-style-input" onChange={reloadBins}>
@@ -404,21 +418,21 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <br/>
 
-                <input ref={asImageChkboxRef} id="map-image-layer-input" type="checkbox" onChange={reloadMap}/>
+                <input ref={asImageChkboxRef} id="map-image-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={wasImageLayerUsed}/>
                 <label htmlFor="map-image-layer-input">bin layer as image</label>
 
                 <input ref={binLayerChkboxRef} id="map-bin-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
                 <label htmlFor="map-bin-layer-input">show bin layer</label>
 
-                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
+                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={refresh} defaultChecked={true}/>
                 <label htmlFor="map-tile-layer-input">show tile layer</label>
 
                 <br/>
 
                 <label htmlFor="map-bin-opacity-input">Bin Layer Opacity:</label>
-                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="number" min={0} max={100} defaultValue={64} step={1} onChange={reloadBins}/>
+                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="number" min={0} max={100} defaultValue={64} step={1} onChange={refresh}/>
                 <label htmlFor="map-tile-opacity-input">Tile Layer Opacity:</label>
-                <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="number" min={0} max={100} defaultValue={100} step={1} onChange={reloadBins}/>
+                <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="number" min={0} max={100} defaultValue={100} step={1} onChange={refresh}/>
 
                 <br/>
 
@@ -460,8 +474,6 @@ export function MapPlot({ width, height }: MapProps) {
                 <input ref={intervalMaxInputRef} id="map-interval-max-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
 
             </div>
-
         </div>
-        
     );
 }
