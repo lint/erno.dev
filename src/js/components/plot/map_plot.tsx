@@ -21,7 +21,8 @@ import VectorSource from 'ol/source/Vector';
 import VectorImageLayer from 'ol/layer/VectorImage';
 import Layer from 'ol/layer/Layer';
 // import { data } from '../../data/us_pa_alleghaney_addresses';
-import { data } from '../../data/us_pa_addresses';
+// import { data } from '../../data/us_pa_addresses';
+import { data } from '../../data/us_addresses';
 import { fromLonLat, Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -147,9 +148,8 @@ export function MapPlot() {
 
         // different sized hexagons
         case 'point': {
-            let radius = Math.round(size/res +0.5) * Math.min(1,value/maxValue);
-            if (radius < minRadius) radius = minRadius;
-            return	[ new Style({
+            let radius = Math.max(minRadius, Math.round(size/res + 0.5) * Math.min(1, value/maxValue));
+            return [ new Style({
                 image: new RegularShape({
                     points: 6,
                     radius: radius,
@@ -158,7 +158,7 @@ export function MapPlot() {
                     }),
                     geometry: new Point(f.get('center'))
                 })
-                //, new Style({ fill: new Fill({color: [0,0,255,.1] }) })
+                // , new Style({ fill: new Fill({color: [0,0,255,.1] }) })
             ];
         }
 
