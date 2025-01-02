@@ -24,10 +24,10 @@ import { data } from '../../data/us_pa_addresses';
 import { fromLonLat } from 'ol/proj';
 import chroma from 'chroma-js';
 
-type MapProps = {
-    width: number;
-    height: number;
-};
+// type MapProps = {
+//     width: number;
+//     height: number;
+// };
 
 export function MapPlot() {
 
