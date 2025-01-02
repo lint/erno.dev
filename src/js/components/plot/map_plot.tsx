@@ -40,6 +40,8 @@ export function MapPlot({ width, height }: MapProps) {
     let size = 250;
     let wasImageLayerUsed = true;
 
+    const legendContainerRef = useRef(null);
+
     // input refs
     const tileLayerChkboxRef = useRef(null);
     const binLayerChkboxRef = useRef(null);
@@ -123,8 +125,8 @@ export function MapPlot({ width, height }: MapProps) {
 
     // returns the chroma js color scale for the currently selected input
     function getColorScale() {
-        let scaleName = colorScaleInputRef.current ? colorScaleInputRef.current['value'] : 'spectral';
-        let scale = chroma.scale(scaleName).correctLightness();
+        let scaleName = colorScaleInputRef.current ? colorScaleInputRef.current['value'] : 'Viridis';
+        let scale = chroma.scale(scaleName);
         return scale
     }
 
@@ -290,6 +292,9 @@ export function MapPlot({ width, height }: MapProps) {
         let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
         let osmSource = tileLayerRef.current?.getSource() as OSM;
         osmSource.setUrl(tileUrl);
+
+        // refresh legend
+        refreshLegend();
     }
 
     // update data source
@@ -362,11 +367,34 @@ export function MapPlot({ width, height }: MapProps) {
         // refresh visual updates
         refresh();
     }
+    
+    // update legend colors
+    function refreshLegend() {
+        if (!legendContainerRef.current) return;
+
+        let gradient = (legendContainerRef.current as HTMLElement).querySelector(".gradient");
+        if (!gradient) return;
+        gradient.innerHTML = "";
+
+        getColorScale().colors(100).forEach((color) => {
+            let e = document.createElement('span');
+            e.className="grad-step";
+            e.style.backgroundColor = color;
+
+            gradient.append(e);
+        });
+    }
 
     // called when component has mounted
     useEffect(() => {
         console.log("Map useEffect ...");
         if (!mapContainerRef.current) return;
+
+        // set the default scale
+        if (colorScaleInputRef.current) {
+            let colorScaleSelect = colorScaleInputRef.current as HTMLInputElement;
+            colorScaleSelect.value = 'Viridis';
+        }
 
         // initialize the tile layer
         let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -409,6 +437,15 @@ export function MapPlot({ width, height }: MapProps) {
     return (
         <div className='map-container'>
             <div ref={mapContainerRef} style={{ height: height+"px", width: width+"px"}} className="map"/>
+            <div ref={legendContainerRef} className="legend-container">
+                <div className="gradient">
+                    {getColorScale().colors(100).map((color) => {
+                        return (
+                            <span className="grad-step" style={{backgroundColor: color}}></span>
+                        );
+                    })}
+                </div>
+            </div>
             <div>
                 <label htmlFor="map-size-input">Size:</label>
                 <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={100000} defaultValue={size} step={500} onKeyDown={handleKeyDown} onBlur={()=>reloadMap()} />
@@ -477,7 +514,7 @@ export function MapPlot({ width, height }: MapProps) {
                 <br/>
 
                 <label htmlFor="map-color-scale-input">Color Scale:</label>
-                <select ref={colorScaleInputRef} id="map-color-scale-input" onChange={refresh}>
+                <select ref={colorScaleInputRef} id="map-color-scale-input" onChange={refresh} defaultValue="viridis">
                     {Object.keys(chroma.brewer).map((key) => {
                         return (
                             <option value={key} key={key}>{key}</option>
@@ -497,6 +534,7 @@ export function MapPlot({ width, height }: MapProps) {
                 <input ref={intervalMaxInputRef} id="map-interval-max-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
                 
             </div>
+
         </div>
     );
 }
