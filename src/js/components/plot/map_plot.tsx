@@ -568,6 +568,9 @@ export function MapPlot() {
 
                 <label htmlFor="map-tile-source-input">Tile Source:</label>
                 <select ref={tileSourceInputRef} id="map-tile-source-input" onChange={reloadMap}>
+                    {/* TODO: temp default */}
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Dark Gray Bas</option>
+
                     <option value="https://tile.openstreetmap.org/{z}/{x}/{y}.png">OSM Standard</option>
                     <option value="https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">OSM Humanitarian</option>
                     <option value="https://a.tile.opentopomap.org/{z}/{x}/{y}.png">OSM Topographic</option>
@@ -582,8 +585,13 @@ export function MapPlot() {
                     <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}">Esri Terrain Base</option>
                     <option value="https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}">Esri NatGeo</option>
                     <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}">Esri Transportation</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Dark Gray</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Light Gray</option>
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Light Gray Base</option>
+                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}">Esri Light Gray Reference</option>
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Dark Gray Base</option>
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}">Esri Dark Gray Reference</option>
+                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}">Esri World Boundaries and Places</option>
+                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places_Alternate/MapServer/tile/{z}/{y}/{x}">Esri World Boundaries and Places (alt)</option>
+                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}">Esri World Reference Overlay</option>
                     <option value="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png">Carto Positron</option>
                     <option value="https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png">Carto Positron - no labels</option>
                     <option value="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png">Carto Dark Matter</option>
