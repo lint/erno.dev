@@ -141,7 +141,7 @@ export function MapPlot() {
         
         let numSteps = colorStepsInputRef.current ? Number(colorStepsInputRef.current['value']) : 5;
         let scale = getColorScale();
-        let steppedColors = scale.colors(numSteps+1);
+        let steppedColors = scale.colors(numSteps);
     
         switch (style) {
 
@@ -164,7 +164,7 @@ export function MapPlot() {
 
         // sharp transition between colors
         case 'color': {
-            let index = Math.round(normal * (numSteps - 1))+1;
+            let index = Math.floor(normal * numSteps);
             let color = steppedColors[index];
             return [ new Style({ fill: new Fill({ color: color }) }) ];
         }
@@ -311,7 +311,7 @@ export function MapPlot() {
         // set bin layer background color
         if (backgroundColorChkboxRef.current && backgroundColorChkboxRef.current['checked']) {
             let scale = getColorScale();
-            binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).name());
+            binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).darken().name());
         } else {
             binLayerRef.current?.setBackground();
         }
@@ -412,15 +412,33 @@ export function MapPlot() {
 
         let gradient = (legendContainerRef.current as HTMLElement).querySelector(".gradient");
         if (!gradient) return;
+
+        let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
+        let numSteps = colorStepsInputRef.current ? Number(colorStepsInputRef.current['value']) : 5;
+        let scale = getColorScale();
+        let steppedColors = scale.colors(numSteps);
+    
         gradient.innerHTML = "";
 
-        getColorScale().colors(100).forEach((color) => {
+        // add grad-step span with the given color
+        function addColor(color: string) {
+            if (!gradient) return;
             let e = document.createElement('span');
             e.className="grad-step";
             e.style.backgroundColor = color;
-
             gradient.append(e);
-        });
+        }
+        
+        // created stepped color legend
+        if (style == 'color') {
+            for (let i = 0; i < 100; i++) {
+                addColor(steppedColors[Math.floor(i / 100 * (numSteps))]);
+            }
+        
+        // create smooth gradient legend
+        } else {
+            scale.colors(100).forEach((color) => addColor(color));
+        }
     }
 
     // called when component has mounted
@@ -502,7 +520,7 @@ export function MapPlot() {
                 <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={100000} defaultValue={size} step={500} onKeyDown={handleKeyDown} onBlur={()=>reloadMap()} />
 
                 <label htmlFor="map-style-input">Style:</label>
-                <select ref={styleInputRef} id="map-style-input" onChange={reloadBins}>
+                <select ref={styleInputRef} id="map-style-input" onChange={refresh}>
                     <option value="gradient">Gradient</option>
                     <option value="color">Color</option>
                     <option value="point">Point</option>
