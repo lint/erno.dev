@@ -1,5 +1,6 @@
 .map {
-    border: solid 1px red
+    border: solid 1px red;
+    height: 75vh;
 }
 
 .gradient .domain-min {
@@ -25,9 +26,12 @@
     bottom: 3px;
 }
 
-
 .grad-step {
     display: inline-block;
     height: 20px;
     width: 1%;
+}
+
+.legend-container {
+    max-width: 500px;
 }

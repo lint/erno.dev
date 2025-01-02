@@ -19,7 +19,8 @@ import { SelectEvent } from 'ol/interaction/Select';
 import VectorSource from 'ol/source/Vector';
 import VectorImageLayer from 'ol/layer/VectorImage';
 import Layer from 'ol/layer/Layer';
-import { data } from '../../data/us_pa_alleghaney_addresses';
+// import { data } from '../../data/us_pa_alleghaney_addresses';
+import { data } from '../../data/us_pa_addresses';
 import { fromLonLat } from 'ol/proj';
 import chroma from 'chroma-js';
 
@@ -28,7 +29,7 @@ type MapProps = {
     height: number;
 };
 
-export function MapPlot({ width, height }: MapProps) {
+export function MapPlot() {
 
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
@@ -37,7 +38,7 @@ export function MapPlot({ width, height }: MapProps) {
     const vectorSourceRef = useRef<VectorSource>();
     const binsRef = useRef<VectorSource>();
     // const [size, setSize] = useState(2000);
-    let size = 250;
+    let size = 1000;
     let wasImageLayerUsed = true;
 
     const legendContainerRef = useRef(null);
@@ -59,6 +60,7 @@ export function MapPlot({ width, height }: MapProps) {
     const tileOpacityInputRef = useRef(null);
     const tileSourceInputRef = useRef(null);
     const backgroundColorChkboxRef = useRef(null);
+    const aggFuncInputRef = useRef(null);
 
     let minValue = 0, maxValue = 100; 
     const minRadius = 1;
@@ -215,45 +217,58 @@ export function MapPlot({ width, height }: MapProps) {
         if (!features || features.length == 0) return;
 
         // reset current values
-        minValue = Number.MAX_SAFE_INTEGER;
         maxValue = Number.MIN_SAFE_INTEGER;
 
-        // get the number of features in the set
-        // for (let f of features) {
-        //     let n = f.get('features').length;
-        //     if (n<minValue) minValue = n;
-        //     if (n>maxValue) maxValue = n;
-        //     (f as Feature).set('value', n, true);
-        // }
+        // get current aggregation function
+        let mode = aggFuncInputRef.current ? aggFuncInputRef.current['value'] : 'max';
 
-        // get the max number of features in the set
+        // calculate the value for every feature
         for (let f of features) {
             let fs = f.get('features');
-            let fMin = Number.MAX_SAFE_INTEGER;
             let fMax = Number.MIN_SAFE_INTEGER;
+            let sum = 0;
+            let value = 0;
 
-            for (let ff of fs) {
-                let n = ff.get('number');
-                if (n<fMin) fMin = n;
-                if (n>fMax) fMax = n;
+            // do not need to iterate over data points for length`
+            if (mode !== 'len') {
+                for (let ff of fs) {
+                    let n = ff.get('number');
+                    sum += n;
+                    if (n>fMax) fMax = n;
+                }
             }
 
-            (f as Feature).set('value', fMax, true);
+            // set the value based on the current mode
+            switch (mode) {
+            case 'len':
+                value = fs.length;
+                break;
+            case 'avg':
+                value = sum / fs.length;
+                break; 
+            case 'sum':
+                value = sum;
+                break;
+            case 'max':
+            default:
+                value = fMax;
+            }
 
-            if (fMin<minValue) minValue = fMin;
-            if (fMax>maxValue) maxValue = fMax;
+            (f as Feature).set('value', value, true);
+            if (value>maxValue) maxValue = value;
         }
 
         // set new min/max by clipping ends (TODO: why?)
         let dl = (maxValue-minValue);
-        minValue = Math.max(1,Math.round(dl/4));
-        maxValue = Math.round(maxValue - dl/1.5);
+        // minValue = Math.max(1,Math.round(dl/4));
+        maxValue = Math.round(maxValue - dl/4);
+        maxValue = Math.min(maxValue, 30000);
 
         // update interval min and max fields
-        if (intervalMinInputRef.current) {
-            let minInput = intervalMinInputRef.current as HTMLInputElement;
-            minInput.value = String(minValue);
-        }
+        // if (intervalMinInputRef.current) {
+        //     let minInput = intervalMinInputRef.current as HTMLInputElement;
+        //     minInput.value = String(minValue);
+        // }
         if (intervalMaxInputRef.current) {
             let maxInput = intervalMaxInputRef.current as HTMLInputElement;
             maxInput.value = String(maxValue);
@@ -413,7 +428,7 @@ export function MapPlot({ width, height }: MapProps) {
         const map = new Map({
             view: new View({
                 center: fromLonLat([-80, 40.440]),
-                zoom: 11,
+                zoom: 9,
             }),
             layers: [tileLayer],
             target: mapContainerRef.current
@@ -436,12 +451,12 @@ export function MapPlot({ width, height }: MapProps) {
 
     return (
         <div className='map-container'>
-            <div ref={mapContainerRef} style={{ height: height+"px", width: width+"px"}} className="map"/>
+            <div ref={mapContainerRef}  className="map"/>
             <div ref={legendContainerRef} className="legend-container">
                 <div className="gradient">
-                    {getColorScale().colors(100).map((color) => {
+                    {getColorScale().colors(100).map((color, index) => {
                         return (
-                            <span className="grad-step" style={{backgroundColor: color}}></span>
+                            <span className="grad-step" key={index} style={{backgroundColor: color}}></span>
                         );
                     })}
                 </div>
@@ -484,13 +499,13 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <br/>
 
-                <input ref={backgroundColorChkboxRef} id="map-bin-background-input" type="checkbox" onChange={refresh} defaultChecked={true}/>
+                <input ref={backgroundColorChkboxRef} id="map-bin-background-input" type="checkbox" onChange={refresh} defaultChecked={false}/>
                 <label htmlFor="map-bin-background-input">bin layer background</label>
 
                 <br/>
 
                 <label htmlFor="map-bin-opacity-input">Bin Layer Opacity:</label>
-                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="range" min={0} max={100} defaultValue={64} step={1} onMouseUp={refresh}/>
+                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="range" min={0} max={100} defaultValue={75} step={1} onMouseUp={refresh}/>
                 <label htmlFor="map-tile-opacity-input">Tile Layer Opacity:</label>
                 <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="range" min={0} max={100} defaultValue={100} step={1} onMouseUp={refresh}/>
 
@@ -498,12 +513,26 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <label htmlFor="map-tile-source-input">Tile Source:</label>
                 <select ref={tileSourceInputRef} id="map-tile-source-input" onChange={reloadMap}>
-                    <option value="https://tile.openstreetmap.org/{z}/{x}/{y}.png">Default</option>
-                    <option value="https://a.tile.opentopomap.org/{z}/{x}/{y}.png">Topographic</option>
+                    <option value="https://tile.openstreetmap.org/{z}/{x}/{y}.png">Standard</option>
                     <option value="https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">Humanitarian</option>
-                    <option value="https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png">MemoMaps</option>
-                    <option value="https://s.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png">CyclOSM</option>
-                    <option value="https://tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png">CyclOSM-lite</option>
+                    <option value="https://a.tile.opentopomap.org/{z}/{x}/{y}.png">Topographic</option>
+                    {/* <option value="https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png">MemoMaps</option> */}
+                    {/* <option value="https://s.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png">CyclOSM</option> */}
+                    {/* <option value="https://tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png">CyclOSM-lite</option> */}
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}">Esri World Imagery (satellite)</option>
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}">Esri World Street Map</option>
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}">Esri World Topographic</option>
+                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}">Esri Terrain Base</option>
+                    <option value="https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer/tile/{z}/{y}/{x}">Esri Navigation</option>
+                    <option value="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png">Carto Positron</option>
+                    <option value="https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png">Carto Positron - no labels</option>
+                    <option value="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png">Carto Dark Matter</option>
+                    <option value="https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png">Carto Dark Matter - no labels</option>
+                    <option value="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png">Carto Voyager</option>
+                    <option value="https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png">Carto Voyager - no labels</option>
+                    <option value="http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg">Stamen Watercolor</option>
+                    <option value="https://tile.openweathermap.org/map/{layer}/{z}/{x}/{y}.png">OpenWeatherMap</option>
+
                 </select>
 
                 <br/>
@@ -532,6 +561,16 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <label htmlFor="map-size-input">Max:</label>
                 <input ref={intervalMaxInputRef} id="map-interval-max-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
+
+                <br/>
+
+                <label htmlFor="map-agg-func-input">Agg Func:</label>
+                <select ref={aggFuncInputRef} id="map-agg-func-input" onChange={reloadMap}>
+                    <option value="max">Max</option>
+                    <option value="sum">Sum</option>
+                    <option value="avg">Avg</option>
+                    <option value="len">Count</option>
+                </select>
                 
             </div>
 
