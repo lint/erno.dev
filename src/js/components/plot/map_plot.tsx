@@ -56,6 +56,7 @@ export function MapPlot({ width, height }: MapProps) {
     const binOpacityInputRef = useRef(null);
     const tileOpacityInputRef = useRef(null);
     const tileSourceInputRef = useRef(null);
+    const backgroundColorChkboxRef = useRef(null);
 
     let minValue = 0, maxValue = 100; 
     const minRadius = 1;
@@ -120,6 +121,13 @@ export function MapPlot({ width, height }: MapProps) {
         vectorSource.addFeatures(features);
     }
 
+    // returns the chroma js color scale for the currently selected input
+    function getColorScale() {
+        let scaleName = colorScaleInputRef.current ? colorScaleInputRef.current['value'] : 'spectral';
+        let scale = chroma.scale(scaleName).correctLightness();
+        return scale
+    }
+
     // determine style for the given bin (f=feature, res=resolutuion)
     function styleForBin(f: FeatureLike, res: number) {
 
@@ -128,9 +136,8 @@ export function MapPlot({ width, height }: MapProps) {
         let normal = Math.min(1,value/maxValue);
         
         let numSteps = colorStepsInputRef.current ? Number(colorStepsInputRef.current['value']) : 5;
-        let scaleName = colorScaleInputRef.current ? colorScaleInputRef.current['value'] : 'spectral';
-        let scale = chroma.scale(scaleName).correctLightness();
-        let steppedColors = scale.colors(numSteps);
+        let scale = getColorScale();
+        let steppedColors = scale.colors(numSteps+1);
     
         switch (style) {
 
@@ -153,7 +160,7 @@ export function MapPlot({ width, height }: MapProps) {
 
         // sharp transition between colors
         case 'color': {
-            let index = Math.round(normal * (numSteps - 1));
+            let index = Math.round(normal * (numSteps - 1))+1;
             let color = steppedColors[index];
             return [ new Style({ fill: new Fill({ color: color }) }) ];
         }
@@ -263,20 +270,26 @@ export function MapPlot({ width, height }: MapProps) {
     // reload fast visuals
     function refresh() {
 
+        // set bin layer background color
+        if (backgroundColorChkboxRef.current && backgroundColorChkboxRef.current['checked']) {
+            let scale = getColorScale();
+            binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).name());
+        } else {
+            binLayerRef.current?.setBackground();
+        }
+
         // set opacity
         if (binLayerRef.current && binOpacityInputRef.current) binLayerRef.current.setOpacity(Number(binOpacityInputRef.current['value'])/100);
         if (tileLayerRef.current && tileOpacityInputRef.current) tileLayerRef.current.setOpacity(Number(tileOpacityInputRef.current['value'])/100);
 
         // set enabled
-        if (tileLayerRef.current) tileLayerRef.current.setVisible(!tileLayerChkboxRef.current || tileLayerChkboxRef.current['checked']);
-        if (binLayerRef.current) binLayerRef.current.setVisible(!binLayerChkboxRef.current || binLayerChkboxRef.current['checked']);
+        tileLayerRef.current?.setVisible(!tileLayerChkboxRef.current || tileLayerChkboxRef.current['checked']);
+        binLayerRef.current?.setVisible(!binLayerChkboxRef.current || binLayerChkboxRef.current['checked']);
 
         // update tile layer url
-        if (tileLayerRef.current) {
-            let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-            let osmSource = tileLayerRef.current.getSource() as OSM;
-            osmSource.setUrl(tileUrl);
-        }
+        let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+        let osmSource = tileLayerRef.current?.getSource() as OSM;
+        osmSource.setUrl(tileUrl);
     }
 
     // update data source
@@ -310,9 +323,6 @@ export function MapPlot({ width, height }: MapProps) {
     function reloadMap() {
         console.log("reloading map ...");
         if (!mapRef.current || !vectorSourceRef.current) return;
-        
-        // refresh visual updates
-        refresh();
 
         // get the current size from input
         if (sizeInputRef.current) size = Number(sizeInputRef.current['value']);
@@ -334,17 +344,23 @@ export function MapPlot({ width, height }: MapProps) {
             console.log("creating bin layer")
             wasImageLayerUsed = isImageLayer;
 
+            // remove the previous bin layer if there is one
+            if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
+
             let vClass = isImageLayer ? VectorImageLayer : VectorLayer;
             let opacity = binOpacityInputRef.current ? Number(binOpacityInputRef.current['value']) / 100 : 0.7;
 
             const binLayer = new vClass({ 
                 source: bins, 
                 opacity: opacity,
-                style: styleForBin
+                style: styleForBin,
             });
             binLayerRef.current = binLayer;
             mapRef.current.addLayer(binLayer);
         }
+
+        // refresh visual updates
+        refresh();
     }
 
     // called when component has mounted
@@ -356,7 +372,8 @@ export function MapPlot({ width, height }: MapProps) {
         let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
         const tileLayer = new TileLayer({
             source: new OSM({url: tileUrl}), 
-            preload: Infinity 
+            // preload: Infinity 
+            preload: 1
         });
         tileLayerRef.current = tileLayer;
 
@@ -430,10 +447,15 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <br/>
 
+                <input ref={backgroundColorChkboxRef} id="map-bin-background-input" type="checkbox" onChange={refresh} defaultChecked={true}/>
+                <label htmlFor="map-bin-background-input">bin layer background</label>
+
+                <br/>
+
                 <label htmlFor="map-bin-opacity-input">Bin Layer Opacity:</label>
-                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="number" min={0} max={100} defaultValue={64} step={1} onChange={refresh}/>
+                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="range" min={0} max={100} defaultValue={64} step={1} onMouseUp={refresh}/>
                 <label htmlFor="map-tile-opacity-input">Tile Layer Opacity:</label>
-                <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="number" min={0} max={100} defaultValue={100} step={1} onChange={refresh}/>
+                <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="range" min={0} max={100} defaultValue={100} step={1} onMouseUp={refresh}/>
 
                 <br/>
 
@@ -455,7 +477,7 @@ export function MapPlot({ width, height }: MapProps) {
                 <br/>
 
                 <label htmlFor="map-color-scale-input">Color Scale:</label>
-                <select ref={colorScaleInputRef} id="map-color-scale-input" onChange={reloadBins}>
+                <select ref={colorScaleInputRef} id="map-color-scale-input" onChange={refresh}>
                     {Object.keys(chroma.brewer).map((key) => {
                         return (
                             <option value={key} key={key}>{key}</option>
@@ -473,7 +495,7 @@ export function MapPlot({ width, height }: MapProps) {
 
                 <label htmlFor="map-size-input">Max:</label>
                 <input ref={intervalMaxInputRef} id="map-interval-max-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
-
+                
             </div>
         </div>
     );
