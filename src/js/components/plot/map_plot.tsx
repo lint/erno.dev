@@ -11,6 +11,7 @@ import Feature, { FeatureLike } from 'ol/Feature.js';
 import Point from 'ol/geom/Point.js';
 import HexBin from 'ol-ext/source/HexBin';
 import GridBin from 'ol-ext/source/GridBin';
+import FeatureBin from 'ol-ext/source/FeatureBin';
 import { Vector } from 'ol/source';
 import Fill from 'ol/style/Fill';
 import Style from 'ol/style/Style';
@@ -21,8 +22,10 @@ import VectorImageLayer from 'ol/layer/VectorImage';
 import Layer from 'ol/layer/Layer';
 // import { data } from '../../data/us_pa_alleghaney_addresses';
 import { data } from '../../data/us_pa_addresses';
-import { fromLonLat } from 'ol/proj';
+import { fromLonLat, Projection } from 'ol/proj';
 import chroma from 'chroma-js';
+import GeoJSON from 'ol/format/GeoJSON';
+import BinBase from 'ol-ext/source/BinBase';
 
 // type MapProps = {
 //     width: number;
@@ -35,8 +38,9 @@ export function MapPlot() {
     const mapContainerRef = useRef(null);
     const binLayerRef = useRef<Layer>();
     const tileLayerRef = useRef<Layer>();
-    const vectorSourceRef = useRef<VectorSource>();
-    const binsRef = useRef<VectorSource>();
+    const dataSourceRef = useRef<VectorSource>();
+    const countySourceRef = useRef<VectorSource>();
+    const binsRef = useRef<BinBase>();
     // const [size, setSize] = useState(2000);
     let size = 1000;
     let wasImageLayerUsed = true;
@@ -68,18 +72,14 @@ export function MapPlot() {
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
         if (event.selected.length){
-            let f = event.selected[0].get('features');
-            if (f) {
-                // use f.get("features")
-                console.log("num features:", f.length);
-            } else {
-                // bin has no features
-                console.log("num features: 0 (no features array)");
-            }
+            let f = event.selected[0];
+            console.log("selected value: ", f.get("value"));
         } else {
             // did not select a feature
             console.log("did not select feature");
         }
+
+        console.log(binsRef.current?.getFeatures())
     }
 
     // create a set of features on seed points
@@ -212,6 +212,27 @@ export function MapPlot() {
         return gridBin;
     }
 
+    // create and return a new feature bin object
+    function createFeatureBin(vectorSource: Vector) {
+
+        // init and calculate bins
+        const featureBin = new FeatureBin({
+            source: vectorSource,
+            binSource: countySourceRef.current
+        });
+        binsRef.current = featureBin;
+
+        // determine the highest and lowest values across all bins
+        findValueBounds(featureBin.getFeatures());
+        // featureBin.addEventListener('change', () => {
+        //     if (binsRef.current && binsRef.current === featureBin) {
+        //         findValueBounds(binsRef.current.getFeatures());
+        //     }
+        // })      
+
+        return featureBin;
+    }
+
     // find the minimum and maximum values in a given feature set
     function findValueBounds(features: FeatureLike[]) {
         if (!features || features.length == 0) return;
@@ -228,7 +249,7 @@ export function MapPlot() {
             let fMax = Number.MIN_SAFE_INTEGER;
             let sum = 0;
             let value = 0;
-
+           
             // do not need to iterate over data points for length`
             if (mode !== 'len') {
                 for (let ff of fs) {
@@ -314,14 +335,14 @@ export function MapPlot() {
 
     // update data source
     function updateDataSource() {
-        if (!vectorSourceRef.current) return;
+        if (!dataSourceRef.current) return;
 
-        vectorSourceRef.current.clear();
+        dataSourceRef.current.clear();
 
         if (randDataChkboxRef.current && randDataChkboxRef.current['checked']) {
-            addRandomFeatures(10000, vectorSourceRef.current);
+            addRandomFeatures(10000, dataSourceRef.current);
         } else {
-            addPresetFeatures(vectorSourceRef.current);
+            addPresetFeatures(dataSourceRef.current);
         }
 
         reloadMap();
@@ -342,7 +363,7 @@ export function MapPlot() {
     // reset, calculate, and display updated hexbins
     function reloadMap() {
         console.log("reloading map ...");
-        if (!mapRef.current || !vectorSourceRef.current) return;
+        if (!mapRef.current || !dataSourceRef.current) return;
 
         // get the current size from input
         if (sizeInputRef.current) size = Number(sizeInputRef.current['value']);
@@ -350,9 +371,11 @@ export function MapPlot() {
         // group data points into bins
         let bins;
         if (binTypeInputRef.current && binTypeInputRef.current['value'] == 'grid') {
-            bins = createGridBin(vectorSourceRef.current);
+            bins = createGridBin(dataSourceRef.current);
+        } else if (binTypeInputRef.current && binTypeInputRef.current['value'] == 'feature') {
+            bins = createFeatureBin(dataSourceRef.current);
         } else {
-            bins = createHexBin(vectorSourceRef.current);
+            bins = createHexBin(dataSourceRef.current);
         }
 
         // update bin layer source
@@ -422,7 +445,7 @@ export function MapPlot() {
 
         // initialize vector source to store data points
         let vectorSource = new Vector();
-        vectorSourceRef.current = vectorSource;
+        dataSourceRef.current = vectorSource;
         
         // initialize the map object
         const map = new Map({
@@ -440,9 +463,22 @@ export function MapPlot() {
         map.addInteraction(select);
         select.on('select', handleFeatureSelect);
 
-        // load initial data
+        // load initial data points
         updateDataSource();
-        
+
+        // load US county data source
+        let binSource = new Vector({
+            url: '/data/counties.geojson',
+            format: new GeoJSON(),
+            // loader: () => {
+            // }
+        });
+        countySourceRef.current = binSource;
+
+        // force source to load
+        let view = mapRef.current?.getView();
+        binSource.loadFeatures([0,0,0,0], 0, view ? view.getProjection() : new Projection({code: "EPSG:4326"}));
+
         // calculate the bins for the map
         // reloadMap();
 
@@ -476,6 +512,7 @@ export function MapPlot() {
                 <select ref={binTypeInputRef} id="map-bin-type-input" onChange={reloadMap}>
                     <option value="hex">Hex</option>
                     <option value="grid">Grid</option>
+                    <option value="feature">Feature (Counties)</option>
                 </select>
 
                 <br/>
