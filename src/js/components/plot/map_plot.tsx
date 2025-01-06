@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
 import './map.css';
@@ -35,6 +35,8 @@ import BinBase from 'ol-ext/source/BinBase';
 
 export function MapPlot() {
 
+    console.log("MapPlot function called ...");
+
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
     const binLayerRef = useRef<Layer>();
@@ -42,34 +44,63 @@ export function MapPlot() {
     const dataSourceRef = useRef<VectorSource>();
     const countySourceRef = useRef<VectorSource>();
     const binsRef = useRef<BinBase>();
-    // const [size, setSize] = useState(2000);
-    let size = 1000;
-    let wasImageLayerUsed = true;
-
     const legendContainerRef = useRef(null);
-
-    // input refs
-    const tileLayerChkboxRef = useRef(null);
-    const binLayerChkboxRef = useRef(null);
-    const asImageChkboxRef = useRef(null);
-    const randDataChkboxRef = useRef(null);
-    const sizeInputRef = useRef(null);
-    const styleInputRef = useRef(null);
-    const binTypeInputRef = useRef(null);
-    const hexLayoutInputRef = useRef(null);
-    const intervalMinInputRef = useRef(null);
-    const intervalMaxInputRef = useRef(null);
-    const colorStepsInputRef = useRef(null);
-    const colorScaleInputRef = useRef(null);
-    const binOpacityInputRef = useRef(null);
-    const tileOpacityInputRef = useRef(null);
-    const tileSourceInputRef = useRef(null);
-    const backgroundColorChkboxRef = useRef(null);
-    const aggFuncInputRef = useRef(null);
-
-    let minValue = 0, maxValue = 100; 
+    let wasImageLayerUsed = true;
     const minRadius = 1;
+    // const [maxValue, setMaxValue] = useState(100);
+    const maxValueRef = useRef(100);
 
+    const colorScaleInputRef = useRef(null);
+    const intervalMaxInputRef = useRef(null);
+
+    const [options, setOptions] = useState({
+        tileLayerVisible: true,
+        binLayerVisible: true,
+        binLayerIsVectorImage: true,
+        binLayerBackgroundEnabled: false,
+        hexStyle: "pointy",
+        binStyle: "gradient", // TODO: this value won't change in styles function??? not sure why since the options object in the method that calls it shows the correct value ...
+        binType: "hex",
+        binSize: 1000,
+        aggFuncName: "max",
+        tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        numColorSteps: 5,
+        colorScaleName: "viridis",
+        intervalMin: 0,
+        intervalMax: 30000,
+        binLayerOpacity: 85,
+        tileLayerOpacity: 100,
+    });
+    const optionsRef = useRef(options);
+
+
+    // handle change in user checkbox input
+    function handleCheckboxChange(e: ChangeEvent<HTMLInputElement>) {
+        if (!e || !e.target) return;
+
+        const {name, checked} = e.target;
+        console.log("handle change: ", name, checked);
+
+        let op = optionsRef.current ? optionsRef.current : options;
+        let newOptions = {...op, [name]: checked};
+        optionsRef.current = newOptions;
+        setOptions(newOptions);
+    }
+
+    // handle change in user value input
+    function handleValueChange(e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement> ) {
+        if (!e || !e.target) return;
+
+        const {name, value} = e.target;
+        console.log("handle change: ", name, value);
+
+        // setOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
+        let op = optionsRef.current ? optionsRef.current : options;
+        let newOptions = {...op, [name]: value};
+        optionsRef.current = newOptions;
+        setOptions(newOptions);
+    }
+    
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
         if (event.selected.length){
@@ -79,8 +110,22 @@ export function MapPlot() {
             // did not select a feature
             console.log("did not select feature");
         }
+    }
 
-        console.log(binsRef.current?.getFeatures())
+    // handler method to add random features to the dataset
+    function handleRandomFeaturesButton() {
+        if (!dataSourceRef.current) return;
+
+        addRandomFeatures(5000, dataSourceRef.current);
+        reloadMap();
+    }
+
+    // reset any randomly added features
+    function handleResetFeaturesButton() {
+        if (!dataSourceRef.current) return;
+
+        addPresetFeatures(dataSourceRef.current);
+        reloadMap();
     }
 
     // create a set of features on seed points
@@ -101,11 +146,11 @@ export function MapPlot() {
                     seed[0] + dl/10*Math.random(),
                     seed[1] + dl/10*Math.random()
                 ]));
-                f.set('number', Math.floor(Math.random() * 10));
+                f.set('number', Math.floor(Math.random() * 10000));
                 features.push(f);
             }
         }
-        vectorSource.clear(true);
+        // vectorSource.clear(true);
         vectorSource.addFeatures(features);
     }
 
@@ -128,7 +173,7 @@ export function MapPlot() {
 
     // returns the chroma js color scale for the currently selected input
     function getColorScale() {
-        let scaleName = colorScaleInputRef.current ? colorScaleInputRef.current['value'] : 'Viridis';
+        let scaleName = optionsRef.current.colorScaleName;
         let scale = chroma.scale(scaleName);
         return scale
     }
@@ -136,19 +181,20 @@ export function MapPlot() {
     // determine style for the given bin (f=feature, res=resolutuion)
     function styleForBin(f: FeatureLike, res: number) {
 
-        let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
         let value = f.get('value');
-        let normal = Math.min(1,value/maxValue);
+        console.log(maxValueRef.current)
+        let normal = Math.min(1, value/maxValueRef.current);
         
-        let numSteps = colorStepsInputRef.current ? Number(colorStepsInputRef.current['value']) : 5;
+        let numSteps = optionsRef.current.numColorSteps;
+        let size = optionsRef.current.binSize;
         let scale = getColorScale();
         let steppedColors = scale.colors(numSteps);
-    
-        switch (style) {
+
+        switch (optionsRef.current.binStyle) {
 
         // different sized hexagons
         case 'point': {
-            let radius = Math.max(minRadius, Math.round(size/res + 0.5) * Math.min(1, value/maxValue));
+            let radius = Math.max(minRadius, Math.round(size/res + 0.5) * normal);
             return [ new Style({
                 image: new RegularShape({
                     points: 6,
@@ -164,7 +210,7 @@ export function MapPlot() {
 
         // sharp transition between colors
         case 'color': {
-            let index = Math.floor(normal * numSteps);
+            let index = Math.floor(normal * (numSteps - 1));
             let color = steppedColors[index];
             return [ new Style({ fill: new Fill({ color: color }) }) ];
         }
@@ -184,8 +230,8 @@ export function MapPlot() {
         // init and calculate the bins
         const hexbin = new HexBin({
             source: vectorSource,
-            size: size,
-            layout: (hexLayoutInputRef.current ? hexLayoutInputRef.current['value'] : 'pointy') as any
+            size: options.binSize,
+            layout: options.hexStyle as any
         });
         binsRef.current = hexbin;
 
@@ -197,11 +243,11 @@ export function MapPlot() {
 
     // create and return a new grid bin object
     function createGridBin(vectorSource: Vector) {
-        
+
         // init and calculate the bins
         const gridBin = new GridBin({
             source: vectorSource,
-            size: size,
+            size: Number(options.binSize),
         });
         binsRef.current = gridBin;
         // gridBin.getSource().set('gridProjection', 'EPSG:'+3857);
@@ -237,11 +283,13 @@ export function MapPlot() {
     function findValueBounds(features: FeatureLike[]) {
         if (!features || features.length == 0) return;
 
+        console.log("findValueBounds ...");
+
         // reset current values
-        maxValue = Number.MIN_SAFE_INTEGER;
+        maxValueRef.current = Number.MIN_SAFE_INTEGER;
 
         // get current aggregation function
-        let mode = aggFuncInputRef.current ? aggFuncInputRef.current['value'] : 'max';
+        let mode = options.aggFuncName;
 
         // calculate the value for every feature
         for (let f of features) {
@@ -250,7 +298,7 @@ export function MapPlot() {
             let sum = 0;
             let value = 0;
            
-            // do not need to iterate over data points for length`
+            // do not need to iterate over data points for length
             if (mode !== 'len') {
                 for (let ff of fs) {
                     let n = ff.get('number');
@@ -276,14 +324,11 @@ export function MapPlot() {
             }
 
             (f as Feature).set('value', value, true);
-            if (value>maxValue) maxValue = value;
+            if (value>maxValueRef.current) maxValueRef.current = value;
         }
 
         // set new min/max by clipping ends (TODO: why?)
-        let dl = (maxValue-minValue);
-        // minValue = Math.max(1,Math.round(dl/4));
-        maxValue = Math.round(maxValue - dl/4);
-        maxValue = Math.min(maxValue, 30000);
+        maxValueRef.current = Math.min(Math.round(maxValueRef.current - maxValueRef.current/4), 30000);
 
         // update interval min and max fields
         // if (intervalMinInputRef.current) {
@@ -292,24 +337,15 @@ export function MapPlot() {
         // }
         if (intervalMaxInputRef.current) {
             let maxInput = intervalMaxInputRef.current as HTMLInputElement;
-            maxInput.value = String(maxValue);
+            maxInput.value = String(maxValueRef.current);
         }
-    }
-
-    // handler for when the interval is manually changed
-    function updateInterval() {
-
-        if (intervalMinInputRef.current) minValue = Number(intervalMinInputRef.current['value']);
-        if (intervalMaxInputRef.current) maxValue = Number(intervalMaxInputRef.current['value']);
-        
-        reloadBins();
     }
 
     // reload fast visuals
     function refresh() {
 
         // set bin layer background color
-        if (backgroundColorChkboxRef.current && backgroundColorChkboxRef.current['checked']) {
+        if (options.binLayerBackgroundEnabled) {
             let scale = getColorScale();
             binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).darken().name());
         } else {
@@ -317,40 +353,25 @@ export function MapPlot() {
         }
 
         // set opacity
-        if (binLayerRef.current && binOpacityInputRef.current) binLayerRef.current.setOpacity(Number(binOpacityInputRef.current['value'])/100);
-        if (tileLayerRef.current && tileOpacityInputRef.current) tileLayerRef.current.setOpacity(Number(tileOpacityInputRef.current['value'])/100);
+        binLayerRef.current?.setOpacity(Number(options.binLayerOpacity)/100);
+        tileLayerRef.current?.setOpacity(Number(options.tileLayerOpacity)/100);
 
         // set enabled
-        tileLayerRef.current?.setVisible(!tileLayerChkboxRef.current || tileLayerChkboxRef.current['checked']);
-        binLayerRef.current?.setVisible(!binLayerChkboxRef.current || binLayerChkboxRef.current['checked']);
+        tileLayerRef.current?.setVisible(options.tileLayerVisible);
+        binLayerRef.current?.setVisible(options.binLayerVisible);
 
         // update tile layer url
-        let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
         let osmSource = tileLayerRef.current?.getSource() as OSM;
-        osmSource.setUrl(tileUrl);
+        osmSource.setUrl(options.tileSourceUrl);
 
         // refresh legend
         refreshLegend();
-    }
 
-    // update data source
-    function updateDataSource() {
-        if (!dataSourceRef.current) return;
+        // set manually
+        // minValue = Number(options.intervalMin);
+        maxValueRef.current = Number(options.intervalMax);
 
-        dataSourceRef.current.clear();
-
-        if (randDataChkboxRef.current && randDataChkboxRef.current['checked']) {
-            addRandomFeatures(10000, dataSourceRef.current);
-        } else {
-            addPresetFeatures(dataSourceRef.current);
-        }
-
-        reloadMap();
-    }
-
-    // reload bins
-    function reloadBins() {
-        if (binsRef.current) binsRef.current.changed();
+        // if (binsRef.current) binsRef.current.changed();
     }
 
     // reload map on enter press on input fields
@@ -364,15 +385,12 @@ export function MapPlot() {
     function reloadMap() {
         console.log("reloading map ...");
         if (!mapRef.current || !dataSourceRef.current) return;
-
-        // get the current size from input
-        if (sizeInputRef.current) size = Number(sizeInputRef.current['value']);
         
         // group data points into bins
         let bins;
-        if (binTypeInputRef.current && binTypeInputRef.current['value'] == 'grid') {
+        if (options.binType == 'grid') {
             bins = createGridBin(dataSourceRef.current);
-        } else if (binTypeInputRef.current && binTypeInputRef.current['value'] == 'feature') {
+        } else if (options.binType == 'feature') {
             bins = createFeatureBin(dataSourceRef.current);
         } else {
             bins = createHexBin(dataSourceRef.current);
@@ -382,16 +400,15 @@ export function MapPlot() {
         if (binLayerRef.current) binLayerRef.current.setSource(bins);
 
         // create new layer to display the bins if necessary
-        let isImageLayer = !(asImageChkboxRef.current && asImageChkboxRef.current['checked']);
-        if (!binLayerRef.current || wasImageLayerUsed != isImageLayer) {
+        if (!binLayerRef.current || wasImageLayerUsed != options.binLayerIsVectorImage) {
             console.log("creating bin layer")
-            wasImageLayerUsed = isImageLayer;
+            wasImageLayerUsed = options.binLayerIsVectorImage;
 
             // remove the previous bin layer if there is one
             if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
 
-            let vClass = isImageLayer ? VectorImageLayer : VectorLayer;
-            let opacity = binOpacityInputRef.current ? Number(binOpacityInputRef.current['value']) / 100 : 0.7;
+            let vClass = options.binLayerIsVectorImage ? VectorImageLayer : VectorLayer;
+            let opacity = Number(options.binLayerOpacity) / 100;
 
             const binLayer = new vClass({ 
                 source: bins, 
@@ -413,10 +430,8 @@ export function MapPlot() {
         let gradient = (legendContainerRef.current as HTMLElement).querySelector(".gradient");
         if (!gradient) return;
 
-        let style = styleInputRef.current ? styleInputRef.current['value'] : 'color';
-        let numSteps = colorStepsInputRef.current ? Number(colorStepsInputRef.current['value']) : 5;
         let scale = getColorScale();
-        let steppedColors = scale.colors(numSteps);
+        let steppedColors = scale.colors(options.numColorSteps);
     
         gradient.innerHTML = "";
 
@@ -430,9 +445,9 @@ export function MapPlot() {
         }
         
         // created stepped color legend
-        if (style == 'color') {
+        if (options.binStyle == 'color') {
             for (let i = 0; i < 100; i++) {
-                addColor(steppedColors[Math.floor(i / 100 * (numSteps))]);
+                addColor(steppedColors[Math.floor(i / 100 * (options.numColorSteps))]);
             }
         
         // create smooth gradient legend
@@ -453,9 +468,8 @@ export function MapPlot() {
         }
 
         // initialize the tile layer
-        let tileUrl = tileSourceInputRef.current ? tileSourceInputRef.current['value'] : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
         const tileLayer = new TileLayer({
-            source: new OSM({url: tileUrl}), 
+            source: new OSM({url: options.tileSourceUrl}), 
             // preload: Infinity 
             preload: 1
         });
@@ -482,7 +496,7 @@ export function MapPlot() {
         select.on('select', handleFeatureSelect);
 
         // load initial data points
-        updateDataSource();
+        addPresetFeatures(dataSourceRef.current);
 
         // load US county data source
         let binSource = new Vector({
@@ -498,10 +512,37 @@ export function MapPlot() {
         binSource.loadFeatures([0,0,0,0], 0, view ? view.getProjection() : new Projection({code: "EPSG:4326"}));
 
         // calculate the bins for the map
-        // reloadMap();
+        reloadMap();
 
         return () => map.setTarget('');
     }, []);
+
+    const [effectsRan, setEffectsRan] = useState({
+        refresh: false,
+        reloadMap: false,
+    });
+
+    useEffect(() => {
+
+        if (!effectsRan.refresh) {
+            setEffectsRan((old) => { return {...old, refresh: true} });
+            return;
+        }
+
+        console.log("refresh useEffect");
+        refresh();
+    }, [options]);
+
+    useEffect(() => {
+
+        if (!effectsRan.reloadMap) {
+            setEffectsRan((old) => { return {...old, reloadMap: true} });
+            return;
+        }
+
+        console.log("reloadMap useEffect");
+        reloadMap();
+    }, [options.binLayerIsVectorImage, options.hexStyle, options.binType, options.binStyle, options.tileSourceUrl, options.aggFuncName, options.colorScaleName]);
 
     return (
         <div className='map-container'>
@@ -516,61 +557,69 @@ export function MapPlot() {
                 </div>
             </div>
             <div>
-                <label htmlFor="map-size-input">Size:</label>
-                <input ref={sizeInputRef} id="map-size-input" type="number" min={0} max={100000} defaultValue={size} step={500} onKeyDown={handleKeyDown} onBlur={()=>reloadMap()} />
+                <label htmlFor="binSize">Size:</label>
+                <input id="binSize" name="binSize" type="number" min={0} max={100000} defaultValue={options.binSize} step={500} onChange={handleValueChange} onKeyDown={handleKeyDown} onBlur={()=>reloadMap()} />
 
-                <label htmlFor="map-style-input">Style:</label>
-                <select ref={styleInputRef} id="map-style-input" onChange={refresh}>
+                <label htmlFor="intervalMin">Interval Min:</label>
+                <input id="intervalMin" name="intervalMin" type="number" size={6} defaultValue={options.intervalMin} step={1} onChange={handleValueChange}/>
+
+                <label htmlFor="intervalMax">Max:</label>
+                <input ref={intervalMaxInputRef} id="intervalMax" name="intervalMax" type="number" size={6} defaultValue={options.intervalMax} step={1} onChange={handleValueChange}/>
+
+                <br/>
+
+                <label htmlFor="binStyle">Style:</label>
+                <select id="binStyle" name="binStyle" defaultValue={options.binStyle} onChange={handleValueChange}>
                     <option value="gradient">Gradient</option>
                     <option value="color">Color</option>
                     <option value="point">Point</option>
                 </select>
 
-                <label htmlFor="map-bin-type-input">Bin Type:</label>
-                <select ref={binTypeInputRef} id="map-bin-type-input" onChange={reloadMap}>
+                <br/>
+
+                <label htmlFor="binType">Bin Type:</label>
+                <select id="binType" name="binType" defaultValue={options.binType} onChange={handleValueChange}>
                     <option value="hex">Hex</option>
                     <option value="grid">Grid</option>
-                    <option value="feature">Feature (Counties)</option>
+                    <option value="feature">Feature</option>
                 </select>
 
                 <br/>
 
-                <label htmlFor="map-hex-layout-input">Hex Style:</label>
-                <select ref={hexLayoutInputRef} id="map-hex-layout-input" onChange={reloadMap}>
+                <label htmlFor="aggFuncName">Agg Func:</label>
+                <select id="aggFuncName" name="aggFuncName" defaultValue={options.aggFuncName} onChange={handleValueChange}>
+                    <option value="max">Max</option>
+                    <option value="sum">Sum</option>
+                    <option value="avg">Avg</option>
+                    <option value="len">Count</option>
+                </select>
+
+                <br/>
+
+                <label htmlFor="hexStyle">Hex Style:</label>
+                <select id="hexStyle" name="hexStyle" defaultValue={options.hexStyle} onChange={handleValueChange}>
                     <option value="pointy">Pointy</option>
                     <option value="flat">Flat</option>
                 </select>
 
                 <br/>
 
-                <input ref={asImageChkboxRef} id="map-image-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={wasImageLayerUsed}/>
-                <label htmlFor="map-image-layer-input">bin layer as image</label>
+                <label htmlFor="colorScaleName">Color Scale:</label>
+                <select ref={colorScaleInputRef} id="colorScaleName" name="colorScaleName" onChange={handleValueChange} defaultValue={options.colorScaleName}>
+                    {Object.keys(chroma.brewer).map((key) => {
+                        return (
+                            <option value={key} key={key}>{key}</option>
+                        );
+                    })}
+                </select>
 
-                <input ref={binLayerChkboxRef} id="map-bin-layer-input" type="checkbox" onChange={reloadMap} defaultChecked={true}/>
-                <label htmlFor="map-bin-layer-input">show bin layer</label>
-
-                <input ref={tileLayerChkboxRef} id="map-tile-layer-input" type="checkbox" onChange={refresh} defaultChecked={true}/>
-                <label htmlFor="map-tile-layer-input">show tile layer</label>
-
-                <br/>
-
-                <input ref={backgroundColorChkboxRef} id="map-bin-background-input" type="checkbox" onChange={refresh} defaultChecked={false}/>
-                <label htmlFor="map-bin-background-input">bin layer background</label>
+                <label htmlFor="numColorSteps">Num Color Steps:</label>
+                <input id="numColorSteps" name="numColorSteps" type="number" min={0} max={16} defaultValue={options.numColorSteps} step={1} onChange={handleValueChange}/>
 
                 <br/>
 
-                <label htmlFor="map-bin-opacity-input">Bin Layer Opacity:</label>
-                <input ref={binOpacityInputRef} id="map-bin-opacity-input" type="range" min={0} max={100} defaultValue={75} step={1} onMouseUp={refresh}/>
-                <label htmlFor="map-tile-opacity-input">Tile Layer Opacity:</label>
-                <input ref={tileOpacityInputRef} id="map-tile-opacity-input" type="range" min={0} max={100} defaultValue={100} step={1} onMouseUp={refresh}/>
-
-                <br/>
-
-                <label htmlFor="map-tile-source-input">Tile Source:</label>
-                <select ref={tileSourceInputRef} id="map-tile-source-input" onChange={reloadMap}>
-                    {/* TODO: temp default */}
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Dark Gray Bas</option>
-
+                <label htmlFor="tileSourceUrl">Tile Source:</label>
+                <select name="tileSourceUrl" id="tileSourceUrl" onChange={handleValueChange} defaultValue={options.tileSourceUrl}>
                     <option value="https://tile.openstreetmap.org/{z}/{x}/{y}.png">OSM Standard</option>
                     <option value="https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">OSM Humanitarian</option>
                     <option value="https://a.tile.opentopomap.org/{z}/{x}/{y}.png">OSM Topographic</option>
@@ -600,48 +649,36 @@ export function MapPlot() {
                     <option value="https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png">Carto Voyager - no labels</option>
                     {/* <option value="http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg">Stamen Watercolor</option> */}
                     {/* <option value="https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png">OpenWeatherMap</option> */}
-
                 </select>
 
                 <br/>
 
-                <input ref={randDataChkboxRef} id="map-rand-data-input" type="checkbox" onChange={updateDataSource} defaultChecked={false}/>
-                <label htmlFor="map-rand-data-input">use random data</label>
+                <input id="binLayerVisible" name="binLayerVisible" onChange={handleCheckboxChange} type="checkbox" defaultChecked={options.binLayerVisible}/>
+                <label htmlFor="binLayerVisible">show bin layer</label>
+
+                <input id="tileLayerVisible" name="tileLayerVisible" onChange={handleCheckboxChange} type="checkbox" defaultChecked={options.tileLayerVisible}/>
+                <label htmlFor="tileLayerVisible">show tile layer</label>
 
                 <br/>
 
-                <label htmlFor="map-color-scale-input">Color Scale:</label>
-                <select ref={colorScaleInputRef} id="map-color-scale-input" onChange={refresh} defaultValue="viridis">
-                    {Object.keys(chroma.brewer).map((key) => {
-                        return (
-                            <option value={key} key={key}>{key}</option>
-                        );
-                    })}
-                </select>
+                <input id="binLayerIsVectorImage" name="binLayerIsVectorImage" type="checkbox" onChange={handleCheckboxChange} defaultChecked={options.binLayerIsVectorImage}/>
+                <label htmlFor="binLayerIsVectorImage">bin layer as image</label>
 
-                <label htmlFor="map-color-steps-input">Num Color Steps:</label>
-                <input ref={colorStepsInputRef} id="map-color-steps-input" type="number" min={0} max={16} defaultValue={5} step={1} onChange={reloadBins}/>
+                <input id="binLayerBackgroundEnabled" name="binLayerBackgroundEnabled" type="checkbox" onChange={handleCheckboxChange} defaultChecked={options.binLayerBackgroundEnabled}/>
+                <label htmlFor="binLayerBackgroundEnabled">bin layer background</label>
 
                 <br/>
 
-                <label htmlFor="map-size-input">Interval Min:</label>
-                <input ref={intervalMinInputRef} id="map-interval-min-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
-
-                <label htmlFor="map-size-input">Max:</label>
-                <input ref={intervalMaxInputRef} id="map-interval-max-input" type="number" size={6} defaultValue={0} step={1} onChange={updateInterval}/>
+                <label htmlFor="binLayerOpacity">Bin Layer Opacity:</label>
+                <input id="binLayerOpacity" name="binLayerOpacity" type="range" min={0} max={100} defaultValue={options.binLayerOpacity} step={1} onChange={handleValueChange} onMouseUp={refresh}/>
+                <label htmlFor="tileLayerOpacity">Tile Layer Opacity:</label>
+                <input id="tileLayerOpacity" name="tileLayerOpacity" type="range" min={0} max={100} defaultValue={options.tileLayerOpacity} step={1} onChange={handleValueChange} onMouseUp={refresh}/>
 
                 <br/>
 
-                <label htmlFor="map-agg-func-input">Agg Func:</label>
-                <select ref={aggFuncInputRef} id="map-agg-func-input" onChange={reloadMap}>
-                    <option value="max">Max</option>
-                    <option value="sum">Sum</option>
-                    <option value="avg">Avg</option>
-                    <option value="len">Count</option>
-                </select>
-                
+                <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
+                <button onClick={handleResetFeaturesButton}>Reset Features</button>
             </div>
-
         </div>
     );
 }
