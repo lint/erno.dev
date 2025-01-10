@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { BinMap } from '../../components/plot/binMap';
+import { MapPlot } from '../../components/plot/map_plot';
 
 export default function MapsDashboardPage() {
 
     return (
-        <BinMap></BinMap>
+        <MapPlot ></MapPlot>
     );
 }
