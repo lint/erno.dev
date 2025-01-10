@@ -9,10 +9,10 @@ import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 
 // react components
 // import HomePage from './pages/home/home_page';
-import ErrorPage from './pages/error/error_page';
-import TopicsDashboardPage from './pages/topics/dashboard_page';
-import TopicCreatePage from './pages/topics/create_page';
-import TopicViewPage from './pages/topics/view_page';
+// import ErrorPage from './pages/error/error_page';
+// import TopicsDashboardPage from './pages/topics/dashboard_page';
+// import TopicCreatePage from './pages/topics/create_page';
+// import TopicViewPage from './pages/topics/view_page';
 
 // amplify
 import { Amplify } from 'aws-amplify';
@@ -28,20 +28,20 @@ const router = createBrowserRouter([
         path: "/",
         // element: <HomePage />,
         element: <TempPage />,
-        errorElement: <ErrorPage />,
+        errorElement: <TempPage />,
     },
-    {
-        path: "/topics",
-        element: <TopicsDashboardPage />,
-    },
-    {
-        path: "/topics/create",
-        element: <TopicCreatePage />,
-    },
-    {
-        path: "/topics/:topic_id",
-        element: <TopicViewPage />
-    },
+    // {
+    //     path: "/topics",
+    //     element: <TopicsDashboardPage />,
+    // },
+    // {
+    //     path: "/topics/create",
+    //     element: <TopicCreatePage />,
+    // },
+    // {
+    //     path: "/topics/:topic_id",
+    //     element: <TopicViewPage />
+    // },
     {
         path: "/map",
         element: <MapsDashboardPage />
