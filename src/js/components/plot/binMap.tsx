@@ -27,15 +27,17 @@ import { fromLonLat, Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
 import BinBase from 'ol-ext/source/BinBase';
+import { BinMapView, BinMapViewOptions } from './binMapView';
+import Geometry from 'ol/geom/Geometry';
 
 // type MapProps = {
 //     width: number;
 //     height: number;
 // };
 
-export function MapPlot() {
+export function BinMap() {
 
-    console.log("MapPlot function called ...");
+    console.log("BinMap function called ...");
 
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
@@ -47,13 +49,16 @@ export function MapPlot() {
     const legendContainerRef = useRef(null);
     let wasImageLayerUsed = true;
     const minRadius = 1;
-    // const [maxValue, setMaxValue] = useState(100);
+    const [maxValue_s, setMaxValue_s] = useState(100);
     const maxValueRef = useRef(100);
 
     const colorScaleInputRef = useRef(null);
     const intervalMaxInputRef = useRef(null);
+    const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
 
-    const [options, setOptions] = useState({
+    const [layers, setLayers] = useState<Layer[]>([]);
+
+    const [options, setOptions] = useState<BinMapViewOptions>({
         tileLayerVisible: true,
         binLayerVisible: true,
         binLayerIsVectorImage: true,
@@ -79,7 +84,7 @@ export function MapPlot() {
         if (!e || !e.target) return;
 
         const {name, checked} = e.target;
-        console.log("handle change: ", name, checked);
+        console.log("BinMap handle change: ", name, checked);
 
         let op = optionsRef.current ? optionsRef.current : options;
         let newOptions = {...op, [name]: checked};
@@ -92,44 +97,53 @@ export function MapPlot() {
         if (!e || !e.target) return;
 
         const {name, value} = e.target;
-        console.log("handle change: ", name, value);
+        console.log("BinMap handle change: ", name, value);
+
+        // TODO: check if number input field so that you can convert to Number
 
         // setOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
         let op = optionsRef.current ? optionsRef.current : options;
         let newOptions = {...op, [name]: value};
         optionsRef.current = newOptions;
         setOptions(newOptions);
+
+        // console.log('new options: ', newOptions)
     }
     
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
         if (event.selected.length){
             let f = event.selected[0];
-            console.log("selected value: ", f.get("value"));
+            console.log("BinMap selected value: ", f.get("value"));
         } else {
             // did not select a feature
-            console.log("did not select feature");
+            console.log("BinMap did not select feature");
         }
     }
 
     // handler method to add random features to the dataset
     function handleRandomFeaturesButton() {
-        if (!dataSourceRef.current) return;
+        // if (!dataSourceRef.current) return;
 
-        addRandomFeatures(5000, dataSourceRef.current);
-        reloadMap();
+        // addRandomFeatures(5000, dataSourceRef.current);
+        addRandomFeatures(5000);
+        // reloadMap();
     }
 
     // reset any randomly added features
     function handleResetFeaturesButton() {
-        if (!dataSourceRef.current) return;
+        // if (!dataSourceRef.current) return;
 
-        addPresetFeatures(dataSourceRef.current);
-        reloadMap();
+
+        // addPresetFeatures(dataSourceRef.current);
+        // reloadMap();
+        setFeatures([]);
+        addPresetFeatures();
     }
 
     // create a set of features on seed points
-    function addRandomFeatures(nb: any, vectorSource: Vector) {
+    function addRandomFeatures(nb: any/*, vectorSource: Vector*/) {
+        console.log(mapRef)
         if (!mapRef.current) return;
 
         let ssize = 20;		// seed size
@@ -137,7 +151,7 @@ export function MapPlot() {
         let dx = ext[2]-ext[0];
         let dy = ext[3]-ext[1];
         let dl = Math.min(dx,dy);
-        let features=[];
+        let randFeatures=[];
 
         for (let i=0; i<nb/ssize; ++i){
             let seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
@@ -147,16 +161,19 @@ export function MapPlot() {
                     seed[1] + dl/10*Math.random()
                 ]));
                 f.set('number', Math.floor(Math.random() * 10000));
-                features.push(f);
+                randFeatures.push(f);
             }
         }
         // vectorSource.clear(true);
-        vectorSource.addFeatures(features);
+        // vectorSource.addFeatures(randFeatures);
+        setFeatures((oldFeatures) => {return [...oldFeatures, ...randFeatures]});
+        // setFeatures([]);
     }
 
     // load features from preset data file
-    function addPresetFeatures(vectorSource: Vector) {
-        if (!mapRef.current) return;
+    // function addPresetFeatures(vectorSource: Vector) {
+    function addPresetFeatures() {
+        // if (!mapRef.current) return;
 
         let features=[];
 
@@ -167,8 +184,9 @@ export function MapPlot() {
             features.push(f);
         }
 
-        vectorSource.clear(true);
-        vectorSource.addFeatures(features);
+        // vectorSource.clear(true);
+        // vectorSource.addFeatures(features);
+        setFeatures((oldFeatures) => {return [...oldFeatures, ...features]});
     }
 
     // returns the chroma js color scale for the currently selected input
@@ -179,197 +197,197 @@ export function MapPlot() {
     }
 
     // determine style for the given bin (f=feature, res=resolutuion)
-    function styleForBin(f: FeatureLike, res: number) {
+    // function styleForBin(f: FeatureLike, res: number) {
 
-        let value = f.get('value');
-        console.log(maxValueRef.current)
-        let normal = Math.min(1, value/maxValueRef.current);
+    //     let value = f.get('value');
+    //     // console.log(maxValueRef.current)
+    //     let normal = Math.min(1, value/maxValueRef.current);
         
-        let numSteps = optionsRef.current.numColorSteps;
-        let size = optionsRef.current.binSize;
-        let scale = getColorScale();
-        let steppedColors = scale.colors(numSteps);
+    //     let numSteps = optionsRef.current.numColorSteps;
+    //     let size = optionsRef.current.binSize;
+    //     let scale = getColorScale();
+    //     let steppedColors = scale.colors(numSteps);
 
-        switch (optionsRef.current.binStyle) {
+    //     switch (optionsRef.current.binStyle) {
 
-        // different sized hexagons
-        case 'point': {
-            let radius = Math.max(minRadius, Math.round(size/res + 0.5) * normal);
-            return [ new Style({
-                image: new RegularShape({
-                    points: 6,
-                    radius: radius,
-                    fill: new Fill({ color: [0,0,255] }),
-                    rotateWithView: true
-                    }),
-                    geometry: new Point(f.get('center'))
-                })
-                // , new Style({ fill: new Fill({color: [0,0,255,.1] }) })
-            ];
-        }
+    //     // different sized hexagons
+    //     case 'point': {
+    //         let radius = Math.max(minRadius, Math.round(size/res + 0.5) * normal);
+    //         return [ new Style({
+    //             image: new RegularShape({
+    //                 points: 6,
+    //                 radius: radius,
+    //                 fill: new Fill({ color: [0,0,255] }),
+    //                 rotateWithView: true
+    //                 }),
+    //                 geometry: new Point(f.get('center'))
+    //             })
+    //             // , new Style({ fill: new Fill({color: [0,0,255,.1] }) })
+    //         ];
+    //     }
 
-        // sharp transition between colors
-        case 'color': {
-            let index = Math.floor(normal * (numSteps - 1));
-            let color = steppedColors[index];
-            return [ new Style({ fill: new Fill({ color: color }) }) ];
-        }
+    //     // sharp transition between colors
+    //     case 'color': {
+    //         let index = Math.floor(normal * (numSteps - 1));
+    //         let color = steppedColors[index];
+    //         return [ new Style({ fill: new Fill({ color: color }) }) ];
+    //     }
 
-        // smooth transition between colors
-        case 'gradient':
-        default: {
-            let scaledColor = scale(normal);
-            let color = scaledColor ? scaledColor : [0, 0, 255, normal] as any;
-            return [ new Style({ fill: new Fill({ color: color }) }) ];
-        }}
-    }
+    //     // smooth transition between colors
+    //     case 'gradient':
+    //     default: {
+    //         let scaledColor = scale(normal);
+    //         let color = scaledColor ? scaledColor : [0, 0, 255, normal] as any;
+    //         return [ new Style({ fill: new Fill({ color: color }) }) ];
+    //     }}
+    // }
 
-    // create and return a new hex bin object
-    function createHexBin(vectorSource: Vector) {
+    // // create and return a new hex bin object
+    // function createHexBin(vectorSource: Vector) {
         
-        // init and calculate the bins
-        const hexbin = new HexBin({
-            source: vectorSource,
-            size: options.binSize,
-            layout: options.hexStyle as any
-        });
-        binsRef.current = hexbin;
+    //     // init and calculate the bins
+    //     const hexbin = new HexBin({
+    //         source: vectorSource,
+    //         size: options.binSize,
+    //         layout: options.hexStyle as any
+    //     });
+    //     binsRef.current = hexbin;
 
-        // determine the highest and lowest values across all bins
-        findValueBounds(hexbin.getFeatures());
+    //     // determine the highest and lowest values across all bins
+    //     findValueBounds(hexbin.getFeatures());
 
-        return hexbin;
-    }
+    //     return hexbin;
+    // }
 
-    // create and return a new grid bin object
-    function createGridBin(vectorSource: Vector) {
+    // // create and return a new grid bin object
+    // function createGridBin(vectorSource: Vector) {
 
-        // init and calculate the bins
-        const gridBin = new GridBin({
-            source: vectorSource,
-            size: Number(options.binSize),
-        });
-        binsRef.current = gridBin;
-        // gridBin.getSource().set('gridProjection', 'EPSG:'+3857);
+    //     // init and calculate the bins
+    //     const gridBin = new GridBin({
+    //         source: vectorSource,
+    //         size: Number(options.binSize),
+    //     });
+    //     binsRef.current = gridBin;
+    //     // gridBin.getSource().set('gridProjection', 'EPSG:'+3857);
 
-        // determine the highest and lowest values across all bins
-        findValueBounds(gridBin.getFeatures());
+    //     // determine the highest and lowest values across all bins
+    //     findValueBounds(gridBin.getFeatures());
 
-        return gridBin;
-    }
+    //     return gridBin;
+    // }
 
-    // create and return a new feature bin object
-    function createFeatureBin(vectorSource: Vector) {
+    // // create and return a new feature bin object
+    // function createFeatureBin(vectorSource: Vector) {
 
-        // init and calculate bins
-        const featureBin = new FeatureBin({
-            source: vectorSource,
-            binSource: countySourceRef.current
-        });
-        binsRef.current = featureBin;
+    //     // init and calculate bins
+    //     const featureBin = new FeatureBin({
+    //         source: vectorSource,
+    //         binSource: countySourceRef.current
+    //     });
+    //     binsRef.current = featureBin;
 
-        // determine the highest and lowest values across all bins
-        findValueBounds(featureBin.getFeatures());
-        // featureBin.addEventListener('change', () => {
-        //     if (binsRef.current && binsRef.current === featureBin) {
-        //         findValueBounds(binsRef.current.getFeatures());
-        //     }
-        // })      
+    //     // determine the highest and lowest values across all bins
+    //     findValueBounds(featureBin.getFeatures());
+    //     // featureBin.addEventListener('change', () => {
+    //     //     if (binsRef.current && binsRef.current === featureBin) {
+    //     //         findValueBounds(binsRef.current.getFeatures());
+    //     //     }
+    //     // })      
 
-        return featureBin;
-    }
+    //     return featureBin;
+    // }
 
-    // find the minimum and maximum values in a given feature set
-    function findValueBounds(features: FeatureLike[]) {
-        if (!features || features.length == 0) return;
+    // // find the minimum and maximum values in a given feature set
+    // function findValueBounds(features: FeatureLike[]) {
+    //     if (!features || features.length == 0) return;
 
-        console.log("findValueBounds ...");
+    //     console.log("BinMap findValueBounds ...");
 
-        // reset current values
-        maxValueRef.current = Number.MIN_SAFE_INTEGER;
+    //     // reset current values
+    //     maxValueRef.current = Number.MIN_SAFE_INTEGER;
 
-        // get current aggregation function
-        let mode = options.aggFuncName;
+    //     // get current aggregation function
+    //     let mode = options.aggFuncName;
 
-        // calculate the value for every feature
-        for (let f of features) {
-            let fs = f.get('features');
-            let fMax = Number.MIN_SAFE_INTEGER;
-            let sum = 0;
-            let value = 0;
+    //     // calculate the value for every feature
+    //     for (let f of features) {
+    //         let fs = f.get('features');
+    //         let fMax = Number.MIN_SAFE_INTEGER;
+    //         let sum = 0;
+    //         let value = 0;
            
-            // do not need to iterate over data points for length
-            if (mode !== 'len') {
-                for (let ff of fs) {
-                    let n = ff.get('number');
-                    sum += n;
-                    if (n>fMax) fMax = n;
-                }
-            }
+    //         // do not need to iterate over data points for length
+    //         if (mode !== 'len') {
+    //             for (let ff of fs) {
+    //                 let n = ff.get('number');
+    //                 sum += n;
+    //                 if (n>fMax) fMax = n;
+    //             }
+    //         }
 
-            // set the value based on the current mode
-            switch (mode) {
-            case 'len':
-                value = fs.length;
-                break;
-            case 'avg':
-                value = sum / fs.length;
-                break; 
-            case 'sum':
-                value = sum;
-                break;
-            case 'max':
-            default:
-                value = fMax;
-            }
+    //         // set the value based on the current mode
+    //         switch (mode) {
+    //         case 'len':
+    //             value = fs.length;
+    //             break;
+    //         case 'avg':
+    //             value = sum / fs.length;
+    //             break; 
+    //         case 'sum':
+    //             value = sum;
+    //             break;
+    //         case 'max':
+    //         default:
+    //             value = fMax;
+    //         }
 
-            (f as Feature).set('value', value, true);
-            if (value>maxValueRef.current) maxValueRef.current = value;
-        }
+    //         (f as Feature).set('value', value, true);
+    //         if (value>maxValueRef.current) maxValueRef.current = value;
+    //     }
 
-        // set new min/max by clipping ends (TODO: why?)
-        maxValueRef.current = Math.min(Math.round(maxValueRef.current - maxValueRef.current/4), 30000);
+    //     // set new min/max by clipping ends (TODO: why?)
+    //     maxValueRef.current = Math.min(Math.round(maxValueRef.current - maxValueRef.current/4), 30000);
 
-        // update interval min and max fields
-        // if (intervalMinInputRef.current) {
-        //     let minInput = intervalMinInputRef.current as HTMLInputElement;
-        //     minInput.value = String(minValue);
-        // }
-        if (intervalMaxInputRef.current) {
-            let maxInput = intervalMaxInputRef.current as HTMLInputElement;
-            maxInput.value = String(maxValueRef.current);
-        }
-    }
+    //     // update interval min and max fields
+    //     // if (intervalMinInputRef.current) {
+    //     //     let minInput = intervalMinInputRef.current as HTMLInputElement;
+    //     //     minInput.value = String(minValue);
+    //     // }
+    //     if (intervalMaxInputRef.current) {
+    //         let maxInput = intervalMaxInputRef.current as HTMLInputElement;
+    //         maxInput.value = String(maxValueRef.current);
+    //     }
+    // }
 
     // reload fast visuals
     function refresh() {
 
-        // set bin layer background color
-        if (options.binLayerBackgroundEnabled) {
-            let scale = getColorScale();
-            binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).darken().name());
-        } else {
-            binLayerRef.current?.setBackground();
-        }
+        // // set bin layer background color
+        // if (options.binLayerBackgroundEnabled) {
+        //     let scale = getColorScale();
+        //     binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).darken().name());
+        // } else {
+        //     binLayerRef.current?.setBackground();
+        // }
 
-        // set opacity
-        binLayerRef.current?.setOpacity(Number(options.binLayerOpacity)/100);
-        tileLayerRef.current?.setOpacity(Number(options.tileLayerOpacity)/100);
+        // // set opacity
+        // binLayerRef.current?.setOpacity(Number(options.binLayerOpacity)/100);
+        // tileLayerRef.current?.setOpacity(Number(options.tileLayerOpacity)/100);
 
-        // set enabled
-        tileLayerRef.current?.setVisible(options.tileLayerVisible);
-        binLayerRef.current?.setVisible(options.binLayerVisible);
+        // // set enabled
+        // tileLayerRef.current?.setVisible(options.tileLayerVisible);
+        // binLayerRef.current?.setVisible(options.binLayerVisible);
 
-        // update tile layer url
-        let osmSource = tileLayerRef.current?.getSource() as OSM;
-        osmSource.setUrl(options.tileSourceUrl);
+        // // update tile layer url
+        // let osmSource = tileLayerRef.current?.getSource() as OSM;
+        // osmSource.setUrl(options.tileSourceUrl);
 
         // refresh legend
         refreshLegend();
 
         // set manually
         // minValue = Number(options.intervalMin);
-        maxValueRef.current = Number(options.intervalMax);
+        // maxValueRef.current = Number(options.intervalMax);
 
         // if (binsRef.current) binsRef.current.changed();
     }
@@ -377,51 +395,57 @@ export function MapPlot() {
     // reload map on enter press on input fields
     function handleKeyDown(event: any) {
         if (event.key === 'Enter') {
-            reloadMap();
+            // reloadMap();
         }
     }
 
     // reset, calculate, and display updated hexbins
-    function reloadMap() {
-        console.log("reloading map ...");
-        if (!mapRef.current || !dataSourceRef.current) return;
+    // function reloadMap() {
+    //     console.log("BinMap reloading map ...");
+    //     if (!mapRef.current || !dataSourceRef.current) return;
         
-        // group data points into bins
-        let bins;
-        if (options.binType == 'grid') {
-            bins = createGridBin(dataSourceRef.current);
-        } else if (options.binType == 'feature') {
-            bins = createFeatureBin(dataSourceRef.current);
-        } else {
-            bins = createHexBin(dataSourceRef.current);
-        }
+    //     // group data points into bins
+    //     let bins;
+    //     if (options.binType == 'grid') {
+    //         bins = createGridBin(dataSourceRef.current);
+    //     } else if (options.binType == 'feature') {
+    //         bins = createFeatureBin(dataSourceRef.current);
+    //     } else {
+    //         bins = createHexBin(dataSourceRef.current);
+    //     }
 
-        // update bin layer source
-        if (binLayerRef.current) binLayerRef.current.setSource(bins);
+    //     // update bin layer source
+    //     if (binLayerRef.current) binLayerRef.current.setSource(bins);
 
-        // create new layer to display the bins if necessary
-        if (!binLayerRef.current || wasImageLayerUsed != options.binLayerIsVectorImage) {
-            console.log("creating bin layer")
-            wasImageLayerUsed = options.binLayerIsVectorImage;
+    //     // create new layer to display the bins if necessary
+    //     if (!binLayerRef.current || wasImageLayerUsed != options.binLayerIsVectorImage) {
+    //         console.log("BinMap creating bin layer")
+    //         wasImageLayerUsed = options.binLayerIsVectorImage;
 
-            // remove the previous bin layer if there is one
-            if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
+    //         // remove the previous bin layer if there is one
+    //         if (binLayerRef.current) mapRef.current.removeLayer(binLayerRef.current);
 
-            let vClass = options.binLayerIsVectorImage ? VectorImageLayer : VectorLayer;
-            let opacity = Number(options.binLayerOpacity) / 100;
+    //         let vClass = options.binLayerIsVectorImage ? VectorImageLayer : VectorLayer;
+    //         let opacity = Number(options.binLayerOpacity) / 100;
 
-            const binLayer = new vClass({ 
-                source: bins, 
-                opacity: opacity,
-                style: styleForBin,
-            });
-            binLayerRef.current = binLayer;
-            mapRef.current.addLayer(binLayer);
-        }
+    //         const binLayer = new vClass({ 
+    //             source: bins, 
+    //             opacity: opacity,
+    //             style: styleForBin,
+    //         });
+    //         binLayerRef.current = binLayer;
+    //         mapRef.current.addLayer(binLayer);
+    //         let newLayers = [];
+    //         if (tileLayerRef.current) {
+    //             newLayers.push(tileLayerRef.current);
+    //         }
+    //         newLayers.push(binLayer);
+    //         setLayers(newLayers);
+    //     }
 
-        // refresh visual updates
-        refresh();
-    }
+    //     // refresh visual updates
+    //     refresh();
+    // }
     
     // update legend colors
     function refreshLegend() {
@@ -456,10 +480,11 @@ export function MapPlot() {
         }
     }
 
-    // called when component has mounted
+    function handleMapRefFromView(map: Map) {
+        mapRef.current = map;
+    }
+
     useEffect(() => {
-        console.log("Map useEffect ...");
-        if (!mapContainerRef.current) return;
 
         // set the default scale
         if (colorScaleInputRef.current) {
@@ -467,36 +492,7 @@ export function MapPlot() {
             colorScaleSelect.value = 'Viridis';
         }
 
-        // initialize the tile layer
-        const tileLayer = new TileLayer({
-            source: new OSM({url: options.tileSourceUrl}), 
-            // preload: Infinity 
-            preload: 1
-        });
-        tileLayerRef.current = tileLayer;
-
-        // initialize vector source to store data points
-        let vectorSource = new Vector();
-        dataSourceRef.current = vectorSource;
-        
-        // initialize the map object
-        const map = new Map({
-            view: new View({
-                center: fromLonLat([-80, 40.440]),
-                zoom: 9,
-            }),
-            layers: [tileLayer],
-            target: mapContainerRef.current
-        });
-        mapRef.current = map;
-
-        // setup interaction handler for clicking on features
-        var select  = new Select();
-        map.addInteraction(select);
-        select.on('select', handleFeatureSelect);
-
-        // load initial data points
-        addPresetFeatures(dataSourceRef.current);
+        // addPresetFeatures();
 
         // load US county data source
         let binSource = new Vector({
@@ -511,42 +507,103 @@ export function MapPlot() {
         let view = mapRef.current?.getView();
         binSource.loadFeatures([0,0,0,0], 0, view ? view.getProjection() : new Projection({code: "EPSG:4326"}));
 
-        // calculate the bins for the map
-        reloadMap();
-
-        return () => map.setTarget('');
     }, []);
 
-    const [effectsRan, setEffectsRan] = useState({
-        refresh: false,
-        reloadMap: false,
-    });
+    // called when component has mounted
+    // useEffect(() => {
+    //     console.log("BinMap useEffect ...");
+    //     if (!mapContainerRef.current) return;
 
-    useEffect(() => {
+    //     // set the default scale
+    //     if (colorScaleInputRef.current) {
+    //         let colorScaleSelect = colorScaleInputRef.current as HTMLInputElement;
+    //         colorScaleSelect.value = 'Viridis';
+    //     }
 
-        if (!effectsRan.refresh) {
-            setEffectsRan((old) => { return {...old, refresh: true} });
-            return;
-        }
+    //     // initialize the tile layer
+    //     // const tileLayer = new TileLayer({
+    //     //     source: new OSM({url: options.tileSourceUrl}), 
+    //     //     // preload: Infinity 
+    //     //     preload: 1
+    //     // });
+    //     // tileLayerRef.current = tileLayer;
 
-        console.log("refresh useEffect");
-        refresh();
-    }, [options]);
+    //     // initialize vector source to store data points
+    //     // let vectorSource = new Vector();
+    //     // dataSourceRef.current = vectorSource;
 
-    useEffect(() => {
+    //     // let newLayers = [tileLayer];
+    //     // setLayers(newLayers);
+        
+    //     // initialize the map object
+    //     // const map = new Map({
+    //     //     view: new View({
+    //     //         center: fromLonLat([-80, 40.440]),
+    //     //         zoom: 9,
+    //     //     }),
+    //     //     layers: newLayers,
+    //     //     target: mapContainerRef.current
+    //     // });
+    //     // mapRef.current = map;
 
-        if (!effectsRan.reloadMap) {
-            setEffectsRan((old) => { return {...old, reloadMap: true} });
-            return;
-        }
+    //     // setup interaction handler for clicking on features
+    //     // var select  = new Select();
+    //     // map.addInteraction(select);
+    //     // select.on('select', handleFeatureSelect);
 
-        console.log("reloadMap useEffect");
-        reloadMap();
-    }, [options.binLayerIsVectorImage, options.hexStyle, options.binType, options.binStyle, options.tileSourceUrl, options.aggFuncName, options.colorScaleName]);
+    //     // load initial data points
+    //     // addPresetFeatures(dataSourceRef.current);
+
+    //     // load US county data source
+    //     let binSource = new Vector({
+    //         url: '/data/counties.geojson',
+    //         format: new GeoJSON(),
+    //         // loader: () => {
+    //         // }
+    //     });
+    //     countySourceRef.current = binSource;
+
+    //     // force source to load
+    //     let view = mapRef.current?.getView();
+    //     binSource.loadFeatures([0,0,0,0], 0, view ? view.getProjection() : new Projection({code: "EPSG:4326"}));
+
+    //     // calculate the bins for the map
+    //     reloadMap();
+
+    //     // return () => map.setTarget('');
+    // }, []);
+
+    // const [effectsRan, setEffectsRan] = useState({
+    //     refresh: false,
+    //     reloadMap: false,
+    // });
+
+    // useEffect(() => {
+
+    //     if (!effectsRan.refresh) {
+    //         setEffectsRan((old) => { return {...old, refresh: true} });
+    //         return;
+    //     }
+
+    //     console.log("BinMap refresh useEffect");
+    //     refresh();
+    // }, [options]);
+
+    // useEffect(() => {
+
+    //     if (!effectsRan.reloadMap) {
+    //         setEffectsRan((old) => { return {...old, reloadMap: true} });
+    //         return;
+    //     }
+
+    //     console.log("BinMap reloadMap useEffect");
+    //     reloadMap();
+    // }, [options.binLayerIsVectorImage, options.hexStyle, options.binType, options.binStyle, options.tileSourceUrl, options.aggFuncName, options.colorScaleName]);
 
     return (
         <div className='map-container'>
-            <div ref={mapContainerRef}  className="map"/>
+            {/* <div ref={mapContainerRef}  className="map"/> */}
+            <BinMapView options={optionsRef.current} features={features} layerConfigs={{}} mapCallback={handleMapRefFromView}/>
             <div ref={legendContainerRef} className="legend-container">
                 <div className="gradient">
                     {getColorScale().colors(100).map((color, index) => {
@@ -558,7 +615,7 @@ export function MapPlot() {
             </div>
             <div>
                 <label htmlFor="binSize">Size:</label>
-                <input id="binSize" name="binSize" type="number" min={0} max={100000} defaultValue={options.binSize} step={500} onChange={handleValueChange} onKeyDown={handleKeyDown} onBlur={()=>reloadMap()} />
+                <input id="binSize" name="binSize" type="number" min={0} max={100000} defaultValue={options.binSize} step={500} onChange={handleValueChange} onKeyDown={handleKeyDown} />
 
                 <label htmlFor="intervalMin">Interval Min:</label>
                 <input id="intervalMin" name="intervalMin" type="number" size={6} defaultValue={options.intervalMin} step={1} onChange={handleValueChange}/>
