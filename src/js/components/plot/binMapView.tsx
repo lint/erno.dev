@@ -51,33 +51,16 @@ export interface BinMapViewProps {
     features: Feature<Geometry>[];
     layerConfigs: any;
     mapCallback: (map: Map) => void;
+    featureBinSource?: VectorSource;
 };
 
-export function BinMapView({ features, options, layerConfigs, mapCallback }: BinMapViewProps) {
+export function BinMapView({ features, options, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
 
     console.log("BinMapView called ...");
 
     const mapContainerRef = useRef(null);
     const mapRef = useRef<Map>();
     const vectorSourceRef = useRef(new Vector());
-    // const binSources = useRef({
-    //     hex: new HexBin({
-    //         source: vectorSourceRef.current,
-    //         size: Number(options.binSize),
-    //         layout: options.hexStyle as any,
-    //         listenChange: false,
-    //     } as any),
-    //     // grid: new GridBin({
-    //     //     source: vectorSourceRef.current,
-    //     //     size: Number(options.binSize),
-    //     //     listenChange: false,
-    //     // } as any),
-    //     // feature: new FeatureBin({
-    //     //     source: vectorSourceRef.current,
-    //     //     // binSource: countySourceRef.current,
-    //     //     listenChange: false,
-    //     // } as any),
-    // });
     const binSourceName = useRef("hex");
     const binSource = useRef<BinBase>();
     const minRadius = 1;
@@ -254,8 +237,6 @@ export function BinMapView({ features, options, layerConfigs, mapCallback }: Bin
         }
     }
 
-
-
     // calculate bins depending on current settings
     function calcBins(forceCalc: boolean) {
 
@@ -284,7 +265,7 @@ export function BinMapView({ features, options, layerConfigs, mapCallback }: Bin
                 binSourceName.current = "feature";
                 bins = new FeatureBin({
                     source: vectorSourceRef.current,
-                    // binSource: countySourceRef.current,
+                    binSource: featureBinSource,
                     listenChange: false,
                 } as any);
                 break;
@@ -338,10 +319,7 @@ export function BinMapView({ features, options, layerConfigs, mapCallback }: Bin
         tileLayerRef.current = tileLayer;
 
         // get the current bin source
-        // checkBinSource();
         calcBins(false);
-
-        binLayerRef.current = createBinLayer(binSource.current ? binSource.current : new Vector(), Number(options.binLayerOpacity) / 100, options.binLayerIsVectorImage);
 
         // initialize the map object
         const map = new Map({
@@ -349,7 +327,7 @@ export function BinMapView({ features, options, layerConfigs, mapCallback }: Bin
                 center: fromLonLat([-80, 40.440]),
                 zoom: 9,
             }),
-            layers: [tileLayer, binLayerRef.current],
+            layers: [tileLayer],
             target: mapContainerRef.current
         });
         mapRef.current = map;
@@ -364,14 +342,39 @@ export function BinMapView({ features, options, layerConfigs, mapCallback }: Bin
 
     useEffect(() => {
         console.log("BinMapView options changed");
+
         refresh();
+
     }, [options])
 
     useEffect(() => {
-        console.log("BinMapView options changed");
+        console.log("BinMapView useEffect calcBins");
+
         calcBins(true);
         refresh();
-    }, [options.binType, options.binSize, features])
+
+    }, [features, options.binType, options.binSize])
+
+    useEffect(() => {
+
+        if (binSource.current) {
+            findValueBounds(binSource.current.getFeatures());
+        }
+
+    }, [options.aggFuncName]);
+
+    useEffect(() => {
+
+        if (!mapRef.current || !binSource.current) return;
+
+        if (binLayerRef.current) {
+            mapRef.current.removeLayer(binLayerRef.current);
+        }
+
+        binLayerRef.current = createBinLayer(binSource.current, Number(options.binLayerOpacity) / 100, options.binLayerIsVectorImage);
+        mapRef.current.addLayer(binLayerRef.current);
+
+    }, [options.binLayerIsVectorImage]);
 
     // handle layer updates
     // useEffect(() => {
