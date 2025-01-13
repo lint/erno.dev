@@ -49,9 +49,33 @@ export interface BinMapViewOptions {
 export interface BinMapViewProps {
     options: BinMapViewOptions;
     features: Feature<Geometry>[];
-    layerConfigs: any;
+    layerConfigs: BaseLayerOptions[];
     mapCallback: (map: Map) => void;
     featureBinSource?: VectorSource;
+};
+
+export interface BaseLayerOptions {
+    visible: boolean;
+    opacity: number;
+    id: string;
+    layerType: string;
+};
+
+export interface TileLayerOptions extends BaseLayerOptions {
+    tileSourceUrl: string;
+};
+
+export interface BinLayerOptions extends BaseLayerOptions {
+    hexStyle: string;
+    binStyle: string;
+    binType: string;
+    binSize: number;
+    aggFuncName: string;
+    isVectorImage: boolean;
+    numColorSteps: number;
+    colorScaleName: string;
+    intervalMin: number;
+    intervalMax: number;
 };
 
 export function BinMapView({ features, options, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
@@ -61,18 +85,9 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
     const mapContainerRef = useRef(null);
     const mapRef = useRef<Map>();
     const vectorSourceRef = useRef(new Vector());
-    const binSourceName = useRef("hex");
-    const binSource = useRef<BinBase>();
     const minRadius = 1;
     const maxValueRef = useRef(100);
-
-    // TODO: replace these with a better system
-    const binLayerRef = useRef<Layer>();
-    const tileLayerRef = useRef<Layer>();
-
-    // console.log("options", options)
-
-    // const [layers, setLayers] = useState<Layer[]>([]);
+    const layerDictRef = useRef({} as any);
 
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
@@ -137,26 +152,28 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         maxValueRef.current = Math.min(Math.round(maxValueRef.current - maxValueRef.current/4), 30000);
     }
 
-    // returns the chroma js color scale for the currently selected input
-    function getColorScale() {
-        let scale = chroma.scale(options.colorScaleName);
-        return scale
+    // get the max value for a given bin id
+    function getMaxValue(binLayerId: string) {
+
+        // TODO: actually implement
+
+        return maxValueRef.current;
     }
 
     // determine style for the given bin (f=feature, res=resolutuion)
-    function styleForBin(f: FeatureLike, res: number) {
+    function styleForBin(f: FeatureLike, res: number, binLayerConfig: BinLayerOptions) {
 
         let value = f.get('value');
-        let normal = Math.min(1, value/maxValueRef.current);
+        let normal = Math.min(1, value/getMaxValue(binLayerConfig.id));
         
-        let scale = getColorScale();
-        let steppedColors = scale.colors(options.numColorSteps);
+        let scale = chroma.scale(binLayerConfig.colorScaleName);
+        let steppedColors = scale.colors(binLayerConfig.numColorSteps);
 
-        switch (options.binStyle) {
+        switch (binLayerConfig.binStyle) {
 
         // different sized hexagons
         case 'point': {
-            let radius = Math.max(minRadius, Math.round(options.binSize/res + 0.5) * normal);
+            let radius = Math.max(minRadius, Math.round(binLayerConfig.binSize/res + 0.5) * normal);
             return [ 
                 new Style({
                     image: new RegularShape({
@@ -173,7 +190,7 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
 
         // sharp transition between colors
         case 'color': {
-            let index = Math.floor(normal * (options.numColorSteps - 1));
+            let index = Math.floor(normal * (binLayerConfig.numColorSteps - 1));
             let color = steppedColors[index];
             return [ new Style({ fill: new Fill({ color: color }) }) ];
         }
@@ -187,122 +204,158 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         }}
     }
 
-    // reload fast visuals
-    function refresh() {
+    // creates a new bin object
+    function createBins(binLayerConfig : BinLayerOptions) {
+        let bins : BinBase;
+        switch (binLayerConfig.binType) {
+        case "grid": {
+            bins = new GridBin({
+                source: vectorSourceRef.current,
+                size: Number(binLayerConfig.binSize),
+                listenChange: false,
+            } as any);
+            break;
+        }
+        case "feature": {
+            bins = new FeatureBin({
+                source: vectorSourceRef.current,
+                binSource: featureBinSource,
+                listenChange: false,
+            } as any);
+            break;
+        }
+        case "hex":
+        default: {
+            bins = new HexBin({
+                source: vectorSourceRef.current,
+                size: Number(binLayerConfig.binSize),
+                layout: binLayerConfig.hexStyle as any,
+                listenChange: false,
+            } as any);
+        }}
 
-        // set bin layer background color
-        if (options.binLayerBackgroundEnabled) {
-            let scale = getColorScale();
-            binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).darken().name());
-        } else {
-            binLayerRef.current?.setBackground();
+        findValueBounds(bins.getFeatures());
+
+        return bins;
+    }
+
+    // create and return a new bin layer
+    function createBinLayer(binLayerConfig : BinLayerOptions) {
+
+        console.log("creating new bin layer", binLayerConfig.binType);
+        
+        let vClass = binLayerConfig.isVectorImage ? VectorImageLayer : VectorLayer;
+        const binLayer = new vClass({ 
+            source: createBins(binLayerConfig), 
+            opacity: binLayerConfig.opacity / 100,
+            style: (f: FeatureLike, res: number) => styleForBin(f, res, binLayerConfig),
+        });
+        
+        return binLayer;
+    }
+
+    // create and return a new tile layer
+    function createTileLayer(url: string) {
+        const tileLayer = new TileLayer({
+            source: new OSM({url: url}), 
+            // preload: Infinity 
+            preload: 1
+        });
+        return tileLayer;
+    }
+
+    // get the layer associated witht the given layer config
+    function layerForConfig(layerConfig: BaseLayerOptions, resetLayer: boolean) {
+
+        if (!layerConfig) return;
+
+        let layer = layerDictRef.current[layerConfig.id];
+        if (layer && resetLayer) {
+            mapRef.current?.removeLayer(layer);
+            layer = undefined;
         }
 
-        // set opacity
-        binLayerRef.current?.setOpacity(Number(options.binLayerOpacity)/100);
-        tileLayerRef.current?.setOpacity(Number(options.tileLayerOpacity)/100);
+        // make new layer if it does not exist
+        if (!layer) {
 
-        // set enabled
-        tileLayerRef.current?.setVisible(options.tileLayerVisible);
-        binLayerRef.current?.setVisible(options.binLayerVisible);
+            // create bin layer
+            if (layerConfig.layerType === "bin") {
+                layer = createBinLayer(layerConfig as BinLayerOptions);
+            
+            // create tile layer
+            } else if (layerConfig.layerType === "tile") {
+                layer = createTileLayer((layerConfig as TileLayerOptions).tileSourceUrl);
+            }
 
-        // update tile layer url
-        let osmSource = tileLayerRef.current?.getSource() as OSM;
-        osmSource.setUrl(options.tileSourceUrl);
+            // continue if could not create layer
+            if (!layer) return;
+
+            layerDictRef.current[layerConfig.id] = layer;
+            mapRef.current?.addLayer(layer);
+        }
+
+        return layer;
+    }
+
+    function refreshLayers(updateBinSources: boolean, resetLayers: boolean) {
+
+        console.log("BinMapView refreshLayers");
+        console.log("configs:", layerConfigs);
 
         // set manually
         // minValue = Number(options.intervalMin);
         // maxValueRef.current = Number(options.intervalMax);
 
-        // if (binsRef.current) binsRef.current.changed();
-        binSource.current?.changed();
+        // set bin layer background color
+        // if (options.binLayerBackgroundEnabled) {
+        //     let scale = getColorScale();
+        //     binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).darken().name());
+        // } else {
+        //     binLayerRef.current?.setBackground();
+        // }
 
-        // update hexbin style (point or flat)
-        if (binSourceName.current === 'hex' && binSource.current) {
-            let hexBin = binSource.current as HexBin;
+        layerConfigs.forEach((layerConfig, i) => {
+            let layer = layerForConfig(layerConfig, resetLayers);
 
-            if (hexBin.getLayout() as any !== options.hexStyle) {
-                hexBin.setLayout(options.hexStyle as any, false);
-                findValueBounds(hexBin.getFeatures());
-                // mapRef.current?.changed();
-                // console.log("setting layout:", options.hexStyle);
-            }
+            // update common layer properties
+            layer.setZIndex(i);
+            layer.setOpacity(Number(layerConfig.opacity)/100);
+            layer.setVisible(layerConfig.visible);
+
+            // update tile layer properties
+            if (layerConfig.layerType === "tile") {
+                let tileLayerConfig = layerConfig as TileLayerOptions;
+                
+                let osmSource = layer.getSource() as OSM;
+                osmSource.setUrl(tileLayerConfig.tileSourceUrl);
             
-        }
+            // update bin layer properties
+            } else if (layerConfig.layerType === "bin") {
+                let binLayerConfig = layerConfig as BinLayerOptions;
 
-        // recreate the syling function so options are refreshed
-        if (binLayerRef.current) {
-            let binLayer = binLayerRef.current as any;
-            binLayer.setStyle(styleForBin);
-        }
-    }
+                // recalculate bins if specified
+                if (updateBinSources) {
+                    layer.setSource(createBins(binLayerConfig));
+                }
 
-    // calculate bins depending on current settings
-    function calcBins(forceCalc: boolean) {
+                // recreate the syling function so options are refreshed
+                layer.setStyle((f: FeatureLike, res: number) => styleForBin(f, res, binLayerConfig));
 
-        console.log("BinMapView calcBins");
+                // update hexbin style (point or flat)
+                if (binLayerConfig.binType === "hex") {
+                    // let hexBin = binSource.current as HexBin;
+                    let hexBin = layer.getSource() as HexBin;
 
-        if (binSourceName.current === options.binType && binSource.current && !forceCalc) return;
-
-        vectorSourceRef.current = new Vector({features: features});
-
-        // TODO: ensure previous bin sources do not continue to exist and update on source changes
-        console.log("creating new bin type:", options.binType);
-
-        let bins : BinBase;
-
-        switch (options.binType) {
-            case "grid": {
-                binSourceName.current = "grid";
-                bins = new GridBin({
-                    source: vectorSourceRef.current,
-                    size: Number(options.binSize),
-                    listenChange: false,
-                } as any);
-                break;
+                    // recalculate bins if layout style changed
+                    if (hexBin.getLayout() as any !== binLayerConfig.hexStyle) {
+                        hexBin.setLayout(binLayerConfig.hexStyle as any, false);
+                        findValueBounds(hexBin.getFeatures());
+                    }
+                }
             }
-            case "feature": {
-                binSourceName.current = "feature";
-                bins = new FeatureBin({
-                    source: vectorSourceRef.current,
-                    binSource: featureBinSource,
-                    listenChange: false,
-                } as any);
-                break;
-            }
-            case "hex":
-            default: {
-                binSourceName.current = "hex";
-                bins = new HexBin({
-                    source: vectorSourceRef.current,
-                    size: Number(options.binSize),
-                    layout: options.hexStyle as any,
-                    listenChange: false,
-                } as any);
-            }
-        }
-
-        binSource.current = bins;
-        findValueBounds(bins.getFeatures());
-
-        // update binSource in the layer
-        binLayerRef.current?.setSource(bins);
-
-        // mapRef.current.changed();
-
-    }
-
-    // create and return a new bin layer
-    function createBinLayer(source: Vector, opacity: number, isVectorImageLayer: boolean) {
-        
-        let vClass = isVectorImageLayer ? VectorImageLayer : VectorLayer;
-        const binLayer = new vClass({ 
-            source: source, 
-            opacity: opacity,
-            style: styleForBin,
         });
-        
-        return binLayer;
+
+        // TODO: delete layers from mapRef that no longer exist in layerConfigs
     }
 
     // called when component has mounted
@@ -310,24 +363,13 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         console.log("BinMapView useEffect ...");
         if (!mapContainerRef.current) return;
 
-        // initialize the tile layer
-        const tileLayer = new TileLayer({
-            source: new OSM({url: options.tileSourceUrl}), 
-            // preload: Infinity 
-            preload: 1
-        });
-        tileLayerRef.current = tileLayer;
-
-        // get the current bin source
-        calcBins(false);
-
         // initialize the map object
         const map = new Map({
             view: new View({
                 center: fromLonLat([-80, 40.440]),
                 zoom: 9,
             }),
-            layers: [tileLayer],
+            layers: [],
             target: mapContainerRef.current
         });
         mapRef.current = map;
@@ -343,57 +385,45 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
     useEffect(() => {
         console.log("BinMapView options changed");
 
-        refresh();
+        refreshLayers(false, false);
 
-    }, [options])
+    }, [options]);
 
     useEffect(() => {
         console.log("BinMapView useEffect calcBins");
 
-        calcBins(true);
-        refresh();
+        vectorSourceRef.current = new Vector({features: features});
+        refreshLayers(true, false);
 
-    }, [features, options.binType, options.binSize])
+    }, [features]);
 
-    useEffect(() => {
-
-        if (binSource.current) {
-            findValueBounds(binSource.current.getFeatures());
-        }
-
-    }, [options.aggFuncName]);
-
-    useEffect(() => {
-
-        if (!mapRef.current || !binSource.current) return;
-
-        if (binLayerRef.current) {
-            mapRef.current.removeLayer(binLayerRef.current);
-        }
-
-        binLayerRef.current = createBinLayer(binSource.current, Number(options.binLayerOpacity) / 100, options.binLayerIsVectorImage);
-        mapRef.current.addLayer(binLayerRef.current);
-
-    }, [options.binLayerIsVectorImage]);
-
-    // handle layer updates
     // useEffect(() => {
-    //     console.log("BinMapView setLayers useEffect")
-    //     if (!mapRef.current) return;
+    //     console.log("BinMapView useEffect calcBins");
 
-    //     // sort layers based on z level
-    //     layers.sort((a: Layer, b: Layer) => {
-    //         let az = a.getZIndex();
-    //         let bz = b.getZIndex();
-    //         let av = az ? az : -1;
-    //         let bv = bz ? bz : -1;
-    //         return av - bv;
-    //     });
+    //     refreshLayers(true);
 
-    //     // update the layers on the map
-    //     mapRef.current.setLayers(layers);
+    // }, [options.binType, options.binSize])
 
-    // }, [layers]);
+    // useEffect(() => {
+
+    //     if (binSource.current) {
+    //         findValueBounds(binSource.current.getFeatures());
+    //     }
+
+    // }, [options.aggFuncName]);
+
+    // useEffect(() => {
+
+    //     if (!mapRef.current || !binSource.current) return;
+
+    //     if (binLayerRef.current) {
+    //         mapRef.current.removeLayer(binLayerRef.current);
+    //     }
+
+    //     binLayerRef.current = createBinLayer(binSource.current, Number(options.binLayerOpacity) / 100, options.binLayerIsVectorImage);
+    //     mapRef.current.addLayer(binLayerRef.current);
+
+    // }, [options.binLayerIsVectorImage]);
     
 
     return (

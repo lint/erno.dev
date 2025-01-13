@@ -27,7 +27,7 @@ import { fromLonLat, Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
 import BinBase from 'ol-ext/source/BinBase';
-import { BinMapView, BinMapViewOptions } from './binMapView';
+import { BaseLayerOptions, BinLayerOptions, BinMapView, BinMapViewOptions, TileLayerOptions } from './binMapView';
 import Geometry from 'ol/geom/Geometry';
 
 // type MapProps = {
@@ -47,6 +47,47 @@ export function BinMap() {
     const colorScaleInputRef = useRef(null);
     const intervalMaxInputRef = useRef(null);
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
+    const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>([
+        {
+            id: "tile_test",
+            layerType: "tile",
+            visible: true,
+            opacity: 100,
+            tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        } as TileLayerOptions, 
+        {
+            id: "bin_test",
+            layerType: "bin",
+            visible: true,
+            opacity: 100,
+            hexStyle: "pointy",
+            binStyle: "hex",
+            binType: "gradient",
+            binSize: 1000,
+            aggFuncName: "max",
+            isVectorImage: true,
+            numColorSteps: 5,
+            colorScaleName: "viridis",
+            intervalMin: 0,
+            intervalMax: 30000,
+        } as BinLayerOptions,         
+        // {
+        //     id: "bin_test2",
+        //     layerType: "bin",
+        //     visible: true,
+        //     opacity: 50,
+        //     hexStyle: "pointy",
+        //     binStyle: "grid",
+        //     binType: "gradient",
+        //     binSize: 0.1,
+        //     aggFuncName: "max",
+        //     isVectorImage: true,
+        //     numColorSteps: 5,
+        //     colorScaleName: "viridis",
+        //     intervalMin: 0,
+        //     intervalMax: 30000,
+        // } as BinLayerOptions, 
+    ]);
 
     const [options, setOptions] = useState<BinMapViewOptions>({
         tileLayerVisible: true,
@@ -263,7 +304,7 @@ export function BinMap() {
 
     return (
         <div className='map-container'>
-            <BinMapView options={optionsRef.current} features={features} layerConfigs={{}} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource}/>
+            <BinMapView options={optionsRef.current} features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource}/>
             <div ref={legendContainerRef} className="legend-container">
                 <div className="gradient">
                     {getColorScale().colors(100).map((color, index) => {
