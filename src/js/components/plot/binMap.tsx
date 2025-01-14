@@ -2,33 +2,35 @@ import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
 import './map.css';
-import { Map, View } from 'ol';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector.js';
-import OSM from 'ol/source/OSM';
-import {Select} from 'ol/interaction';
-import Feature, { FeatureLike } from 'ol/Feature.js';
+import { Map } from 'ol';
+// import TileLayer from 'ol/layer/Tile';
+// import VectorLayer from 'ol/layer/Vector.js';
+// import OSM from 'ol/source/OSM';
+// import {Select} from 'ol/interaction';
+import Feature from 'ol/Feature.js';
 import Point from 'ol/geom/Point.js';
-import HexBin from 'ol-ext/source/HexBin';
-import GridBin from 'ol-ext/source/GridBin';
-import FeatureBin from 'ol-ext/source/FeatureBin';
+// import HexBin from 'ol-ext/source/HexBin';
+// import GridBin from 'ol-ext/source/GridBin';
+// import FeatureBin from 'ol-ext/source/FeatureBin';
 import { Vector } from 'ol/source';
-import Fill from 'ol/style/Fill';
-import Style from 'ol/style/Style';
-import RegularShape from 'ol/style/RegularShape.js';
-import { SelectEvent } from 'ol/interaction/Select';
+// import Fill from 'ol/style/Fill';
+// import Style from 'ol/style/Style';
+// import RegularShape from 'ol/style/RegularShape.js';
+// import { SelectEvent } from 'ol/interaction/Select';
 import VectorSource from 'ol/source/Vector';
-import VectorImageLayer from 'ol/layer/VectorImage';
-import Layer from 'ol/layer/Layer';
+// import VectorImageLayer from 'ol/layer/VectorImage';
+// import Layer from 'ol/layer/Layer';
 // import { data } from '../../data/us_pa_alleghaney_addresses';
 // import { data } from '../../data/us_pa_addresses';
 import { data } from '../../data/us_addresses';
 import { fromLonLat, Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
-import BinBase from 'ol-ext/source/BinBase';
-import { BaseLayerOptions, BinLayerOptions, BinMapView, BinMapViewOptions, TileLayerOptions } from './binMapView';
+// import BinBase from 'ol-ext/source/BinBase';
+import { BinMapView, BinMapViewOptions } from './binMapView';
 import Geometry from 'ol/geom/Geometry';
+import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
+import BinMapLayerControl from './binMapLayerControl';
 
 // type MapProps = {
 //     width: number;
@@ -45,9 +47,8 @@ export function BinMap() {
     const legendContainerRef = useRef(null);
 
     const colorScaleInputRef = useRef(null);
-    const intervalMaxInputRef = useRef(null);
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
-    const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>([
+    const defaultLayerConfigs = [
         {
             id: "tile_test",
             layerType: "tile",
@@ -87,7 +88,8 @@ export function BinMap() {
         //     intervalMin: 0,
         //     intervalMax: 30000,
         // } as BinLayerOptions, 
-    ]);
+    ];
+    const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
 
     const [options, setOptions] = useState<BinMapViewOptions>({
         tileLayerVisible: true,
@@ -95,7 +97,7 @@ export function BinMap() {
         binLayerIsVectorImage: true,
         binLayerBackgroundEnabled: false,
         hexStyle: "pointy",
-        binStyle: "gradient", // TODO: this value won't change in styles function??? not sure why since the options object in the method that calls it shows the correct value ...
+        binStyle: "gradient",
         binType: "hex",
         binSize: 1000,
         aggFuncName: "max",
@@ -272,6 +274,24 @@ export function BinMap() {
         mapRef.current = map;
     }
 
+    function handleLayerControlChange(updatedLayerConfig: BaseLayerOptions) {
+
+        setLayerConfigs((oldLayerConfigs) => {
+
+            for (let i = 0; i < oldLayerConfigs.length; i++) {
+                let layerConfig = oldLayerConfigs[i];
+                if (layerConfig.id === updatedLayerConfig.id) {
+
+                    let newLayerConfigs = [...oldLayerConfigs];
+                    newLayerConfigs[i] = updatedLayerConfig;
+                    return newLayerConfigs;
+                }
+            }
+
+            return oldLayerConfigs;
+        });
+    }
+
     useEffect(() => {
 
         // set the default scale
@@ -305,6 +325,9 @@ export function BinMap() {
     return (
         <div className='map-container'>
             <BinMapView options={optionsRef.current} features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource}/>
+            {layerConfigs.map(layerConfig => {
+                return <BinMapLayerControl config={layerConfig} callback={handleLayerControlChange} key={layerConfig.id}/>
+            })}
             <div ref={legendContainerRef} className="legend-container">
                 <div className="gradient">
                     {getColorScale().colors(100).map((color, index) => {
@@ -315,124 +338,9 @@ export function BinMap() {
                 </div>
             </div>
             <div>
-                <label htmlFor="binSize">Size:</label>
-                <input id="binSize" name="binSize" type="number" min={0} max={100000} defaultValue={options.binSize} step={500} onChange={handleValueChange} onKeyDown={handleKeyDown} />
 
-                <label htmlFor="intervalMin">Interval Min:</label>
-                <input id="intervalMin" name="intervalMin" type="number" size={6} defaultValue={options.intervalMin} step={1} onChange={handleValueChange}/>
-
-                <label htmlFor="intervalMax">Max:</label>
-                <input ref={intervalMaxInputRef} id="intervalMax" name="intervalMax" type="number" size={6} defaultValue={options.intervalMax} step={1} onChange={handleValueChange}/>
-
-                <br/>
-
-                <label htmlFor="binStyle">Style:</label>
-                <select id="binStyle" name="binStyle" defaultValue={options.binStyle} onChange={handleValueChange}>
-                    <option value="gradient">Gradient</option>
-                    <option value="color">Color</option>
-                    <option value="point">Point</option>
-                </select>
-
-                <br/>
-
-                <label htmlFor="binType">Bin Type:</label>
-                <select id="binType" name="binType" defaultValue={options.binType} onChange={handleValueChange}>
-                    <option value="hex">Hex</option>
-                    <option value="grid">Grid</option>
-                    <option value="feature">Feature</option>
-                </select>
-
-                <br/>
-
-                <label htmlFor="aggFuncName">Agg Func:</label>
-                <select id="aggFuncName" name="aggFuncName" defaultValue={options.aggFuncName} onChange={handleValueChange}>
-                    <option value="max">Max</option>
-                    <option value="sum">Sum</option>
-                    <option value="avg">Avg</option>
-                    <option value="len">Count</option>
-                </select>
-
-                <br/>
-
-                <label htmlFor="hexStyle">Hex Style:</label>
-                <select id="hexStyle" name="hexStyle" defaultValue={options.hexStyle} onChange={handleValueChange}>
-                    <option value="pointy">Pointy</option>
-                    <option value="flat">Flat</option>
-                </select>
-
-                <br/>
-
-                <label htmlFor="colorScaleName">Color Scale:</label>
-                <select ref={colorScaleInputRef} id="colorScaleName" name="colorScaleName" onChange={handleValueChange} defaultValue={options.colorScaleName}>
-                    {Object.keys(chroma.brewer).map((key) => {
-                        return (
-                            <option value={key} key={key}>{key}</option>
-                        );
-                    })}
-                </select>
-
-                <label htmlFor="numColorSteps">Num Color Steps:</label>
-                <input id="numColorSteps" name="numColorSteps" type="number" min={0} max={16} defaultValue={options.numColorSteps} step={1} onChange={handleValueChange}/>
-
-                <br/>
-
-                <label htmlFor="tileSourceUrl">Tile Source:</label>
-                <select name="tileSourceUrl" id="tileSourceUrl" onChange={handleValueChange} defaultValue={options.tileSourceUrl}>
-                    <option value="https://tile.openstreetmap.org/{z}/{x}/{y}.png">OSM Standard</option>
-                    <option value="https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">OSM Humanitarian</option>
-                    <option value="https://a.tile.opentopomap.org/{z}/{x}/{y}.png">OSM Topographic</option>
-                    {/* <option value="https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png">MemoMaps</option> */}
-                    {/* <option value="https://s.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png">CyclOSM</option> */}
-                    {/* <option value="https://tile-cyclosm.openstreetmap.fr/cyclosm-lite/{z}/{x}/{y}.png">CyclOSM-lite</option> */}
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}">Esri World Imagery (satellite)</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}">Esri World Street Map</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}">Esri World Topographic</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}">Esri Shaded Relief</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}">Esri Physical Map</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}">Esri Terrain Base</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}">Esri NatGeo</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}">Esri Transportation</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Light Gray Base</option>
-                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}">Esri Light Gray Reference</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}">Esri Dark Gray Base</option>
-                    <option value="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}">Esri Dark Gray Reference</option>
-                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}">Esri World Boundaries and Places</option>
-                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places_Alternate/MapServer/tile/{z}/{y}/{x}">Esri World Boundaries and Places (alt)</option>
-                    <option value="https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}">Esri World Reference Overlay</option>
-                    <option value="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png">Carto Positron</option>
-                    <option value="https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png">Carto Positron - no labels</option>
-                    <option value="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png">Carto Dark Matter</option>
-                    <option value="https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png">Carto Dark Matter - no labels</option>
-                    <option value="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png">Carto Voyager</option>
-                    <option value="https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png">Carto Voyager - no labels</option>
-                    {/* <option value="http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg">Stamen Watercolor</option> */}
-                    {/* <option value="https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png">OpenWeatherMap</option> */}
-                </select>
-
-                <br/>
-
-                <input id="binLayerVisible" name="binLayerVisible" onChange={handleCheckboxChange} type="checkbox" defaultChecked={options.binLayerVisible}/>
-                <label htmlFor="binLayerVisible">show bin layer</label>
-
-                <input id="tileLayerVisible" name="tileLayerVisible" onChange={handleCheckboxChange} type="checkbox" defaultChecked={options.tileLayerVisible}/>
-                <label htmlFor="tileLayerVisible">show tile layer</label>
-
-                <br/>
-
-                <input id="binLayerIsVectorImage" name="binLayerIsVectorImage" type="checkbox" onChange={handleCheckboxChange} defaultChecked={options.binLayerIsVectorImage}/>
-                <label htmlFor="binLayerIsVectorImage">bin layer as image</label>
-
-                <input id="binLayerBackgroundEnabled" name="binLayerBackgroundEnabled" type="checkbox" onChange={handleCheckboxChange} defaultChecked={options.binLayerBackgroundEnabled}/>
-                <label htmlFor="binLayerBackgroundEnabled">bin layer background</label>
-
-                <br/>
-
-                <label htmlFor="binLayerOpacity">Bin Layer Opacity:</label>
-                <input id="binLayerOpacity" name="binLayerOpacity" type="range" min={0} max={100} defaultValue={options.binLayerOpacity} step={1} onChange={handleValueChange} onMouseUp={refresh}/>
-                <label htmlFor="tileLayerOpacity">Tile Layer Opacity:</label>
-                <input id="tileLayerOpacity" name="tileLayerOpacity" type="range" min={0} max={100} defaultValue={options.tileLayerOpacity} step={1} onChange={handleValueChange} onMouseUp={refresh}/>
-
-                <br/>
+                {/* <input id="binLayerBackgroundEnabled" name="binLayerBackgroundEnabled" type="checkbox" onChange={handleCheckboxChange} defaultChecked={options.binLayerBackgroundEnabled}/>
+                <label htmlFor="binLayerBackgroundEnabled">bin layer background</label> */}
 
                 <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
                 <button onClick={handleResetFeaturesButton}>Reset Features</button>

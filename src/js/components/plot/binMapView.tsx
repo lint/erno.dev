@@ -26,6 +26,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import BinBase from 'ol-ext/source/BinBase';
 import { data } from '../../data/us_addresses';
 import Geometry from 'ol/geom/Geometry';
+import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 
 export interface BinMapViewOptions {
     tileLayerVisible: boolean;
@@ -54,33 +55,10 @@ export interface BinMapViewProps {
     featureBinSource?: VectorSource;
 };
 
-export interface BaseLayerOptions {
-    visible: boolean;
-    opacity: number;
-    id: string;
-    layerType: string;
-};
-
-export interface TileLayerOptions extends BaseLayerOptions {
-    tileSourceUrl: string;
-};
-
-export interface BinLayerOptions extends BaseLayerOptions {
-    hexStyle: string;
-    binStyle: string;
-    binType: string;
-    binSize: number;
-    aggFuncName: string;
-    isVectorImage: boolean;
-    numColorSteps: number;
-    colorScaleName: string;
-    intervalMin: number;
-    intervalMax: number;
-};
-
 export function BinMapView({ features, options, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
 
     console.log("BinMapView called ...");
+    console.log(layerConfigs);
 
     const mapContainerRef = useRef(null);
     const mapRef = useRef<Map>();
@@ -107,45 +85,35 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         console.log("BinMapView findValueBounds ...");
 
         // reset current values
+        // TODO: remove this
         maxValueRef.current = Number.MIN_SAFE_INTEGER;
-
-        // get current aggregation function
-        let mode = options.aggFuncName;
 
         // calculate the value for every feature
         for (let f of features) {
             let fs = f.get('features');
-            let fMax = Number.MIN_SAFE_INTEGER;
-            let sum = 0;
-            let value = 0;
+            let values = {
+                min: fs.length > 0 ? Number.MAX_SAFE_INTEGER : -1,
+                max: fs.length > 0 ? Number.MIN_SAFE_INTEGER : -1,
+                sum: 0,
+                avg: 0,
+                len: fs.length,
+                mode: -1,
+                median: -1,
+            };
+            let numbers = fs.map((ff: FeatureLike) => ff.get('number'));
+            numbers.sort((a:number,b:number)=>a-b);
            
-            // do not need to iterate over data points for length
-            if (mode !== 'len') {
-                for (let ff of fs) {
-                    let n = ff.get('number');
-                    sum += n;
-                    if (n>fMax) fMax = n;
-                }
+            for (let ff of fs) {
+                let n = ff.get('number');
+                values.sum += n;
+                if (n>values.max) values.max = n;
+                if (n<values.min) values.min = n;
             }
 
-            // set the value based on the current mode
-            switch (mode) {
-            case 'len':
-                value = fs.length;
-                break;
-            case 'avg':
-                value = sum / fs.length;
-                break; 
-            case 'sum':
-                value = sum;
-                break;
-            case 'max':
-            default:
-                value = fMax;
-            }
+            values.avg = values.sum / values.len;
 
-            (f as Feature).set('value', value, true);
-            if (value>maxValueRef.current) maxValueRef.current = value;
+            (f as Feature).set('values', values, true);
+            if (values.max>maxValueRef.current) maxValueRef.current = values.max; // TODO: make dynamic, or even better remove this check entirely
         }
 
         // set new min/max by clipping ends (TODO: why?)
@@ -163,7 +131,8 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
     // determine style for the given bin (f=feature, res=resolutuion)
     function styleForBin(f: FeatureLike, res: number, binLayerConfig: BinLayerOptions) {
 
-        let value = f.get('value');
+        let values = f.get('values');
+        let value = values[binLayerConfig.aggFuncName];
         let normal = Math.min(1, value/getMaxValue(binLayerConfig.id));
         
         let scale = chroma.scale(binLayerConfig.colorScaleName);
@@ -242,12 +211,12 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
     // create and return a new bin layer
     function createBinLayer(binLayerConfig : BinLayerOptions) {
 
-        console.log("creating new bin layer", binLayerConfig.binType);
+        console.log("creating new bin layer", binLayerConfig.binType, binLayerConfig.isVectorImage);
         
         let vClass = binLayerConfig.isVectorImage ? VectorImageLayer : VectorLayer;
         const binLayer = new vClass({ 
             source: createBins(binLayerConfig), 
-            opacity: binLayerConfig.opacity / 100,
+            opacity: Number(binLayerConfig.opacity) / 100,
             style: (f: FeatureLike, res: number) => styleForBin(f, res, binLayerConfig),
         });
         
@@ -387,7 +356,9 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
 
         refreshLayers(false, false);
 
-    }, [options]);
+        // TODO: need to reset layers when the "layer as image changed"
+
+    }, [options, layerConfigs]);
 
     useEffect(() => {
         console.log("BinMapView useEffect calcBins");
@@ -395,7 +366,9 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         vectorSourceRef.current = new Vector({features: features});
         refreshLayers(true, false);
 
-    }, [features]);
+        // TODO: TEMP JUST RECREATING ON LAYERCONFIGS FOR RN SO IT ALL LOADS AGAIN
+
+    }, [features, layerConfigs]);
 
     // useEffect(() => {
     //     console.log("BinMapView useEffect calcBins");

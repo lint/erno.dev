@@ -35,3 +35,7 @@
 .legend-container {
     max-width: 500px;
 }
+
+.layer-options {
+    border: solid 1px red;
+}
