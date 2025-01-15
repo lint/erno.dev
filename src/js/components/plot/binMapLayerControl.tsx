@@ -1,5 +1,5 @@
 
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent } from 'react';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import chroma from 'chroma-js';
 
@@ -36,6 +36,12 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
         let newConfig = {...config, [name]: value};
         if (callback) callback(newConfig);
     }
+
+    // reload map on enter press on input fields
+    // function handleKeyDown(event: any) {
+    //     if (event.key === 'Enter') {
+    //     }
+    // }
 
     function controlForType(layerType: string) {
 

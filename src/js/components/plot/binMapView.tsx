@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
 import './map.css';
@@ -19,46 +19,22 @@ import RegularShape from 'ol/style/RegularShape.js';
 import { SelectEvent } from 'ol/interaction/Select';
 import VectorSource from 'ol/source/Vector';
 import VectorImageLayer from 'ol/layer/VectorImage';
-import Layer from 'ol/layer/Layer';
-import { fromLonLat, Projection } from 'ol/proj';
+import { fromLonLat } from 'ol/proj';
 import chroma from 'chroma-js';
-import GeoJSON from 'ol/format/GeoJSON';
 import BinBase from 'ol-ext/source/BinBase';
-import { data } from '../../data/us_addresses';
 import Geometry from 'ol/geom/Geometry';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 
-export interface BinMapViewOptions {
-    tileLayerVisible: boolean;
-    binLayerVisible: boolean;
-    binLayerIsVectorImage: boolean;
-    binLayerBackgroundEnabled: boolean;
-    hexStyle: string;
-    binStyle: string;
-    binType: string;
-    binSize: number;
-    aggFuncName: string;
-    tileSourceUrl: string;
-    numColorSteps: number;
-    colorScaleName: string;
-    intervalMin: number;
-    intervalMax: number;
-    binLayerOpacity: number;
-    tileLayerOpacity: number;
-};
-
 export interface BinMapViewProps {
-    options: BinMapViewOptions;
     features: Feature<Geometry>[];
     layerConfigs: BaseLayerOptions[];
     mapCallback: (map: Map) => void;
     featureBinSource?: VectorSource;
 };
 
-export function BinMapView({ features, options, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
+export function BinMapView({ features, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
 
     console.log("BinMapView called ...");
-    console.log(layerConfigs);
 
     const mapContainerRef = useRef(null);
     const mapRef = useRef<Map>();
@@ -66,6 +42,8 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
     const minRadius = 1;
     const maxValueRef = useRef(100);
     const layerDictRef = useRef({} as any);
+    const prevLayerConfigs = useRef(layerConfigs);
+    const optionsTriggeringReload = ['isVectorImage', 'binSize', 'binType', 'hexStyle'];
 
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
@@ -234,12 +212,12 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
     }
 
     // get the layer associated witht the given layer config
-    function layerForConfig(layerConfig: BaseLayerOptions, resetLayer: boolean) {
+    function layerForConfig(layerConfig: BaseLayerOptions, resetBinLayer: boolean) {
 
         if (!layerConfig) return;
 
         let layer = layerDictRef.current[layerConfig.id];
-        if (layer && resetLayer) {
+        if (layer && layerConfig.layerType === 'bin' && resetBinLayer) {
             mapRef.current?.removeLayer(layer);
             layer = undefined;
         }
@@ -266,14 +244,10 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         return layer;
     }
 
-    function refreshLayers(updateBinSources: boolean, resetLayers: boolean) {
+    // set layer properties according to layerConfigs
+    function refreshLayers(resetBinLayers: boolean) {
 
-        console.log("BinMapView refreshLayers");
-        console.log("configs:", layerConfigs);
-
-        // set manually
-        // minValue = Number(options.intervalMin);
-        // maxValueRef.current = Number(options.intervalMax);
+        console.log("BinMapView refreshLayers", resetBinLayers);
 
         // set bin layer background color
         // if (options.binLayerBackgroundEnabled) {
@@ -284,7 +258,7 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         // }
 
         layerConfigs.forEach((layerConfig, i) => {
-            let layer = layerForConfig(layerConfig, resetLayers);
+            let layer = layerForConfig(layerConfig, resetBinLayers);
 
             // update common layer properties
             layer.setZIndex(i);
@@ -301,11 +275,6 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
             // update bin layer properties
             } else if (layerConfig.layerType === "bin") {
                 let binLayerConfig = layerConfig as BinLayerOptions;
-
-                // recalculate bins if specified
-                if (updateBinSources) {
-                    layer.setSource(createBins(binLayerConfig));
-                }
 
                 // recreate the syling function so options are refreshed
                 layer.setStyle((f: FeatureLike, res: number) => styleForBin(f, res, binLayerConfig));
@@ -344,7 +313,8 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
         mapRef.current = map;
         mapCallback(map);
 
-        var select  = new Select();
+        // add selection handler to the map
+        let select = new Select();
         map.addInteraction(select);
         select.on('select', handleFeatureSelect);
 
@@ -352,56 +322,50 @@ export function BinMapView({ features, options, layerConfigs, mapCallback, featu
     }, []);
 
     useEffect(() => {
-        console.log("BinMapView options changed");
+        console.log("BinMapView useEffect layerConfigs changed");
 
-        refreshLayers(false, false);
+        // TODO: currently only bin layers are affected by recreation (is there ever a reason to recreate other layers?)
+        
+        let shouldRecreateLayers = false;
 
-        // TODO: need to reset layers when the "layer as image changed"
+        // recreate layers if number of layers has changeed
+        if (layerConfigs.length !== prevLayerConfigs.current.length) {
+            shouldRecreateLayers = true;
+        }
 
-    }, [options, layerConfigs]);
+        // check each config for 'expensive' changes
+        for (let i = 0; i < layerConfigs.length && !shouldRecreateLayers; i++) {
+            let prevLayerConfig = prevLayerConfigs.current[i];
+            let currLayerConfig = layerConfigs[i];
+
+            // recreate layers if layer order changed (TODO: could just set z index, but this is easier for now)
+            if (prevLayerConfig.id !== currLayerConfig.id || prevLayerConfig.layerType !== currLayerConfig.layerType) {
+                shouldRecreateLayers = true;
+            }
+
+            // check if any 'expensive' option changes were detected
+            for (let key of optionsTriggeringReload) {
+                if (Object.hasOwn(prevLayerConfig, key) && Object.hasOwn(currLayerConfig, key) && !Object.is(prevLayerConfig[key as keyof typeof prevLayerConfig], currLayerConfig[key as keyof typeof currLayerConfig])) {
+                    shouldRecreateLayers = true;
+                    break;
+                }
+            }
+        }
+
+        prevLayerConfigs.current = layerConfigs;        
+        refreshLayers(shouldRecreateLayers);
+
+    }, [layerConfigs]);
 
     useEffect(() => {
-        console.log("BinMapView useEffect calcBins");
+        console.log("BinMapView useEffect features changed");
 
         vectorSourceRef.current = new Vector({features: features});
-        refreshLayers(true, false);
+        refreshLayers(true);
 
-        // TODO: TEMP JUST RECREATING ON LAYERCONFIGS FOR RN SO IT ALL LOADS AGAIN
-
-    }, [features, layerConfigs]);
-
-    // useEffect(() => {
-    //     console.log("BinMapView useEffect calcBins");
-
-    //     refreshLayers(true);
-
-    // }, [options.binType, options.binSize])
-
-    // useEffect(() => {
-
-    //     if (binSource.current) {
-    //         findValueBounds(binSource.current.getFeatures());
-    //     }
-
-    // }, [options.aggFuncName]);
-
-    // useEffect(() => {
-
-    //     if (!mapRef.current || !binSource.current) return;
-
-    //     if (binLayerRef.current) {
-    //         mapRef.current.removeLayer(binLayerRef.current);
-    //     }
-
-    //     binLayerRef.current = createBinLayer(binSource.current, Number(options.binLayerOpacity) / 100, options.binLayerIsVectorImage);
-    //     mapRef.current.addLayer(binLayerRef.current);
-
-    // }, [options.binLayerIsVectorImage]);
-    
+    }, [features]);
 
     return (
         <div ref={mapContainerRef} className="map"/>
     );
-   
 }
-

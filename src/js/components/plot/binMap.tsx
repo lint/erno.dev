@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
 import './map.css';
@@ -27,7 +27,7 @@ import { fromLonLat, Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
 // import BinBase from 'ol-ext/source/BinBase';
-import { BinMapView, BinMapViewOptions } from './binMapView';
+import { BinMapView } from './binMapView';
 import Geometry from 'ol/geom/Geometry';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import BinMapLayerControl from './binMapLayerControl';
@@ -91,79 +91,21 @@ export function BinMap() {
     ];
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
 
-    const [options, setOptions] = useState<BinMapViewOptions>({
-        tileLayerVisible: true,
-        binLayerVisible: true,
-        binLayerIsVectorImage: true,
-        binLayerBackgroundEnabled: false,
-        hexStyle: "pointy",
-        binStyle: "gradient",
-        binType: "hex",
-        binSize: 1000,
-        aggFuncName: "max",
-        tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-        numColorSteps: 5,
-        colorScaleName: "viridis",
-        intervalMin: 0,
-        intervalMax: 30000,
-        binLayerOpacity: 85,
-        tileLayerOpacity: 100,
-    });
-    const optionsRef = useRef(options);
-
-    // handle change in user checkbox input
-    function handleCheckboxChange(e: ChangeEvent<HTMLInputElement>) {
-        if (!e || !e.target) return;
-
-        const {name, checked} = e.target;
-        console.log("BinMap handle change: ", name, checked);
-
-        let op = optionsRef.current ? optionsRef.current : options;
-        let newOptions = {...op, [name]: checked};
-        optionsRef.current = newOptions;
-        setOptions(newOptions);
-    }
-
-    // handle change in user value input
-    function handleValueChange(e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement> ) {
-        if (!e || !e.target) return;
-
-        const {name, value} = e.target;
-        console.log("BinMap handle change: ", name, value);
-
-        // TODO: check if number input field so that you can convert to Number
-
-        // setOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
-        let op = optionsRef.current ? optionsRef.current : options;
-        let newOptions = {...op, [name]: value};
-        optionsRef.current = newOptions;
-        setOptions(newOptions);
-
-        // console.log('new options: ', newOptions)
-    }
-    
     // handler method to add random features to the dataset
     function handleRandomFeaturesButton() {
         // if (!dataSourceRef.current) return;
-
-        // addRandomFeatures(5000, dataSourceRef.current);
         addRandomFeatures(5000);
-        // reloadMap();
     }
 
     // reset any randomly added features
     function handleResetFeaturesButton() {
         // if (!dataSourceRef.current) return;
-
-
-        // addPresetFeatures(dataSourceRef.current);
-        // reloadMap();
         setFeatures([]);
         addPresetFeatures();
     }
 
     // create a set of features on seed points
-    function addRandomFeatures(nb: any/*, vectorSource: Vector*/) {
+    function addRandomFeatures(nb: any) {
         console.log(mapRef)
         if (!mapRef.current) return;
 
@@ -185,10 +127,7 @@ export function BinMap() {
                 randFeatures.push(f);
             }
         }
-        // vectorSource.clear(true);
-        // vectorSource.addFeatures(randFeatures);
         setFeatures((oldFeatures) => {return [...oldFeatures, ...randFeatures]});
-        // setFeatures([]);
     }
 
     // load features from preset data file
@@ -205,70 +144,53 @@ export function BinMap() {
             features.push(f);
         }
 
-        // vectorSource.clear(true);
-        // vectorSource.addFeatures(features);
         setFeatures((oldFeatures) => {return [...oldFeatures, ...features]});
     }
 
     // returns the chroma js color scale for the currently selected input
     function getColorScale() {
-        let scaleName = optionsRef.current.colorScaleName;
+        // let scaleName = optionsRef.current.colorScaleName;
+        // TODO: better legend system now that you can have multiple bin layers
+        let scaleName = 'viridis';
         let scale = chroma.scale(scaleName);
         return scale
     }
 
-    // reload fast visuals
-    function refresh() {
-
-        // refresh legend
-        refreshLegend();
-
-        // set manually
-        // minValue = Number(options.intervalMin);
-        // maxValueRef.current = Number(options.intervalMax);
-
-        // if (binsRef.current) binsRef.current.changed();
-    }
-
-    // reload map on enter press on input fields
-    function handleKeyDown(event: any) {
-        if (event.key === 'Enter') {
-            // reloadMap();
-        }
-    }
-    
     // update legend colors
-    function refreshLegend() {
-        if (!legendContainerRef.current) return;
+    // function refreshLegend() {
+    //     if (!legendContainerRef.current) return;
 
-        let gradient = (legendContainerRef.current as HTMLElement).querySelector(".gradient");
-        if (!gradient) return;
+    //     let gradient = (legendContainerRef.current as HTMLElement).querySelector(".gradient");
+    //     if (!gradient) return;
 
-        let scale = getColorScale();
-        let steppedColors = scale.colors(options.numColorSteps);
-    
-        gradient.innerHTML = "";
+    //     let numColorSteps = 5;
+    //     let binStyle = 'gradient';
 
-        // add grad-step span with the given color
-        function addColor(color: string) {
-            if (!gradient) return;
-            let e = document.createElement('span');
-            e.className="grad-step";
-            e.style.backgroundColor = color;
-            gradient.append(e);
-        }
+    //     let scale = getColorScale();
+    //     let steppedColors = scale.colors(numColorSteps);
+
+    //     gradient.innerHTML = "";
+
+    //     // add grad-step span with the given color
+    //     function addColor(color: string) {
+    //         if (!gradient) return;
+    //         let e = document.createElement('span');
+    //         e.className="grad-step";
+    //         e.style.backgroundColor = color;
+    //         gradient.append(e);
+    //     }
         
-        // created stepped color legend
-        if (options.binStyle == 'color') {
-            for (let i = 0; i < 100; i++) {
-                addColor(steppedColors[Math.floor(i / 100 * (options.numColorSteps))]);
-            }
+    //     // created stepped color legend
+    //     if (binStyle == 'color') {
+    //         for (let i = 0; i < 100; i++) {
+    //             addColor(steppedColors[Math.floor(i / 100 * (numColorSteps))]);
+    //         }
         
-        // create smooth gradient legend
-        } else {
-            scale.colors(100).forEach((color) => addColor(color));
-        }
-    }
+    //     // create smooth gradient legend
+    //     } else {
+    //         scale.colors(100).forEach((color) => addColor(color));
+    //     }
+    // }
 
     function handleMapRefFromView(map: Map) {
         mapRef.current = map;
@@ -318,13 +240,13 @@ export function BinMap() {
 
     }, []);
 
-    useEffect(() => {
-        refreshLegend();
-    }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
+    // useEffect(() => {
+    //     refreshLegend();
+    // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
 
     return (
         <div className='map-container'>
-            <BinMapView options={optionsRef.current} features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource}/>
+            <BinMapView features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource}/>
             {layerConfigs.map(layerConfig => {
                 return <BinMapLayerControl config={layerConfig} callback={handleLayerControlChange} key={layerConfig.id}/>
             })}
