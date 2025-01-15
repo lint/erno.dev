@@ -20,4 +20,5 @@ export interface BinLayerOptions extends BaseLayerOptions {
     colorScaleName: string;
     intervalMin: number;
     intervalMax: number;
+    useManualInterval: boolean;
 };

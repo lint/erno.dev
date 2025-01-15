@@ -52,6 +52,7 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                     <div>
                         <label htmlFor={config.id+"-tileSourceUrl"}>Tile Source:</label>
                         <select name="tileSourceUrl" id={config.id+"-tileSourceUrl"} onChange={handleValueChange} defaultValue={tileConfig.tileSourceUrl}>
+                            {/* TODO: improve this system  */}
                             <option value="https://tile.openstreetmap.org/{z}/{x}/{y}.png">OSM Standard</option>
                             <option value="https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">OSM Humanitarian</option>
                             <option value="https://a.tile.opentopomap.org/{z}/{x}/{y}.png">OSM Topographic</option>
@@ -103,6 +104,10 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
 
                         <label htmlFor={config.id+"-intervalMax"}>Max:</label>
                         <input id={config.id+"-intervalMax"} name="intervalMax" type="number" size={6} defaultValue={binConfig.intervalMax} step={1} onChange={handleValueChange}/>
+                    </div>
+                    <div>
+                        <input id={config.id+"-useManualInterval"} name="useManualInterval" type="checkbox" onChange={handleCheckboxChange} defaultChecked={binConfig.useManualInterval}/>
+                        <label htmlFor={config.id+"-useManualInterval"}>use manual interval</label>
                     </div>
                     <div>
                         <label htmlFor={config.id+"-aggFuncName"}>Agg Func:</label>

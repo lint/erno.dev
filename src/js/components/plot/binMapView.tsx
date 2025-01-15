@@ -1,29 +1,29 @@
-import React, { useEffect, useRef } from 'react';
-import 'ol/ol.css';
-import "ol-ext/dist/ol-ext.css";
-import './map.css';
+import chroma from 'chroma-js';
 import { Map, View } from 'ol';
+import "ol-ext/dist/ol-ext.css";
+import BinBase from 'ol-ext/source/BinBase';
+import FeatureBin from 'ol-ext/source/FeatureBin';
+import GridBin from 'ol-ext/source/GridBin';
+import HexBin from 'ol-ext/source/HexBin';
+import Feature, { FeatureLike } from 'ol/Feature.js';
+import Geometry from 'ol/geom/Geometry';
+import Point from 'ol/geom/Point.js';
+import { Select } from 'ol/interaction';
+import { SelectEvent } from 'ol/interaction/Select';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector.js';
-import OSM from 'ol/source/OSM';
-import {Select} from 'ol/interaction';
-import Feature, { FeatureLike } from 'ol/Feature.js';
-import Point from 'ol/geom/Point.js';
-import HexBin from 'ol-ext/source/HexBin';
-import GridBin from 'ol-ext/source/GridBin';
-import FeatureBin from 'ol-ext/source/FeatureBin';
-import { Vector } from 'ol/source';
-import Fill from 'ol/style/Fill';
-import Style from 'ol/style/Style';
-import RegularShape from 'ol/style/RegularShape.js';
-import { SelectEvent } from 'ol/interaction/Select';
-import VectorSource from 'ol/source/Vector';
 import VectorImageLayer from 'ol/layer/VectorImage';
+import 'ol/ol.css';
 import { fromLonLat } from 'ol/proj';
-import chroma from 'chroma-js';
-import BinBase from 'ol-ext/source/BinBase';
-import Geometry from 'ol/geom/Geometry';
+import { Vector } from 'ol/source';
+import OSM from 'ol/source/OSM';
+import VectorSource from 'ol/source/Vector';
+import Fill from 'ol/style/Fill';
+import RegularShape from 'ol/style/RegularShape.js';
+import Style from 'ol/style/Style';
+import React, { useEffect, useRef } from 'react';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
+import './map.css';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
@@ -32,24 +32,34 @@ export interface BinMapViewProps {
     featureBinSource?: VectorSource;
 };
 
+export interface BinValues {
+    min: number;
+    max: number;
+    sum: number;
+    avg: number;
+    len: number;
+    mode: number;
+    median: number;
+};
+
 export function BinMapView({ features, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
 
     console.log("BinMapView called ...");
 
-    const mapContainerRef = useRef(null);
     const mapRef = useRef<Map>();
-    const vectorSourceRef = useRef(new Vector());
-    const minRadius = 1;
-    const maxValueRef = useRef(100);
-    const layerDictRef = useRef({} as any);
-    const prevLayerConfigs = useRef(layerConfigs);
-    const optionsTriggeringReload = ['isVectorImage', 'binSize', 'binType', 'hexStyle'];
+    const mapContainerRef = useRef(null);
+    const vectorSourceRef = useRef(new Vector()); // stores input features (data points) as vector source
+    const minRadius = 1; // minimum radius used for 'point' hex style
+    const layersRef = useRef({} as any); // maps id => layer object
+    const prevLayerConfigs = useRef(layerConfigs); // stores previous version of layerConfigs for later comparision
+    const optionsTriggeringReload = ['isVectorImage', 'binSize', 'binType', 'hexStyle', 'aggFuncName'];
+    const binMaxesRef = useRef({} as any);
 
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
         if (event.selected.length){
             let f = event.selected[0];
-            console.log("BinMap selected value: ", f.get("value"));
+            console.log("BinMap selected value: ", f.get("values"));
         } else {
             // did not select a feature
             console.log("BinMap did not select feature");
@@ -57,61 +67,130 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     }
 
     // find the minimum and maximum values in a given feature set
-    function findValueBounds(features: FeatureLike[]) {
+    function findValueBounds(features: FeatureLike[], binLayerConfig: BinLayerOptions) {
         if (!features || features.length == 0) return;
 
         console.log("BinMapView findValueBounds ...");
 
-        // reset current values
-        // TODO: remove this
-        maxValueRef.current = Number.MIN_SAFE_INTEGER;
+        let values: number[] = [];
 
         // calculate the value for every feature
         for (let f of features) {
             let fs = f.get('features');
-            let values = {
-                min: fs.length > 0 ? Number.MAX_SAFE_INTEGER : -1,
-                max: fs.length > 0 ? Number.MIN_SAFE_INTEGER : -1,
-                sum: 0,
-                avg: 0,
-                len: fs.length,
-                mode: -1,
-                median: -1,
-            };
             let numbers = fs.map((ff: FeatureLike) => ff.get('number'));
-            numbers.sort((a:number,b:number)=>a-b);
+            let value = -1;
+            // let values: BinValues = {
+            //     min: fs.length > 0 ? Number.MAX_SAFE_INTEGER : -1,
+            //     max: fs.length > 0 ? Number.MIN_SAFE_INTEGER : -1,
+            //     sum: 0,
+            //     avg: 0,
+            //     len: fs.length,
+            //     mode: -1,
+            //     median: -1,
+            // };
+            
+            // numbers.sort((a:number,b:number)=>a-b);
            
-            for (let ff of fs) {
-                let n = ff.get('number');
-                values.sum += n;
-                if (n>values.max) values.max = n;
-                if (n<values.min) values.min = n;
+            // for (let ff of fs) {
+            //     let n = ff.get('number');
+            //     values.sum += n;
+            //     if (n>values.max) values.max = n;
+            //     if (n<values.min) values.min = n;
+            // }
+
+            // values.avg = values.sum / values.len;
+            // (f as Feature).set('values', values, true);
+
+            // set the value based on the current mode
+            switch (binLayerConfig.aggFuncName) {
+            case 'len':
+                value = fs.length;
+                break;
+            case 'avg':
+                value = numbers.reduce((a: number, b: number) => a + b, 0) / fs.length;
+                break; 
+            case 'sum':
+                value = numbers.reduce((a: number, b: number) => a + b, 0);
+                break;
+            case 'min':
+                value = numbers.reduce((a: number, b: number) => a < b ? a : b, Number.MAX_SAFE_INTEGER);
+                break;
+            case 'mode':
+                // TODO
+                break;
+            case 'median': 
+                // TODO
+                break;
+            case 'max':
+            default:
+                value = numbers.reduce((a: number, b: number) => a > b ? a : b, Number.MIN_SAFE_INTEGER);
             }
+            (f as Feature).set('value', value, true);
+            values.push(value);
 
-            values.avg = values.sum / values.len;
-
-            (f as Feature).set('values', values, true);
-            if (values.max>maxValueRef.current) maxValueRef.current = values.max; // TODO: make dynamic, or even better remove this check entirely
         }
 
-        // set new min/max by clipping ends (TODO: why?)
-        maxValueRef.current = Math.min(Math.round(maxValueRef.current - maxValueRef.current/4), 30000);
+        // calculate value range
+        values.sort((a : number, b: number) => a - b);
+
+        let q1 = values[Math.floor(values.length * 0.25)];
+        let q3 = values[Math.floor(values.length * 0.75)];
+        let iqr = q3 - q1;
+
+        // let minFence = Math.round(q1 - 1.5 * iqr);
+        let maxFence = Math.round(q3 + 1.5 * iqr);
+        binMaxesRef.current[binLayerConfig.id] = maxFence;
+
+        // let maxValues: BinValues = {
+        //     min: Number.MIN_SAFE_INTEGER,
+        //     max: Number.MIN_SAFE_INTEGER,
+        //     sum: Number.MIN_SAFE_INTEGER,
+        //     avg: Number.MIN_SAFE_INTEGER,
+        //     len: Number.MIN_SAFE_INTEGER,
+        //     mode: Number.MIN_SAFE_INTEGER,
+        //     median: Number.MIN_SAFE_INTEGER,
+        // };
+        // binMaxesRef.current[binLayerConfig.id] = maxValues;
+
+        // // TODO: this seems like it would be really slow ... 
+        // // is it faster to actually calculate the std and mean?
+        // // better way to estimate outliers?
+
+        // let featuresCopy = [...features];
+        // let key: keyof BinValues;
+        // for (key in maxValues) {
+        //     // if (values[key] > maxValues[key]) maxValues[key] = values[key];
+
+        //     featuresCopy.sort((a: FeatureLike, b: FeatureLike) => {
+        //         return a.get('values')[key] - b.get('values')[key];
+        //     });
+
+        //     let index = Math.floor(featuresCopy.length * 0.98);
+        //     maxValues[key] = featuresCopy[index].get('values')[key];
+
+        //     console.log("bin layer: ", binLayerConfig.id, "interval max for", key, ": ", maxValues[key]);
+        // }
     }
 
     // get the max value for a given bin id
-    function getMaxValue(binLayerId: string) {
+    function getMaxValue(binLayerConfig: BinLayerOptions) {
 
-        // TODO: actually implement
+        if (!Object.hasOwn(binMaxesRef.current, binLayerConfig.id)) {
+            return -1;
+        }
 
-        return maxValueRef.current;
+        return binMaxesRef.current[binLayerConfig.id];
     }
 
     // determine style for the given bin (f=feature, res=resolutuion)
     function styleForBin(f: FeatureLike, res: number, binLayerConfig: BinLayerOptions) {
 
-        let values = f.get('values');
-        let value = values[binLayerConfig.aggFuncName];
-        let normal = Math.min(1, value/getMaxValue(binLayerConfig.id));
+        // TODO: this method is called thousands of times, ensure there are no wasteful calculations
+        // TODO: normal calculation is not correct
+
+        let value = f.get('value');
+        let normal = value/getMaxValue(binLayerConfig);
+        normal = Math.max(0, Math.min(1, normal));
         
         let scale = chroma.scale(binLayerConfig.colorScaleName);
         let steppedColors = scale.colors(binLayerConfig.numColorSteps);
@@ -181,7 +260,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
             } as any);
         }}
 
-        findValueBounds(bins.getFeatures());
+        findValueBounds(bins.getFeatures(), binLayerConfig);
 
         return bins;
     }
@@ -216,7 +295,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
 
         if (!layerConfig) return;
 
-        let layer = layerDictRef.current[layerConfig.id];
+        let layer = layersRef.current[layerConfig.id];
         if (layer && layerConfig.layerType === 'bin' && resetBinLayer) {
             mapRef.current?.removeLayer(layer);
             layer = undefined;
@@ -237,7 +316,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
             // continue if could not create layer
             if (!layer) return;
 
-            layerDictRef.current[layerConfig.id] = layer;
+            layersRef.current[layerConfig.id] = layer;
             mapRef.current?.addLayer(layer);
         }
 
@@ -281,13 +360,12 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
 
                 // update hexbin style (point or flat)
                 if (binLayerConfig.binType === "hex") {
-                    // let hexBin = binSource.current as HexBin;
                     let hexBin = layer.getSource() as HexBin;
 
                     // recalculate bins if layout style changed
                     if (hexBin.getLayout() as any !== binLayerConfig.hexStyle) {
                         hexBin.setLayout(binLayerConfig.hexStyle as any, false);
-                        findValueBounds(hexBin.getFeatures());
+                        findValueBounds(hexBin.getFeatures(), binLayerConfig);
                     }
                 }
             }

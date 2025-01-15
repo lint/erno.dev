@@ -71,6 +71,7 @@ export function BinMap() {
             colorScaleName: "viridis",
             intervalMin: 0,
             intervalMax: 30000,
+            useManualInterval: false
         } as BinLayerOptions,         
         // {
         //     id: "bin_test2",
