@@ -21,4 +21,5 @@ export interface BinLayerOptions extends BaseLayerOptions {
     intervalMin: number;
     intervalMax: number;
     useManualInterval: boolean;
+    useIQRInterval: boolean;
 };

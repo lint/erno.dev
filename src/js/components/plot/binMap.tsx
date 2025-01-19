@@ -17,13 +17,13 @@ import { Vector } from 'ol/source';
 // import Style from 'ol/style/Style';
 // import RegularShape from 'ol/style/RegularShape.js';
 // import { SelectEvent } from 'ol/interaction/Select';
-import VectorSource from 'ol/source/Vector';
+import VectorSource, { VectorSourceEvent } from 'ol/source/Vector';
 // import VectorImageLayer from 'ol/layer/VectorImage';
 // import Layer from 'ol/layer/Layer';
 // import { data } from '../../data/us_pa_alleghaney_addresses';
 // import { data } from '../../data/us_pa_addresses';
-import { data } from '../../data/us_addresses';
-import { fromLonLat, Projection } from 'ol/proj';
+// import { data } from '../../data/us_addresses';
+import { Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
 // import BinBase from 'ol-ext/source/BinBase';
@@ -55,7 +55,7 @@ export function BinMap() {
             visible: true,
             opacity: 100,
             tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-        } as TileLayerOptions, 
+        } as TileLayerOptions,
         {
             id: "bin_test",
             layerType: "bin",
@@ -71,8 +71,9 @@ export function BinMap() {
             colorScaleName: "viridis",
             intervalMin: 0,
             intervalMax: 30000,
-            useManualInterval: false
-        } as BinLayerOptions,         
+            useManualInterval: false,
+            useIQRInterval: true,
+        } as BinLayerOptions,
         // {
         //     id: "bin_test2",
         //     layerType: "bin",
@@ -112,23 +113,23 @@ export function BinMap() {
 
         let ssize = 20;		// seed size
         let ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
-        let dx = ext[2]-ext[0];
-        let dy = ext[3]-ext[1];
-        let dl = Math.min(dx,dy);
-        let randFeatures=[];
+        let dx = ext[2] - ext[0];
+        let dy = ext[3] - ext[1];
+        let dl = Math.min(dx, dy);
+        let randFeatures = [];
 
-        for (let i=0; i<nb/ssize; ++i){
-            let seed = [ext[0]+dx*Math.random(), ext[1]+dy*Math.random()]
-            for (let j=0; j<ssize; j++){
+        for (let i = 0; i < nb / ssize; ++i) {
+            let seed = [ext[0] + dx * Math.random(), ext[1] + dy * Math.random()]
+            for (let j = 0; j < ssize; j++) {
                 let f = new Feature(new Point([
-                    seed[0] + dl/10*Math.random(),
-                    seed[1] + dl/10*Math.random()
+                    seed[0] + dl / 10 * Math.random(),
+                    seed[1] + dl / 10 * Math.random()
                 ]));
                 f.set('number', Math.floor(Math.random() * 10000));
                 randFeatures.push(f);
             }
         }
-        setFeatures((oldFeatures) => {return [...oldFeatures, ...randFeatures]});
+        setFeatures((oldFeatures) => { return [...oldFeatures, ...randFeatures] });
     }
 
     // load features from preset data file
@@ -136,16 +137,30 @@ export function BinMap() {
     function addPresetFeatures() {
         // if (!mapRef.current) return;
 
-        let features=[];
+        // let features=[];
+        // for (let row of data) {
+        //     let coord = [row[0], row[1]];
+        //     let f = new Feature(new Point(fromLonLat(coord)));
+        //     f.set('number', row[2]);
+        //     features.push(f);
+        // }
 
-        for (let row of data) {
-            let coord = [row[0], row[1]];
-            let f = new Feature(new Point(fromLonLat(coord)));
-            f.set('number', row[2]);
-            features.push(f);
-        }
+        let binSource = new Vector({
+            url: '/data/us.pa.alleghaney1.geojson',
+            format: new GeoJSON(),
+            // loader: () => {
+            // }
+        });
 
-        setFeatures((oldFeatures) => {return [...oldFeatures, ...features]});
+        // force source to load
+        let view = mapRef.current?.getView();
+        binSource.loadFeatures([0, 0, 0, 0], 0, view ? view.getProjection() : new Projection({ code: "EPSG:3857" }));
+
+        binSource.on('featuresloadend', (e: VectorSourceEvent) => {
+            if (e.features) {
+                setFeatures((oldFeatures) => { return [...oldFeatures, ...e.features as Feature[]] });
+            }
+        });
     }
 
     // returns the chroma js color scale for the currently selected input
@@ -180,13 +195,13 @@ export function BinMap() {
     //         e.style.backgroundColor = color;
     //         gradient.append(e);
     //     }
-        
+
     //     // created stepped color legend
     //     if (binStyle == 'color') {
     //         for (let i = 0; i < 100; i++) {
     //             addColor(steppedColors[Math.floor(i / 100 * (numColorSteps))]);
     //         }
-        
+
     //     // create smooth gradient legend
     //     } else {
     //         scale.colors(100).forEach((color) => addColor(color));
@@ -237,7 +252,8 @@ export function BinMap() {
 
         // force source to load
         let view = mapRef.current?.getView();
-        binSource.loadFeatures([0,0,0,0], 0, view ? view.getProjection() : new Projection({code: "EPSG:3857"}));
+        binSource.loadFeatures([0, 0, 0, 0], 0, view ? view.getProjection() : new Projection({ code: "EPSG:3857" }));
+        // console.log(binSource.getFeatures())
 
     }, []);
 
@@ -247,15 +263,15 @@ export function BinMap() {
 
     return (
         <div className='map-container'>
-            <BinMapView features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource}/>
+            <BinMapView features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource} />
             {layerConfigs.map(layerConfig => {
-                return <BinMapLayerControl config={layerConfig} callback={handleLayerControlChange} key={layerConfig.id}/>
+                return <BinMapLayerControl config={layerConfig} callback={handleLayerControlChange} key={layerConfig.id} />
             })}
             <div ref={legendContainerRef} className="legend-container">
                 <div className="gradient">
                     {getColorScale().colors(100).map((color, index) => {
                         return (
-                            <span className="grad-step" key={index} style={{backgroundColor: color}}></span>
+                            <span className="grad-step" key={index} style={{ backgroundColor: color }}></span>
                         );
                     })}
                 </div>

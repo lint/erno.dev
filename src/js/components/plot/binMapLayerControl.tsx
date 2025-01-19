@@ -110,6 +110,10 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                         <label htmlFor={config.id+"-useManualInterval"}>use manual interval</label>
                     </div>
                     <div>
+                        <input id={config.id+"-useIQRInterval"} name="useIQRInterval" type="checkbox" onChange={handleCheckboxChange} defaultChecked={binConfig.useIQRInterval}/>
+                        <label htmlFor={config.id+"-useIQRInterval"}>use IQR interval</label>
+                    </div>
+                    <div>
                         <label htmlFor={config.id+"-aggFuncName"}>Agg Func:</label>
                         <select id={config.id+"-aggFuncName"} name="aggFuncName" defaultValue={binConfig.aggFuncName} onChange={handleValueChange}>
                             <option value="max">Max</option>

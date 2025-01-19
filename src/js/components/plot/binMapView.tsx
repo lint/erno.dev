@@ -38,8 +38,6 @@ export interface BinValues {
     sum: number;
     avg: number;
     len: number;
-    mode: number;
-    median: number;
 };
 
 export function BinMapView({ features, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
@@ -52,7 +50,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     const minRadius = 1; // minimum radius used for 'point' hex style
     const layersRef = useRef({} as any); // maps id => layer object
     const prevLayerConfigs = useRef(layerConfigs); // stores previous version of layerConfigs for later comparision
-    const optionsTriggeringReload = ['isVectorImage', 'binSize', 'binType', 'hexStyle', 'aggFuncName'];
+    const optionsTriggeringReload = ['isVectorImage', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval'];
     const binMaxesRef = useRef({} as any);
 
     // handle selection of a feature
@@ -67,8 +65,10 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     }
 
     // find the minimum and maximum values in a given feature set
-    function findValueBounds(features: FeatureLike[], binLayerConfig: BinLayerOptions) {
+    function findValueBounds(features:  Feature<Geometry>[], binLayerConfig: BinLayerOptions) {
         if (!features || features.length == 0) return;
+
+        console.log("num features:", features.length)
 
         console.log("BinMapView findValueBounds ...");
 
@@ -77,37 +77,42 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
         // calculate the value for every feature
         for (let f of features) {
             let fs = f.get('features');
-            let numbers = fs.map((ff: FeatureLike) => ff.get('number'));
+
+            // get list of values for the bins
+            let numbers = fs.map((ff:  Feature<Geometry>) => {
+                
+                let aggNum = ff.get(binLayerConfig.aggFuncName);
+                let numNum = ff.get('number');
+                if (!aggNum && Number.isFinite(numNum)) {
+                    ff.set('min', numNum, true);
+                    ff.set('max', numNum, true);
+                    ff.set('avg', numNum, true);
+                    ff.set('sum', numNum, true);
+                    ff.set('len', 1, true);
+                    return numNum;
+                }
+                if (aggNum) {
+                    return aggNum;
+                }
+
+                return -1;
+            });
             let value = -1;
-            // let values: BinValues = {
-            //     min: fs.length > 0 ? Number.MAX_SAFE_INTEGER : -1,
-            //     max: fs.length > 0 ? Number.MIN_SAFE_INTEGER : -1,
-            //     sum: 0,
-            //     avg: 0,
-            //     len: fs.length,
-            //     mode: -1,
-            //     median: -1,
-            // };
-            
-            // numbers.sort((a:number,b:number)=>a-b);
-           
-            // for (let ff of fs) {
-            //     let n = ff.get('number');
-            //     values.sum += n;
-            //     if (n>values.max) values.max = n;
-            //     if (n<values.min) values.min = n;
-            // }
 
-            // values.avg = values.sum / values.len;
-            // (f as Feature).set('values', values, true);
-
-            // set the value based on the current mode
+            // find value for bins with aggregated value features
             switch (binLayerConfig.aggFuncName) {
             case 'len':
-                value = fs.length;
+                value = numbers.reduce((a: number, b: number) => a + b, 0);
                 break;
             case 'avg':
-                value = numbers.reduce((a: number, b: number) => a + b, 0) / fs.length;
+                let totalLen = 0;
+                let weightedSum = 0;
+                for (let feature of fs) {
+                    totalLen += feature.get('len');
+                    weightedSum += feature.get('len') * feature.get('avg');
+                }
+                value = weightedSum / totalLen;
+
                 break; 
             case 'sum':
                 value = numbers.reduce((a: number, b: number) => a + b, 0);
@@ -115,61 +120,28 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
             case 'min':
                 value = numbers.reduce((a: number, b: number) => a < b ? a : b, Number.MAX_SAFE_INTEGER);
                 break;
-            case 'mode':
-                // TODO
-                break;
-            case 'median': 
-                // TODO
-                break;
             case 'max':
             default:
                 value = numbers.reduce((a: number, b: number) => a > b ? a : b, Number.MIN_SAFE_INTEGER);
             }
             (f as Feature).set('value', value, true);
             values.push(value);
-
         }
 
         // calculate value range
         values.sort((a : number, b: number) => a - b);
 
-        let q1 = values[Math.floor(values.length * 0.25)];
-        let q3 = values[Math.floor(values.length * 0.75)];
-        let iqr = q3 - q1;
+        if (binLayerConfig.useIQRInterval) {
+            let q1 = values[Math.floor(values.length * 0.25)];
+            let q3 = values[Math.floor(values.length * 0.75)];
+            let iqr = q3 - q1;
 
-        // let minFence = Math.round(q1 - 1.5 * iqr);
-        let maxFence = Math.round(q3 + 1.5 * iqr);
-        binMaxesRef.current[binLayerConfig.id] = maxFence;
-
-        // let maxValues: BinValues = {
-        //     min: Number.MIN_SAFE_INTEGER,
-        //     max: Number.MIN_SAFE_INTEGER,
-        //     sum: Number.MIN_SAFE_INTEGER,
-        //     avg: Number.MIN_SAFE_INTEGER,
-        //     len: Number.MIN_SAFE_INTEGER,
-        //     mode: Number.MIN_SAFE_INTEGER,
-        //     median: Number.MIN_SAFE_INTEGER,
-        // };
-        // binMaxesRef.current[binLayerConfig.id] = maxValues;
-
-        // // TODO: this seems like it would be really slow ... 
-        // // is it faster to actually calculate the std and mean?
-        // // better way to estimate outliers?
-
-        // let featuresCopy = [...features];
-        // let key: keyof BinValues;
-        // for (key in maxValues) {
-        //     // if (values[key] > maxValues[key]) maxValues[key] = values[key];
-
-        //     featuresCopy.sort((a: FeatureLike, b: FeatureLike) => {
-        //         return a.get('values')[key] - b.get('values')[key];
-        //     });
-
-        //     let index = Math.floor(featuresCopy.length * 0.98);
-        //     maxValues[key] = featuresCopy[index].get('values')[key];
-
-        //     console.log("bin layer: ", binLayerConfig.id, "interval max for", key, ": ", maxValues[key]);
-        // }
+            // let minFence = Math.round(q1 - 1.5 * iqr);
+            let maxFence = Math.round(q3 + 1.5 * iqr);
+            binMaxesRef.current[binLayerConfig.id] = maxFence;
+        } else {
+            binMaxesRef.current[binLayerConfig.id] = values[values.length - 1];
+        }
     }
 
     // get the max value for a given bin id
