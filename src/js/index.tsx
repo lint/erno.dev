@@ -13,14 +13,18 @@ import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 // import TopicsDashboardPage from './pages/topics/dashboard_page';
 // import TopicCreatePage from './pages/topics/create_page';
 // import TopicViewPage from './pages/topics/view_page';
+import TempPage from './pages/temp_page';
+import MapsDashboardPage from './pages/maps/maps_dashboard_page';
 
 // amplify
 import { Amplify } from 'aws-amplify';
 import outputs from '../../amplify_outputs.json';
-import TempPage from './pages/temp_page';
-import MapsDashboardPage from './pages/maps/maps_dashboard_page';
 
-// configure
+// mantine ui
+import '@mantine/core/styles.css';
+import { createTheme, MantineProvider } from '@mantine/core';
+
+// configure application
 Amplify.configure(outputs);
 const root = createRoot(document.getElementById('app')!);
 const router = createBrowserRouter([
@@ -48,11 +52,18 @@ const router = createBrowserRouter([
     }
 ]);
 
-// create page router for the app
+// create mantine theme
+const theme = createTheme({
+    /** Put your mantine theme override here */
+});
+
+// main app component
 export default function App() {
     return (
         <React.StrictMode>
-            <RouterProvider router={router} />
+            <MantineProvider theme={theme}>
+                <RouterProvider router={router} />
+            </MantineProvider>
         </React.StrictMode>
     );
 }
