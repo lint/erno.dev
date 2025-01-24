@@ -1,33 +1,49 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './navbar.css';
+import styles from './navbar.module.css';
+import { Divider, UnstyledButton } from '@mantine/core';
 
-export interface NavbarItems {
-    left: React.ReactNode;
-    right: React.ReactNode;
-}
+const linkData = [
+    { label: 'maps', url: '/map' },
+    { label: 'about', url: '/temp' },
+];
 
-export default function Navbar({left, right}: NavbarItems) {
+export default function NavBar() {
+    const [active, setActive] = useState('/' + window.location.pathname.split('/')[1]);
+    console.log("NavBar() called: active=", active);
+
+    const linkButtons = linkData.map((link) => {
+
+        return (
+            <UnstyledButton
+                onClick={() => setActive(link.url)}
+                className={styles.link}
+                data-active={link.url === active || undefined}
+                key={link.url}
+            >
+                <Link to={link.url} className={styles.link}>
+                    {link.label}
+                </Link>
+            </UnstyledButton>
+        );
+    });
 
     return (
-        <div id="page-header">
-            
-            <div id="navbar">
-                <div>
-                    <Link className="navbar-control" to="/">grissy.net</Link>
+        <nav>
+            <div className={styles.navbar}>
+                <div className={styles.linkList}>
+                    <Link className={styles.link} data-active={true} to="/">erno.dev</Link>
+                    <Divider size="xs" orientation="vertical" />
+                    {linkButtons}
                 </div>
                 <div>
-                    <Link className="navbar-control" to="/settings">
-                        <i className="material-icons">settings</i>
+                    <Link className={styles.link} to="https://github.com/lint/erno.dev" title="GitHub">
+                        {/* <span className="material-icons"> data_object </span> */}
+                        source
                     </Link>
                 </div>
             </div>
-
-            <div id="toolbar">
-                {left}
-                {right}
-            </div>
-        </div>
+        </nav>
     );
 }
