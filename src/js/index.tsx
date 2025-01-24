@@ -8,11 +8,8 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 
 // react components
-// import HomePage from './pages/home/home_page';
-// import ErrorPage from './pages/error/error_page';
-// import TopicsDashboardPage from './pages/topics/dashboard_page';
-// import TopicCreatePage from './pages/topics/create_page';
-// import TopicViewPage from './pages/topics/view_page';
+import HomePage from './pages/home/home_page';
+import ErrorPage from './pages/error/error_page';
 import TempPage from './pages/temp_page';
 import MapsDashboardPage from './pages/maps/maps_dashboard_page';
 
@@ -30,22 +27,13 @@ const root = createRoot(document.getElementById('app')!);
 const router = createBrowserRouter([
     {
         path: "/",
-        // element: <HomePage />,
-        element: <TempPage />,
-        errorElement: <TempPage />,
+        element: <HomePage />,
+        errorElement: <ErrorPage />,
     },
-    // {
-    //     path: "/topics",
-    //     element: <TopicsDashboardPage />,
-    // },
-    // {
-    //     path: "/topics/create",
-    //     element: <TopicCreatePage />,
-    // },
-    // {
-    //     path: "/topics/:topic_id",
-    //     element: <TopicViewPage />
-    // },
+    {
+        path: "/temp",
+        element: <TempPage />
+    },
     {
         path: "/map",
         element: <MapsDashboardPage />
@@ -54,7 +42,7 @@ const router = createBrowserRouter([
 
 // create mantine theme
 const theme = createTheme({
-    /** Put your mantine theme override here */
+    fontFamily: "font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif", // https://systemfontstack.com
 });
 
 // main app component

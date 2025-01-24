@@ -4,19 +4,17 @@ import Navbar from '../components/navbar/navbar';
 import './pages.css';
 
 export interface BasePageProps {
-    page_content: React.ReactNode;
-    left_toolbar_items: React.ReactNode;
-    right_toolbar_items: React.ReactNode;
+    children?: React.ReactNode;
 };
 
-export default function BasePage({page_content, left_toolbar_items, right_toolbar_items}: BasePageProps) {
+export default function BasePage({ children }: BasePageProps) {
 
     return (
         <div>
-            <Navbar left={left_toolbar_items} right={right_toolbar_items}/>
+            <Navbar />
             <div id="page-content-container">
                 <div id="page-content">
-                    {page_content}
+                    {children}
                 </div>
             </div>
         </div>

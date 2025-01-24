@@ -1,6 +1,7 @@
 
 import React from 'react';
 import './pages.css';
+import BasePage from './base_page';
 
 export default function TempPage() {
 
@@ -8,10 +9,10 @@ export default function TempPage() {
         var letters = '0123456789ABCDEF';
         var color = '#';
         for (var i = 0; i < 6; i++) {
-          color += letters[Math.floor(Math.random() * 16)];
+            color += letters[Math.floor(Math.random() * 16)];
         }
         return color;
-      }
+    }
 
     function randomizePageColor() {
         let container = document.getElementById("temp-container");
@@ -24,8 +25,10 @@ export default function TempPage() {
     }
 
     return (
-        <div id="temp-container">
-            <div id="temp-eyes" onClick={randomizePageColor}>0_o</div>
-        </div>
+        <BasePage>
+            <div id="temp-container">
+                <div id="temp-eyes" onClick={randomizePageColor}>0_o</div>
+            </div>
+        </BasePage>
     );
 }
