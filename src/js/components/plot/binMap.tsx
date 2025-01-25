@@ -3,39 +3,17 @@ import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
 import './map.css';
 import { Map } from 'ol';
-// import TileLayer from 'ol/layer/Tile';
-// import VectorLayer from 'ol/layer/Vector.js';
-// import OSM from 'ol/source/OSM';
-// import {Select} from 'ol/interaction';
 import Feature from 'ol/Feature.js';
 import Point from 'ol/geom/Point.js';
-// import HexBin from 'ol-ext/source/HexBin';
-// import GridBin from 'ol-ext/source/GridBin';
-// import FeatureBin from 'ol-ext/source/FeatureBin';
 import { Vector } from 'ol/source';
-// import Fill from 'ol/style/Fill';
-// import Style from 'ol/style/Style';
-// import RegularShape from 'ol/style/RegularShape.js';
-// import { SelectEvent } from 'ol/interaction/Select';
 import VectorSource, { VectorSourceEvent } from 'ol/source/Vector';
-// import VectorImageLayer from 'ol/layer/VectorImage';
-// import Layer from 'ol/layer/Layer';
-// import { data } from '../../data/us_pa_alleghaney_addresses';
-// import { data } from '../../data/us_pa_addresses';
-// import { data } from '../../data/us_addresses';
 import { Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
-// import BinBase from 'ol-ext/source/BinBase';
 import { BinMapView } from './binMapView';
 import Geometry from 'ol/geom/Geometry';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import BinMapLayerControl from './binMapLayerControl';
-
-// type MapProps = {
-//     width: number;
-//     height: number;
-// };
 
 const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
 
@@ -44,12 +22,11 @@ export function BinMap() {
     console.log("BinMap function called ...");
 
     const mapRef = useRef<Map>();
-    const countySourceRef = useRef<VectorSource>();
     const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
     const legendContainerRef = useRef(null);
     const [reloadState, setReloadState] = useState(false);
 
-    const colorScaleInputRef = useRef(null);
+    const [cachedFeatures, setCachedFeatures] = useState({});
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
     const defaultLayerConfigs = [
         {
@@ -99,6 +76,7 @@ export function BinMap() {
     const resSelectRef = useRef(null);
     const resEnabledRef = useRef({});
     const defaultEnabledStates = [...usStates];
+    // const defaultEnabledStates = ['pa'];
 
     // handler method to add random features to the dataset
     function handleRandomFeaturesButton() {
@@ -142,45 +120,46 @@ export function BinMap() {
     // load features from preset data file
     // function addPresetFeatures(vectorSource: Vector) {
     function addPresetFeatures() {
-        // if (!mapRef.current) return;
-
-        // let features=[];
-        // for (let row of data) {
-        //     let coord = [row[0], row[1]];
-        //     let f = new Feature(new Point(fromLonLat(coord)));
-        //     f.set('number', row[2]);
-        //     features.push(f);
-        // }
 
         let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/{dataset}/us/{state}/data.geojson';
         let dataset = resSelectRef.current ? (resSelectRef.current as HTMLInputElement).value : 'res-0.1';
         let urls = getEnabledStates().map(state => baseUrl.replace('{dataset}', dataset).replace('{state}', state.toLowerCase()));
+        let proj = new Projection({ code: "EPSG:3857" });
 
-        urls.forEach(url => {
-            // console.log("getting url:", url)
+        let promises = urls.map(url => (
+            new Promise((resolve, reject) => {
 
-            let loadUrl = async () => {
+                if (url in cachedFeatures) {
+                    console.log("found cached features for: ", url)
+                    resolve(cachedFeatures[url as keyof typeof cachedFeatures]);
+                    return;
+                }
+
                 let binSource = new Vector({
-                    // url: '/data/us.pa.geojson',
-
                     url: url,
                     format: new GeoJSON(),
                     // loader: () => {
                     // }
                 });
-
+                console.log("loading features for url:", url)
                 // force source to load
-                let view = mapRef.current?.getView();
-                binSource.loadFeatures([0, 0, 0, 0], 0, view ? view.getProjection() : new Projection({ code: "EPSG:3857" }));
+                binSource.loadFeatures([0, 0, 0, 0], 0, proj);
 
                 binSource.on('featuresloadend', (e: VectorSourceEvent) => {
                     if (e.features) {
-                        setFeatures((oldFeatures) => { return [...oldFeatures, ...e.features as Feature[]] });
+                        setCachedFeatures(oldFeatures => { return { ...oldFeatures, [url]: e.features } })
+                        resolve(e.features);
+                    } else {
+                        reject(`No features loaded for url: ${url}`);
                     }
                 });
-            };
-            loadUrl();
-        });
+            })
+        ));
+
+        Promise.all(promises)
+            .then((featureSets) => {
+                setFeatures((oldFeatures) => { return [...oldFeatures, ...featureSets.flat() as Feature[]] });
+            });
     }
 
 
@@ -312,12 +291,6 @@ export function BinMap() {
 
     useEffect(() => {
 
-        // set the default scale
-        if (colorScaleInputRef.current) {
-            let colorScaleSelect = colorScaleInputRef.current as HTMLInputElement;
-            colorScaleSelect.value = 'Viridis'; // TODO: make this dynamic
-        }
-
         for (let state of usStates) {
             setStateEnabled(state, defaultEnabledStates.indexOf(state) > -1);
         }
@@ -331,14 +304,11 @@ export function BinMap() {
             // loader: () => {
             // }
         });
-        countySourceRef.current = binSource;
         setCountyFeatureSource(binSource);
 
         // force source to load
-        let view = mapRef.current?.getView();
-        binSource.loadFeatures([0, 0, 0, 0], 0, view ? view.getProjection() : new Projection({ code: "EPSG:3857" }));
+        binSource.loadFeatures([0, 0, 0, 0], 0, new Projection({ code: "EPSG:3857" }));
         // console.log(binSource.getFeatures())
-
     }, []);
 
     // useEffect(() => {
