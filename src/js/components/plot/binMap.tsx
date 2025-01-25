@@ -67,7 +67,7 @@ export function BinMap() {
             hexStyle: "pointy",
             binStyle: "hex",
             binType: "gradient",
-            binSize: 1000,
+            binSize: 30000,
             aggFuncName: "max",
             isVectorImage: true,
             numColorSteps: 5,
@@ -98,7 +98,7 @@ export function BinMap() {
 
     const resSelectRef = useRef(null);
     const resEnabledRef = useRef({});
-    const defaultEnabledStates = ['pa'];
+    const defaultEnabledStates = [...usStates];
 
     // handler method to add random features to the dataset
     function handleRandomFeaturesButton() {
@@ -157,7 +157,7 @@ export function BinMap() {
         let urls = getEnabledStates().map(state => baseUrl.replace('{dataset}', dataset).replace('{state}', state.toLowerCase()));
 
         urls.forEach(url => {
-            console.log("getting url:", url)
+            // console.log("getting url:", url)
 
             let loadUrl = async () => {
                 let binSource = new Vector({
@@ -267,14 +267,14 @@ export function BinMap() {
     }
 
     function setStateEnabled(stateName: string, enabled: boolean) {
-        console.log("setStateEnabled", stateName, enabled);
+        // console.log("setStateEnabled", stateName, enabled);
         (resEnabledRef.current as any)[stateName] = enabled;
     }
 
     function getEnabledStates() {
         let enabledStates = [];
-        console.log(defaultEnabledStates)
-        console.log(resEnabledRef.current)
+        // console.log(defaultEnabledStates)
+        // console.log(resEnabledRef.current)
         for (let state in resEnabledRef.current) {
             if (getStateEnabled(state)) {
                 enabledStates.push(state);
@@ -347,55 +347,51 @@ export function BinMap() {
 
     return (
         <div className='map-container'>
-            <BinMapView features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource} />
-            {layerConfigs.map(layerConfig => {
-                return <BinMapLayerControl config={layerConfig} callback={handleLayerControlChange} key={layerConfig.id} />
-            })}
-            <div ref={legendContainerRef} className="legend-container">
-                <div className="gradient">
-                    {getColorScale().colors(100).map((color, index) => {
-                        return (
+            <div className='map-settings'>
+                {layerConfigs.map(layerConfig => (
+                    <BinMapLayerControl config={layerConfig} callback={handleLayerControlChange} key={layerConfig.id} />
+                ))}
+                <div ref={legendContainerRef} className="legend-container">
+                    <div className="gradient">
+                        {getColorScale().colors(100).map((color, index) => (
                             <span className="grad-step" key={index} style={{ backgroundColor: color }}></span>
-                        );
-                    })}
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
+                    <button onClick={handleResetFeaturesButton}>Reset Features</button>
+                    <button onClick={handlePrintExtentButton}>Print Extent</button>
+                </div>
+                <div>
+                    <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
+                    <div id="TODO-MOVE-state-chkboxes">
+                        {
+                            usStates.map((state) => {
+                                let displayName = state.toUpperCase();
+                                return (
+                                    <span style={{ display: 'inline-block', width: '50px' }} key={"input-" + state}>
+                                        <input id={"load-state-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
+                                        <label htmlFor={"load-state-" + state} >{displayName}</label>
+                                    </span>
+                                );
+                            })
+                        }
+                    </div>
+                    <label htmlFor="TODO-MOVE-res-size-input">Data Resolution:</label>
+                    <select id="TODO-MOVE-res-size-input" name="TODO-MOVE-res-size-input" defaultValue="res-0.5" ref={resSelectRef} onChange={handleResetFeaturesButton}>
+                        <option value="res-0.01">res-0.01</option>
+                        <option value="res-0.05">res-0.05</option>
+                        <option value="res-0.1">res-0.1</option>
+                        <option value="res-0.5">res-0.5</option>
+                        <option value="res-1">res-1</option>
+                        <option value="res-5">res-5</option>
+                    </select>
+                    <button onClick={handleSelectAllStates}>Select All</button>
+                    <button onClick={handleClearAllStates}>Clear All</button>
                 </div>
             </div>
-            <div>
-
-                {/* <input id="binLayerBackgroundEnabled" name="binLayerBackgroundEnabled" type="checkbox" onChange={handleCheckboxChange} defaultChecked={options.binLayerBackgroundEnabled}/>
-                <label htmlFor="binLayerBackgroundEnabled">bin layer background</label> */}
-
-                <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
-                <button onClick={handleResetFeaturesButton}>Reset Features</button>
-                <button onClick={handlePrintExtentButton}>Print Extent</button>
-            </div>
-            <div>
-                <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
-                <div id="TODO-MOVE-state-chkboxes">
-                    {
-                        usStates.map((state) => {
-                            let displayName = state.toUpperCase();
-                            return (
-                                <>
-                                    <input id={"load-state-" + state} key={state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
-                                    <label htmlFor={"load-state-" + state}>{displayName}</label>
-                                </>
-                            );
-                        })
-                    }
-                </div>
-                <label htmlFor="TODO-MOVE-res-size-input">Data Resolution:</label>
-                <select id="TODO-MOVE-res-size-input" name="TODO-MOVE-res-size-input" defaultValue="res-0.5" ref={resSelectRef} onChange={handleResetFeaturesButton}>
-                    <option value="res-0.01">res-0.01</option>
-                    <option value="res-0.05">res-0.05</option>
-                    <option value="res-0.1">res-0.1</option>
-                    <option value="res-0.5">res-0.5</option>
-                    <option value="res-1">res-1</option>
-                    <option value="res-5">res-5</option>
-                </select>
-                <button onClick={handleSelectAllStates}>Select All</button>
-                <button onClick={handleClearAllStates}>Clear All</button>
-            </div>
+            <BinMapView features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource} />
         </div>
     );
 }

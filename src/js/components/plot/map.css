@@ -1,6 +1,18 @@
 .map {
-    border: solid 1px red;
-    height: 75vh;
+    width: 100vw;
+}
+
+.map-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.map-settings {
+    height: 96vh;
+    max-width: 20%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .gradient .domain-min {
@@ -37,5 +49,5 @@
 }
 
 .layer-options {
-    border: solid 1px red;
+    border-bottom: solid 2px #444;
 }

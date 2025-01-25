@@ -10,12 +10,10 @@ export interface BasePageProps {
 export default function BasePage({ children }: BasePageProps) {
 
     return (
-        <div>
+        <div className="page-content-container">
             <Navbar />
-            <div id="page-content-container">
-                <div id="page-content">
-                    {children}
-                </div>
+            <div className="page-content">
+                {children}
             </div>
         </div>
     );

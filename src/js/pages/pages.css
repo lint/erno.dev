@@ -1,32 +1,23 @@
-#page-content-container {
-    height: calc(100vh - 80px);
-    /* padding: 10px; */
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: white;
-    overflow-y: auto;
-}
-    
-#page-content {
-    width: 100%;
-    height: 100%;
-    /* max-width: 1280px; */
-    /* border: 2px solid gray; */
-    /* border-radius: 5px; */
-    margin: 0 10px;
-    background-color: white;
-}
-
 #temp-container {
-    width: 100%;
-    height: 100vh;
+    height: 96vh;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10 and IE 11 */
-    user-select: none; /* Standard syntax */
+    -webkit-user-select: none;
+    /* Safari */
+    -ms-user-select: none;
+    /* IE 10 and IE 11 */
+    user-select: none;
+    /* Standard syntax */
+}
+
+.page-content-container {
+    overflow: hidden;
+    height: 100%;
+}
+
+.page-content {
+    overflow-y: auto;
+    flex: 1 1 auto;
 }

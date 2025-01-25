@@ -1,5 +1,6 @@
 .navbar {
-    height: 44px;
+    width: 100vw;
+    height: 4vh;
     padding: 0 24px;
     box-sizing: border-box;
     display: flex;
@@ -7,7 +8,8 @@
     justify-content: space-between;
     align-items: center;
     color: white;
-    background-color: var(--mantine-color-dark-7);
+    /* background-color: var(--mantine-color-dark-7); */
+    background-color: #222;
 }
 
 .link {

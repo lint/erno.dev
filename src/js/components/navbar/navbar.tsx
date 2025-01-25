@@ -16,16 +16,15 @@ export default function NavBar() {
     const linkButtons = linkData.map((link) => {
 
         return (
-            <UnstyledButton
-                onClick={() => setActive(link.url)}
-                className={styles.link}
-                data-active={link.url === active || undefined}
-                key={link.url}
-            >
-                <Link to={link.url} className={styles.link}>
+            <Link className={styles.link} to={link.url} key={link.url}>
+                <UnstyledButton
+                    onClick={() => setActive(link.url)}
+                    className={styles.link}
+                    data-active={link.url === active || undefined}
+                >
                     {link.label}
-                </Link>
-            </UnstyledButton>
+                </UnstyledButton>
+            </Link>
         );
     });
 

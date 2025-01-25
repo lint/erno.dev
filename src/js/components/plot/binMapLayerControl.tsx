@@ -95,7 +95,7 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                         </div>
                         <div>
                             <label htmlFor="binSize">Size:</label>
-                            <input id="binSize" name="binSize" type="number" min={0} max={100000} defaultValue={binConfig.binSize} step={500} onChange={handleValueChange} />
+                            <input id="binSize" name="binSize" type="number" min={0} max={100000} defaultValue={binConfig.binSize} step={1000} onChange={handleValueChange} />
                             {/* onKeyDown={handleKeyDown} */}
                         </div>
                         <div>

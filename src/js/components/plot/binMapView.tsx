@@ -55,7 +55,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
 
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
-        if (event.selected.length){
+        if (event.selected.length) {
             let f = event.selected[0];
             console.log("BinMap selected value: ", f.get("values"));
         } else {
@@ -65,7 +65,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     }
 
     // find the minimum and maximum values in a given feature set
-    function findValueBounds(features:  Feature<Geometry>[], binLayerConfig: BinLayerOptions) {
+    function findValueBounds(features: Feature<Geometry>[], binLayerConfig: BinLayerOptions) {
         if (!features || features.length == 0) return;
 
         console.log("num features:", features.length)
@@ -79,8 +79,8 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
             let fs = f.get('features');
 
             // get list of values for the bins
-            let numbers = fs.map((ff:  Feature<Geometry>) => {
-                
+            let numbers = fs.map((ff: Feature<Geometry>) => {
+
                 let aggNum = ff.get(binLayerConfig.aggFuncName);
                 let numNum = ff.get('number');
                 if (!aggNum && Number.isFinite(numNum)) {
@@ -101,35 +101,35 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
 
             // find value for bins with aggregated value features
             switch (binLayerConfig.aggFuncName) {
-            case 'len':
-                value = numbers.reduce((a: number, b: number) => a + b, 0);
-                break;
-            case 'avg':
-                let totalLen = 0;
-                let weightedSum = 0;
-                for (let feature of fs) {
-                    totalLen += feature.get('len');
-                    weightedSum += feature.get('len') * feature.get('avg');
-                }
-                value = weightedSum / totalLen;
+                case 'len':
+                    value = numbers.reduce((a: number, b: number) => a + b, 0);
+                    break;
+                case 'avg':
+                    let totalLen = 0;
+                    let weightedSum = 0;
+                    for (let feature of fs) {
+                        totalLen += feature.get('len');
+                        weightedSum += feature.get('len') * feature.get('avg');
+                    }
+                    value = weightedSum / totalLen;
 
-                break; 
-            case 'sum':
-                value = numbers.reduce((a: number, b: number) => a + b, 0);
-                break;
-            case 'min':
-                value = numbers.reduce((a: number, b: number) => a < b ? a : b, Number.MAX_SAFE_INTEGER);
-                break;
-            case 'max':
-            default:
-                value = numbers.reduce((a: number, b: number) => a > b ? a : b, Number.MIN_SAFE_INTEGER);
+                    break;
+                case 'sum':
+                    value = numbers.reduce((a: number, b: number) => a + b, 0);
+                    break;
+                case 'min':
+                    value = numbers.reduce((a: number, b: number) => a < b ? a : b, Number.MAX_SAFE_INTEGER);
+                    break;
+                case 'max':
+                default:
+                    value = numbers.reduce((a: number, b: number) => a > b ? a : b, Number.MIN_SAFE_INTEGER);
             }
             (f as Feature).set('value', value, true);
             values.push(value);
         }
 
         // calculate value range
-        values.sort((a : number, b: number) => a - b);
+        values.sort((a: number, b: number) => a - b);
 
         if (binLayerConfig.useIQRInterval) {
             let q1 = values[Math.floor(values.length * 0.25)];
@@ -161,76 +161,78 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
         // TODO: normal calculation is not correct
 
         let value = f.get('value');
-        let normal = value/getMaxValue(binLayerConfig);
+        let normal = value / getMaxValue(binLayerConfig);
         normal = Math.max(0, Math.min(1, normal));
-        
+
         let scale = chroma.scale(binLayerConfig.colorScaleName);
         let steppedColors = scale.colors(binLayerConfig.numColorSteps);
 
         switch (binLayerConfig.binStyle) {
 
-        // different sized hexagons
-        case 'point': {
-            let radius = Math.max(minRadius, Math.round(binLayerConfig.binSize/res + 0.5) * normal);
-            return [ 
-                new Style({
-                    image: new RegularShape({
-                        points: 6,
-                        radius: radius,
-                        fill: new Fill({ color: [0,0,255] }),
-                        rotateWithView: true
-                    }),
-                    geometry: new Point(f.get('center'))
-                })
-                // , new Style({ fill: new Fill({color: [0,0,255,.1] }) })
-            ];
-        }
+            // different sized hexagons
+            case 'point': {
+                let radius = Math.max(minRadius, Math.round(binLayerConfig.binSize / res + 0.5) * normal);
+                return [
+                    new Style({
+                        image: new RegularShape({
+                            points: 6,
+                            radius: radius,
+                            fill: new Fill({ color: [0, 0, 255] }),
+                            rotateWithView: true
+                        }),
+                        geometry: new Point(f.get('center'))
+                    })
+                    // , new Style({ fill: new Fill({color: [0,0,255,.1] }) })
+                ];
+            }
 
-        // sharp transition between colors
-        case 'color': {
-            let index = Math.floor(normal * (binLayerConfig.numColorSteps - 1));
-            let color = steppedColors[index];
-            return [ new Style({ fill: new Fill({ color: color }) }) ];
-        }
+            // sharp transition between colors
+            case 'color': {
+                let index = Math.floor(normal * (binLayerConfig.numColorSteps - 1));
+                let color = steppedColors[index];
+                return [new Style({ fill: new Fill({ color: color }) })];
+            }
 
-        // smooth transition between colors
-        case 'gradient':
-        default: {
-            let scaledColor = scale(normal);
-            let color = scaledColor ? scaledColor : [0, 0, 255, normal] as any;
-            return [ new Style({ fill: new Fill({ color: color }) }) ];
-        }}
+            // smooth transition between colors
+            case 'gradient':
+            default: {
+                let scaledColor = scale(normal);
+                let color = scaledColor ? scaledColor : [0, 0, 255, normal] as any;
+                return [new Style({ fill: new Fill({ color: color }) })];
+            }
+        }
     }
 
     // creates a new bin object
-    function createBins(binLayerConfig : BinLayerOptions) {
-        let bins : BinBase;
+    function createBins(binLayerConfig: BinLayerOptions) {
+        let bins: BinBase;
         switch (binLayerConfig.binType) {
-        case "grid": {
-            bins = new GridBin({
-                source: vectorSourceRef.current,
-                size: Number(binLayerConfig.binSize),
-                listenChange: false,
-            } as any);
-            break;
+            case "grid": {
+                bins = new GridBin({
+                    source: vectorSourceRef.current,
+                    size: Number(binLayerConfig.binSize),
+                    listenChange: false,
+                } as any);
+                break;
+            }
+            case "feature": {
+                bins = new FeatureBin({
+                    source: vectorSourceRef.current,
+                    binSource: featureBinSource,
+                    listenChange: false,
+                } as any);
+                break;
+            }
+            case "hex":
+            default: {
+                bins = new HexBin({
+                    source: vectorSourceRef.current,
+                    size: Number(binLayerConfig.binSize),
+                    layout: binLayerConfig.hexStyle as any,
+                    listenChange: false,
+                } as any);
+            }
         }
-        case "feature": {
-            bins = new FeatureBin({
-                source: vectorSourceRef.current,
-                binSource: featureBinSource,
-                listenChange: false,
-            } as any);
-            break;
-        }
-        case "hex":
-        default: {
-            bins = new HexBin({
-                source: vectorSourceRef.current,
-                size: Number(binLayerConfig.binSize),
-                layout: binLayerConfig.hexStyle as any,
-                listenChange: false,
-            } as any);
-        }}
 
         findValueBounds(bins.getFeatures(), binLayerConfig);
 
@@ -238,24 +240,24 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     }
 
     // create and return a new bin layer
-    function createBinLayer(binLayerConfig : BinLayerOptions) {
+    function createBinLayer(binLayerConfig: BinLayerOptions) {
 
         console.log("creating new bin layer", binLayerConfig.binType, binLayerConfig.isVectorImage);
-        
+
         let vClass = binLayerConfig.isVectorImage ? VectorImageLayer : VectorLayer;
-        const binLayer = new vClass({ 
-            source: createBins(binLayerConfig), 
+        const binLayer = new vClass({
+            source: createBins(binLayerConfig),
             opacity: Number(binLayerConfig.opacity) / 100,
             style: (f: FeatureLike, res: number) => styleForBin(f, res, binLayerConfig),
         });
-        
+
         return binLayer;
     }
 
     // create and return a new tile layer
     function createTileLayer(url: string) {
         const tileLayer = new TileLayer({
-            source: new OSM({url: url}), 
+            source: new OSM({ url: url }),
             // preload: Infinity 
             preload: 1
         });
@@ -279,8 +281,8 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
             // create bin layer
             if (layerConfig.layerType === "bin") {
                 layer = createBinLayer(layerConfig as BinLayerOptions);
-            
-            // create tile layer
+
+                // create tile layer
             } else if (layerConfig.layerType === "tile") {
                 layer = createTileLayer((layerConfig as TileLayerOptions).tileSourceUrl);
             }
@@ -313,17 +315,17 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
 
             // update common layer properties
             layer.setZIndex(i);
-            layer.setOpacity(Number(layerConfig.opacity)/100);
+            layer.setOpacity(Number(layerConfig.opacity) / 100);
             layer.setVisible(layerConfig.visible);
 
             // update tile layer properties
             if (layerConfig.layerType === "tile") {
                 let tileLayerConfig = layerConfig as TileLayerOptions;
-                
+
                 let osmSource = layer.getSource() as OSM;
                 osmSource.setUrl(tileLayerConfig.tileSourceUrl);
-            
-            // update bin layer properties
+
+                // update bin layer properties
             } else if (layerConfig.layerType === "bin") {
                 let binLayerConfig = layerConfig as BinLayerOptions;
 
@@ -354,8 +356,9 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
         // initialize the map object
         const map = new Map({
             view: new View({
-                center: fromLonLat([-80, 40.440]),
-                zoom: 9,
+                // center: fromLonLat([-80, 40.440]), // Pittsburgh, PA
+                center: fromLonLat([-98.303646, 39.869390]), // Burr Oak, KA (center of US-ish)
+                zoom: 5,
             }),
             layers: [],
             target: mapContainerRef.current
@@ -375,7 +378,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
         console.log("BinMapView useEffect layerConfigs changed");
 
         // TODO: currently only bin layers are affected by recreation (is there ever a reason to recreate other layers?)
-        
+
         let shouldRecreateLayers = false;
 
         // recreate layers if number of layers has changeed
@@ -402,7 +405,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
             }
         }
 
-        prevLayerConfigs.current = layerConfigs;        
+        prevLayerConfigs.current = layerConfigs;
         refreshLayers(shouldRecreateLayers);
 
     }, [layerConfigs]);
@@ -410,12 +413,12 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     useEffect(() => {
         console.log("BinMapView useEffect features changed");
 
-        vectorSourceRef.current = new Vector({features: features});
+        vectorSourceRef.current = new Vector({ features: features });
         refreshLayers(true);
 
     }, [features]);
 
     return (
-        <div ref={mapContainerRef} className="map"/>
+        <div ref={mapContainerRef} className="map" />
     );
 }
