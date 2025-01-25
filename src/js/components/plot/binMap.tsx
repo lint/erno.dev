@@ -271,10 +271,20 @@ export function BinMap() {
         handleResetFeaturesButton();
     }
 
+    function updateStateCheckboxes() {
+        usStates.forEach(state => {
+            let checkbox = document.getElementById("load-chkbox-" + state) as HTMLInputElement;
+            if (!checkbox) return;
+            checkbox.checked = getStateEnabled(state);
+        })
+    }
+
     function handleSelectAllStates() {
         for (let state of usStates) {
             setStateEnabled(state, true);
         }
+
+        updateStateCheckboxes();
         setFeatures([]);
         setReloadState(!reloadState);
         addPresetFeatures();
@@ -284,6 +294,7 @@ export function BinMap() {
         for (let state of usStates) {
             setStateEnabled(state, false);
         }
+        updateStateCheckboxes();
         setFeatures([]);
         setReloadState(!reloadState);
         addPresetFeatures();
@@ -341,8 +352,8 @@ export function BinMap() {
                                 let displayName = state.toUpperCase();
                                 return (
                                     <span style={{ display: 'inline-block', width: '50px' }} key={"input-" + state}>
-                                        <input id={"load-state-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
-                                        <label htmlFor={"load-state-" + state} >{displayName}</label>
+                                        <input id={"load-chkbox-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
+                                        <label htmlFor={"load-chkbox-" + state} >{displayName}</label>
                                     </span>
                                 );
                             })
