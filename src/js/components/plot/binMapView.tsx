@@ -310,7 +310,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
         //     binLayerRef.current?.setBackground();
         // }
 
-        layerConfigs.forEach((layerConfig, i) => {
+        layerConfigs.forEach((layerConfig) => {
             let layer = layerForConfig(layerConfig, resetBinLayers);
 
             // update common layer properties
