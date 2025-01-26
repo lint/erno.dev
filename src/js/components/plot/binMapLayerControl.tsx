@@ -2,7 +2,7 @@
 import React from 'react';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import chroma from 'chroma-js';
-import { Checkbox, Fieldset, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
+import { Checkbox, Chip, Fieldset, Group, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
 
 export interface BinMapLayerControlProps {
     config: BaseLayerOptions;
@@ -59,8 +59,18 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
     }
 
     // creates capatalized ComboboxData for list of values
-    function capatalizeSelectValues(values: string[]) {
+    function capatalizeValues(values: string[]) {
         return values.map(value => ({ value: value, label: String(value).charAt(0).toUpperCase() + String(value).slice(1) }))
+    }
+
+    // creates chips for list of values
+    function chipsForValues(values: string[], capitalize: boolean) {
+        if (capitalize) {
+            let capValues = capatalizeValues(values);
+            return capValues.map(val => (<Chip value={val.value}>{val.label}</Chip>))
+        } else {
+            return values.map(val => (<Chip value={val}>{val}</Chip>))
+        }
     }
 
     // create controls for a given layer type
@@ -86,6 +96,7 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                             checked={binConfig.isVectorImage}
                             onChange={event => handleInputChange('isVectorImage', event.currentTarget.checked)}
                         />
+
                         <NumberInput
                             label='Bin Size'
                             min={0}
@@ -95,52 +106,52 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                             // allowDecimal={false}
                             onChange={value => handleInputChange('binSize', value)}
                         />
+
                         <Text>Interval</Text>
                         <RangeSlider
                             min={0}
                             max={100000}
                             step={1}
-                            labelAlwaysOn
+                            // labelAlwaysOn
                             defaultValue={[binConfig.intervalMin, binConfig.intervalMax]}
                             onChangeEnd={value => {
                                 handleInputChange('intervalMin', value[0]);
                                 handleInputChange('intervalMax', value[1]);
                             }}
                         />
+
                         <Checkbox
                             label='use manual interval'
                             checked={binConfig.useManualInterval}
                             onChange={event => handleInputChange('useManualInterval', event.currentTarget.checked)}
                         />
+
                         <Checkbox
                             label='use IQR interval'
                             checked={binConfig.useIQRInterval}
                             onChange={event => handleInputChange('useIQRInterval', event.currentTarget.checked)}
                         />
-                        <Select
-                            label="Agg Func"
-                            data={capatalizeSelectValues(['max', 'min', 'sum', 'len', 'avg'])}
-                            defaultValue={binConfig.aggFuncName}
-                            onChange={value => handleInputChange('aggFuncName', value)}
-                        />
-                        <Select
-                            label="Bin Type"
-                            data={capatalizeSelectValues(['hex', 'grid', 'feature'])}
-                            defaultValue={binConfig.binType}
-                            onChange={value => handleInputChange('binType', value)}
-                        />
-                        <Select
-                            label="Hex Style"
-                            data={capatalizeSelectValues(['pointy', 'flat'])}
-                            defaultValue={binConfig.hexStyle}
-                            onChange={value => handleInputChange('hexStyle', value)}
-                        />
-                        <Select
-                            label="Bin Style"
-                            data={capatalizeSelectValues(['gradient', 'color', 'point'])}
-                            defaultValue={binConfig.binStyle}
-                            onChange={value => handleInputChange('binStyle', value)}
-                        />
+
+                        <Text>Agg Func</Text>
+                        <Chip.Group multiple={false} value={binConfig.aggFuncName} onChange={value => handleInputChange('aggFuncName', value)}>
+                            <Group>{chipsForValues(['max', 'min', 'sum', 'len', 'avg'], true)}</Group>
+                        </Chip.Group>
+
+                        <Text>Bin Type</Text>
+                        <Chip.Group multiple={false} value={binConfig.binType} onChange={value => handleInputChange('binType', value)}>
+                            <Group>{chipsForValues(['hex', 'grid', 'feature'], true)}</Group>
+                        </Chip.Group>
+
+                        <Text>Hex Style</Text>
+                        <Chip.Group multiple={false} value={binConfig.hexStyle} onChange={value => handleInputChange('hexStyle', value)}>
+                            <Group>{chipsForValues(['pointy', 'flat'], true)}</Group>
+                        </Chip.Group>
+
+                        <Text>Bin Style</Text>
+                        <Chip.Group multiple={false} value={binConfig.binStyle} onChange={value => handleInputChange('binStyle', value)}>
+                            <Group>{chipsForValues(['gradient', 'color', 'point'], true)}</Group>
+                        </Chip.Group>
+
                         <Select
                             label="Color Scale"
                             data={Object.keys(chroma.brewer)}
@@ -148,6 +159,7 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                             onChange={value => handleInputChange('colorScaleName', value)}
                             searchable
                         />
+
                         <NumberInput
                             label='Num Color Steps'
                             min={0}
