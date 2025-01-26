@@ -2,6 +2,7 @@
 import React, { ChangeEvent } from 'react';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import chroma from 'chroma-js';
+import { NumberInput } from '@mantine/core';
 
 export interface BinMapLayerControlProps {
     config: BaseLayerOptions;
@@ -34,6 +35,16 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
         console.log("handle change: ", name, value);
 
         let newConfig = { ...config, [name]: value };
+        if (callback) callback(newConfig);
+    }
+
+    // handle number input change
+    function handleNumberInputChange(value: string | number, key: string) {
+        if (typeof (value) === 'string') {
+            return;
+        }
+
+        let newConfig = { ...config, [key]: value };
         if (callback) callback(newConfig);
     }
 
@@ -159,7 +170,6 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                         <div>
                             <label htmlFor={config.id + "-numColorSteps"}>Num Color Steps:</label>
                             <input id={config.id + "-numColorSteps"} name="numColorSteps" type="number" min={0} max={16} defaultValue={binConfig.numColorSteps} step={1} onChange={handleValueChange} />
-
                         </div>
                     </div>
                 );
@@ -174,13 +184,21 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                 id: {config.id}
             </div>
             <div>
+                <input id={config.id + "-visible"} name="visible" onChange={handleCheckboxChange} type="checkbox" defaultChecked={config.visible} />
+                <label htmlFor={config.id + "-visible"}>enabled</label>
+            </div>
+            <div>
+                <NumberInput
+                    label='z-index'
+                    defaultValue={`${config.zIndex || 0}`}
+                    allowDecimal={false}
+                    onChange={value => handleNumberInputChange(value, 'zIndex')}
+                />
+            </div>
+            <div>
                 <label htmlFor={config.id + "-opacity"}>Opacity:</label>
                 <input id={config.id + "-opacity"} name="opacity" type="range" min={0} max={100} defaultValue={config.opacity} step={1} onChange={handleValueChange} />
                 {config.opacity}
-            </div>
-            <div>
-                <input id={config.id + "-visible"} name="visible" onChange={handleCheckboxChange} type="checkbox" defaultChecked={config.visible} />
-                <label htmlFor={config.id + "-visible"}>enabled</label>
             </div>
             {typeControls}
         </div>

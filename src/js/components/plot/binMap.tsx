@@ -35,6 +35,7 @@ export function BinMap() {
             visible: true,
             opacity: 100,
             tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+            zIndex: 1,
         } as TileLayerOptions,
         {
             id: "bin_test",
@@ -53,6 +54,7 @@ export function BinMap() {
             intervalMax: 30000,
             useManualInterval: false,
             useIQRInterval: true,
+            zIndex: 2,
         } as BinLayerOptions,
         // {
         //     id: "bin_test2",

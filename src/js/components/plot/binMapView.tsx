@@ -314,7 +314,7 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
             let layer = layerForConfig(layerConfig, resetBinLayers);
 
             // update common layer properties
-            layer.setZIndex(i);
+            layer.setZIndex(layerConfig.zIndex);
             layer.setOpacity(Number(layerConfig.opacity) / 100);
             layer.setVisible(layerConfig.visible);
 

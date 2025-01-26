@@ -3,6 +3,7 @@ export interface BaseLayerOptions {
     opacity: number;
     id: string;
     layerType: string;
+    zIndex: number;
 };
 
 export interface TileLayerOptions extends BaseLayerOptions {
