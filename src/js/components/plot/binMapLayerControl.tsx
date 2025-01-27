@@ -71,12 +71,12 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     }
 
     // creates chips for list of values
-    function chipsForValues(values: string[], capitalize: boolean) {
+    function chipsForValues(values: string[], capitalize: boolean, disabled: boolean = false) {
         if (capitalize) {
             let capValues = capatalizeValues(values);
-            return capValues.map(val => (<Chip value={val.value} key={val.value}>{val.label}</Chip>))
+            return capValues.map(val => (<Chip disabled={disabled} value={val.value} key={val.value}>{val.label}</Chip>))
         } else {
-            return values.map(val => (<Chip value={val} key={val}>{val}</Chip>))
+            return values.map(val => (<Chip disabled={disabled} value={val} key={val}>{val}</Chip>))
         }
     }
 
@@ -125,11 +125,12 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         <NumberInput
                             label='Bin Size'
                             min={0}
-                            max={100000}
-                            step={1000}
-                            defaultValue={binConfig.binSize}
+                            max={binConfig.binType === 'hex' ? 1000000 : 10}
+                            step={binConfig.binType === 'hex' ? 1000 : 0.1}
+                            value={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
                             // allowDecimal={false}
                             onChange={value => handleInputChange('binSize', value)}
+                            disabled={binConfig.binType === 'feature'}
                         />
 
                         <Text>Interval</Text>
@@ -138,24 +139,19 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             max={intervalSliderValues.max}
                             step={1}
                             value={intervalSliderValues.values as any}
-                            // onChange={setIntervalSliderValue}
-                            onChange={value => {
-                                setIntervalSliderValues((old) => ({ ...old, values: value }));
-                            }}
+                            onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
                             // labelAlwaysOn
                             onChangeEnd={value => {
                                 binConfig.manualMin = value[0];
                                 binConfig.manualMax = value[1];
                                 updateCallback({ ...config });
-                                // handleInputChange('manualMin', value[0]);
-                                // handleInputChange('manualMax', value[1]);
                             }}
-                            disabled={binConfig.intervalMode !== 'manual'}
+                            disabled={binConfig.intervalMode !== 'manual' || binConfig.binType === 'feature'}
                         />
 
                         <Text>Interval Mode</Text>
-                        <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)}>
-                            <Group>{chipsForValues(['full', 'IQR', 'manual'], true)}</Group>
+                        <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)} >
+                            <Group>{chipsForValues(['full', 'IQR', 'manual'], true, binConfig.binType === 'feature')}</Group>
                         </Chip.Group>
 
                         <Text>Agg Func</Text>
@@ -170,7 +166,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
 
                         <Text>Hex Style</Text>
                         <Chip.Group multiple={false} value={binConfig.hexStyle} onChange={value => handleInputChange('hexStyle', value)}>
-                            <Group>{chipsForValues(['pointy', 'flat'], true)}</Group>
+                            <Group>{chipsForValues(['pointy', 'flat'], true, binConfig.binType !== 'hex')}</Group>
                         </Chip.Group>
 
                         <Text>Bin Style</Text>
@@ -209,7 +205,13 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
             max: getRangeValue(binConfig, true, 'full'),
             values: interval
         });
-    }, [config, binRange]);
+    }, [binConfig.aggFuncName, binConfig.binType, binConfig.intervalMode, binRange]);
+
+    // reset bin size when bin type changes
+    // TODO: should this be done here?
+    useEffect(() => {
+        handleInputChange('binSize', 0);
+    }, [binConfig.binType]);
 
     return (
         <div className='layer-options'>
@@ -232,7 +234,6 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                 />
 
                 <Text>Opacity</Text>
-                {/* <Text>{config.opacity}</Text> */}
                 <Slider
                     defaultValue={config.opacity}
                     min={0}

@@ -45,7 +45,7 @@ export function BinMap() {
             hexStyle: "pointy",
             binStyle: "gradient",
             binType: "hex",
-            binSize: 30000,
+            binSize: 0,
             aggFuncName: "max",
             isVectorImage: true,
             numColorSteps: 5,
