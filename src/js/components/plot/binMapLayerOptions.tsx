@@ -12,7 +12,7 @@ export interface TileLayerOptions extends BaseLayerOptions {
 
 export interface BinLayerOptions extends BaseLayerOptions {
     hexStyle: string;
-    binStyle: string;
+    colorMode: string;
     binType: string;
     binSize: number;
     aggFuncName: string;

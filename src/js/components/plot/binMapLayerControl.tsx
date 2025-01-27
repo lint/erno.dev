@@ -146,12 +146,12 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                 binConfig.manualMax = value[1];
                                 updateCallback({ ...config });
                             }}
-                            disabled={binConfig.intervalMode !== 'manual' || binConfig.binType === 'feature'}
+                            disabled={binConfig.intervalMode !== 'manual'}
                         />
 
                         <Text>Interval Mode</Text>
                         <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)} >
-                            <Group>{chipsForValues(['full', 'IQR', 'manual'], true, binConfig.binType === 'feature')}</Group>
+                            <Group>{chipsForValues(['full', 'IQR', 'manual'], true)}</Group>
                         </Chip.Group>
 
                         <Text>Agg Func</Text>
@@ -169,9 +169,10 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             <Group>{chipsForValues(['pointy', 'flat'], true, binConfig.binType !== 'hex')}</Group>
                         </Chip.Group>
 
-                        <Text>Bin Style</Text>
-                        <Chip.Group multiple={false} value={binConfig.binStyle} onChange={value => handleInputChange('binStyle', value)}>
-                            <Group>{chipsForValues(['gradient', 'color', 'point'], true)}</Group>
+                        <Text>Color Mode</Text>
+                        <Chip.Group multiple={false} value={binConfig.colorMode} onChange={value => handleInputChange('binStyle', value)}>
+                            {/* <Group>{chipsForValues(['gradient', 'step', 'point'], true)}</Group> */}
+                            <Group>{chipsForValues(['gradient', 'step'], true)}</Group>
                         </Chip.Group>
 
                         <Select
@@ -190,6 +191,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             defaultValue={binConfig.numColorSteps}
                             allowDecimal={false}
                             onChange={value => handleInputChange('numColorSteps', value)}
+                            disabled={binConfig.colorMode !== 'step'}
                         />
                     </Fieldset>
                 );

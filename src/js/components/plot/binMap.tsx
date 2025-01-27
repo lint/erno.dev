@@ -43,7 +43,7 @@ export function BinMap() {
             visible: true,
             opacity: 100,
             hexStyle: "pointy",
-            binStyle: "gradient",
+            colorMode: "gradient",
             binType: "hex",
             binSize: 0,
             aggFuncName: "max",

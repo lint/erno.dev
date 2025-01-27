@@ -186,7 +186,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
         let scale = chroma.scale(binLayerConfig.colorScaleName);
         let steppedColors = scale.colors(binLayerConfig.numColorSteps);
 
-        switch (binLayerConfig.binStyle) {
+        switch (binLayerConfig.colorMode) {
 
             // different sized hexagons
             case 'point': {
@@ -206,7 +206,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
             }
 
             // sharp transition between colors
-            case 'color': {
+            case 'step': {
                 let index = Math.floor(normal * (binLayerConfig.numColorSteps - 1));
                 let color = steppedColors[index];
                 return [new Style({ fill: new Fill({ color: color }) })];
