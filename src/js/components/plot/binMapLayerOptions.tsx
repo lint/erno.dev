@@ -19,8 +19,7 @@ export interface BinLayerOptions extends BaseLayerOptions {
     isVectorImage: boolean;
     numColorSteps: number;
     colorScaleName: string;
-    intervalMin: number;
-    intervalMax: number;
-    useManualInterval: boolean;
-    useIQRInterval: boolean;
+    manualMin: number;
+    manualMax: number;
+    intervalMode: string;
 };

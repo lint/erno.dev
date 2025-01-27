@@ -50,11 +50,10 @@ export function BinMap() {
             isVectorImage: true,
             numColorSteps: 5,
             colorScaleName: "Viridis",
-            intervalMin: 0,
-            intervalMax: 30000,
-            useManualInterval: false,
-            useIQRInterval: true,
+            manualMin: 1,
+            manualMax: 30000,
             zIndex: 2,
+            intervalMode: 'full',
         } as BinLayerOptions,
         // {
         //     id: "bin_test2",
@@ -74,6 +73,7 @@ export function BinMap() {
         // } as BinLayerOptions, 
     ];
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
+    const [binLayerRanges, setBinLayerRanges] = useState<any>({});
 
     const resSelectRef = useRef(null);
     const resEnabledRef = useRef({});
@@ -331,9 +331,13 @@ export function BinMap() {
     return (
         <div className='map-container'>
             <div className='map-settings'>
-                {layerConfigs.map(layerConfig => (
-                    <BinMapLayerControl config={layerConfig} callback={handleLayerControlChange} key={layerConfig.id} />
-                ))}
+                {layerConfigs.map(layerConfig => {
+                    if (layerConfig.layerType === 'bin') {
+                        return <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} binRange={binLayerRanges[layerConfig.id]} key={layerConfig.id} />
+                    } else {
+                        return <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} key={layerConfig.id} />
+                    }
+                })}
                 <div ref={legendContainerRef} className="legend-container">
                     <div className="gradient">
                         {getColorScale().colors(100).map((color, index) => (
@@ -374,7 +378,7 @@ export function BinMap() {
                     <button onClick={handleClearAllStates}>Clear All</button>
                 </div>
             </div>
-            <BinMapView features={features} layerConfigs={layerConfigs} mapCallback={handleMapRefFromView} featureBinSource={countyFeatureSource} />
+            <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} mapCallback={handleMapRefFromView} rangesCallback={setBinLayerRanges} />
         </div>
     );
 }

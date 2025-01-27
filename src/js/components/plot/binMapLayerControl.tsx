@@ -1,18 +1,24 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import chroma from 'chroma-js';
 import { Checkbox, Chip, Fieldset, Group, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
 
 export interface BinMapLayerControlProps {
     config: BaseLayerOptions;
-    callback?: any;
+    binRange?: any;
+    updateCallback?: any;
 };
 
-export default function BinMapLayerControl({ config, callback }: BinMapLayerControlProps) {
+export default function BinMapLayerControl({ config, binRange, updateCallback }: BinMapLayerControlProps) {
 
     const binConfig = config as BinLayerOptions;
     const tileConfig = config as TileLayerOptions;
+    const [intervalSliderValues, setIntervalSliderValues] = useState({
+        min: 0,
+        max: 1,
+        values: [0, 1]
+    });
 
     const tileSources = [
         { value: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', label: 'OSM Standard' },
@@ -49,10 +55,11 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
 
     // general input change handler
     function handleInputChange(key: string, value: any) {
+        console.log(`input change key=${key} value=${value}`)
 
         try {
             let newConfig = { ...config, [key]: value };
-            if (callback) callback(newConfig);
+            if (updateCallback) updateCallback(newConfig);
         } catch {
             console.log(`failed to update key=${key} value=${value}`);
         }
@@ -67,10 +74,28 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
     function chipsForValues(values: string[], capitalize: boolean) {
         if (capitalize) {
             let capValues = capatalizeValues(values);
-            return capValues.map(val => (<Chip value={val.value}>{val.label}</Chip>))
+            return capValues.map(val => (<Chip value={val.value} key={val.value}>{val.label}</Chip>))
         } else {
-            return values.map(val => (<Chip value={val}>{val}</Chip>))
+            return values.map(val => (<Chip value={val} key={val}>{val}</Chip>))
         }
+    }
+
+    // TODO: this is duplicated in binMapView, you should refactor so this is not the case
+    function getRangeValue(binLayerConfig: BinLayerOptions, isMax: boolean, modeOverride?: string) {
+
+        let value = 0;
+        switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
+            case 'manual':
+                value = isMax ? binLayerConfig.manualMax : binLayerConfig.manualMin;
+                break;
+            case 'IQR':
+                value = isMax ? binRange.iqr_max : binRange.iqr_min;
+                break
+            case 'full':
+            default:
+                value = isMax ? binRange.full_max : binRange.full_min;
+        }
+        return value;
     }
 
     // create controls for a given layer type
@@ -109,28 +134,29 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
 
                         <Text>Interval</Text>
                         <RangeSlider
-                            min={0}
-                            max={100000}
+                            min={intervalSliderValues.min}
+                            max={intervalSliderValues.max}
                             step={1}
-                            // labelAlwaysOn
-                            defaultValue={[binConfig.intervalMin, binConfig.intervalMax]}
-                            onChangeEnd={value => {
-                                handleInputChange('intervalMin', value[0]);
-                                handleInputChange('intervalMax', value[1]);
+                            value={intervalSliderValues.values as any}
+                            // onChange={setIntervalSliderValue}
+                            onChange={value => {
+                                setIntervalSliderValues((old) => ({ ...old, values: value }));
                             }}
+                            // labelAlwaysOn
+                            onChangeEnd={value => {
+                                binConfig.manualMin = value[0];
+                                binConfig.manualMax = value[1];
+                                updateCallback({ ...config });
+                                // handleInputChange('manualMin', value[0]);
+                                // handleInputChange('manualMax', value[1]);
+                            }}
+                            disabled={binConfig.intervalMode !== 'manual'}
                         />
 
-                        <Checkbox
-                            label='use manual interval'
-                            checked={binConfig.useManualInterval}
-                            onChange={event => handleInputChange('useManualInterval', event.currentTarget.checked)}
-                        />
-
-                        <Checkbox
-                            label='use IQR interval'
-                            checked={binConfig.useIQRInterval}
-                            onChange={event => handleInputChange('useIQRInterval', event.currentTarget.checked)}
-                        />
+                        <Text>Interval Mode</Text>
+                        <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)}>
+                            <Group>{chipsForValues(['full', 'IQR', 'manual'], true)}</Group>
+                        </Chip.Group>
 
                         <Text>Agg Func</Text>
                         <Chip.Group multiple={false} value={binConfig.aggFuncName} onChange={value => handleInputChange('aggFuncName', value)}>
@@ -173,6 +199,17 @@ export default function BinMapLayerControl({ config, callback }: BinMapLayerCont
                 );
         }
     }
+
+    // update interval slider values when props change
+    useEffect(() => {
+        if (!binRange) return;
+        let interval = [getRangeValue(binConfig, false), getRangeValue(binConfig, true)];
+        setIntervalSliderValues({
+            min: getRangeValue(binConfig, false, 'full'),
+            max: getRangeValue(binConfig, true, 'full'),
+            values: interval
+        });
+    }, [config, binRange]);
 
     return (
         <div className='layer-options'>

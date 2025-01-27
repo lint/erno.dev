@@ -27,9 +27,10 @@ import './map.css';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
+    featureBinSource?: VectorSource;
     layerConfigs: BaseLayerOptions[];
     mapCallback: (map: Map) => void;
-    featureBinSource?: VectorSource;
+    rangesCallback: (binLayerRanges: any[]) => void;
 };
 
 export interface BinValues {
@@ -40,7 +41,7 @@ export interface BinValues {
     len: number;
 };
 
-export function BinMapView({ features, layerConfigs, mapCallback, featureBinSource }: BinMapViewProps) {
+export function BinMapView({ features, layerConfigs, featureBinSource, mapCallback, rangesCallback }: BinMapViewProps) {
 
     console.log("BinMapView called ...");
 
@@ -57,7 +58,9 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     function handleFeatureSelect(event: SelectEvent) {
         if (event.selected.length) {
             let f = event.selected[0];
-            console.log("BinMap selected value: ", f.get("values"));
+            console.log("BinMap selected: ", f);
+            // console.log(`min=${f.get('min')} max=${f.get('max')} avg=${f.get('avg')} sum=${f.get('sum')} len=${f.get('len')}`);
+            console.log("value:", f.get('value'));
         } else {
             // did not select a feature
             console.log("BinMap did not select feature");
@@ -68,9 +71,8 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
     function findValueBounds(features: Feature<Geometry>[], binLayerConfig: BinLayerOptions) {
         if (!features || features.length == 0) return;
 
-        console.log("num features:", features.length)
-
         console.log("BinMapView findValueBounds ...");
+        console.log("num features:", features.length)
 
         let values: number[] = [];
 
@@ -130,28 +132,43 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
 
         // calculate value range
         values.sort((a: number, b: number) => a - b);
+        let q1 = values[Math.floor((values.length - 1) * 0.25)];
+        let q3 = values[Math.floor((values.length - 1) * 0.75)];
+        let iqr = q3 - q1;
 
-        if (binLayerConfig.useIQRInterval) {
-            let q1 = values[Math.floor(values.length * 0.25)];
-            let q3 = values[Math.floor(values.length * 0.75)];
-            let iqr = q3 - q1;
+        let iqrMult = 0.5;
+        let min = values[0];
+        let max = values[values.length - 1];
+        let minFence = Math.max(1, Math.round(q1 - iqrMult * iqr));
+        let maxFence = Math.round(q3 + iqrMult * iqr);
 
-            // let minFence = Math.round(q1 - 1.5 * iqr);
-            let maxFence = Math.round(q3 + 1.5 * iqr);
-            binMaxesRef.current[binLayerConfig.id] = maxFence;
-        } else {
-            binMaxesRef.current[binLayerConfig.id] = values[values.length - 1];
-        }
+        console.log(`q1=${q1} q3=${q3} iqr=${iqr}\nmin=${min} max=${max}\n q1-1.5*iqr=${minFence} q3+1.5*iqr=${maxFence}`)
+
+        let ranges = {
+            full_min: min,
+            full_max: max,
+            iqr_min: minFence,
+            iqr_max: maxFence
+        };
+        binMaxesRef.current[binLayerConfig.id] = ranges;
+        rangesCallback({ ...binMaxesRef.current });
     }
 
-    // get the max value for a given bin id
-    function getMaxValue(binLayerConfig: BinLayerOptions) {
-
+    function getRangeValue(binLayerConfig: BinLayerOptions, isMax: boolean, modeOverride?: string) {
         if (!Object.hasOwn(binMaxesRef.current, binLayerConfig.id)) {
             return -1;
         }
 
-        return binMaxesRef.current[binLayerConfig.id];
+        let ranges = binMaxesRef.current[binLayerConfig.id];
+        switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
+            case 'manual':
+                return isMax ? binLayerConfig.manualMax : binLayerConfig.manualMin;
+            case 'IQR':
+                return isMax ? ranges.iqr_max : ranges.iqr_min;
+            case 'full':
+            default:
+                return isMax ? ranges.full_max : ranges.full_min;
+        }
     }
 
     // determine style for the given bin (f=feature, res=resolutuion)
@@ -161,8 +178,10 @@ export function BinMapView({ features, layerConfigs, mapCallback, featureBinSour
         // TODO: normal calculation is not correct
 
         let value = f.get('value');
-        let normal = value / getMaxValue(binLayerConfig);
-        normal = Math.max(0, Math.min(1, normal));
+        let min = getRangeValue(binLayerConfig, false);
+        let max = getRangeValue(binLayerConfig, true);
+        let normal = (value - min) / (max - min);
+        normal = Math.min(1, Math.max(0, normal));
 
         let scale = chroma.scale(binLayerConfig.colorScaleName);
         let steppedColors = scale.colors(binLayerConfig.numColorSteps);
