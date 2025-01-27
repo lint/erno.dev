@@ -103,7 +103,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         switch (layerType) {
             case "tile":
                 return (
-                    <Fieldset legend="Tile">
+                    <Fieldset legend="Tile Layer">
                         <Select
                             label="Source"
                             data={tileSources}
@@ -115,84 +115,92 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                 );
             case "bin":
                 return (
-                    <Fieldset legend="Bin">
-                        <Checkbox
-                            label='layer as image'
-                            checked={binConfig.isVectorImage}
-                            onChange={event => handleInputChange('isVectorImage', event.currentTarget.checked)}
-                        />
+                    <Fieldset legend="Bin Layer">
+                        <Fieldset legend="Bins">
+                            <Checkbox
+                                label='layer as image'
+                                checked={binConfig.isVectorImage}
+                                onChange={event => handleInputChange('isVectorImage', event.currentTarget.checked)}
+                            />
 
-                        <NumberInput
-                            label='Bin Size'
-                            min={0}
-                            max={binConfig.binType === 'hex' ? 1000000 : 10}
-                            step={binConfig.binType === 'hex' ? 1000 : 0.1}
-                            value={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
-                            // allowDecimal={false}
-                            onChange={value => handleInputChange('binSize', value)}
-                            disabled={binConfig.binType === 'feature'}
-                        />
+                            <Text>Bin Type</Text>
+                            <Chip.Group multiple={false} value={binConfig.binType} onChange={value => handleInputChange('binType', value)}>
+                                <Group>{chipsForValues(['hex', 'grid', 'feature'], true)}</Group>
+                            </Chip.Group>
 
-                        <Text>Interval</Text>
-                        <RangeSlider
-                            min={intervalSliderValues.min}
-                            max={intervalSliderValues.max}
-                            step={1}
-                            value={intervalSliderValues.values as any}
-                            onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
-                            // labelAlwaysOn
-                            onChangeEnd={value => {
-                                binConfig.manualMin = value[0];
-                                binConfig.manualMax = value[1];
-                                updateCallback({ ...config });
-                            }}
-                            disabled={binConfig.intervalMode !== 'manual'}
-                        />
+                            <Text>Hex Style</Text>
+                            <Chip.Group multiple={false} value={binConfig.hexStyle} onChange={value => handleInputChange('hexStyle', value)}>
+                                <Group>{chipsForValues(['pointy', 'flat'], true, binConfig.binType !== 'hex')}</Group>
+                            </Chip.Group>
 
-                        <Text>Interval Mode</Text>
-                        <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)} >
-                            <Group>{chipsForValues(['full', 'IQR', 'manual'], true)}</Group>
-                        </Chip.Group>
+                            <NumberInput
+                                label='Bin Size'
+                                min={0}
+                                max={binConfig.binType === 'hex' ? 1000000 : 10}
+                                step={binConfig.binType === 'hex' ? 1000 : 0.1}
+                                value={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
+                                // allowDecimal={false}
+                                onChange={value => handleInputChange('binSize', value)}
+                                disabled={binConfig.binType === 'feature'}
+                            />
+                        </Fieldset>
+                        <Fieldset legend="Data">
 
-                        <Text>Agg Func</Text>
-                        <Chip.Group multiple={false} value={binConfig.aggFuncName} onChange={value => handleInputChange('aggFuncName', value)}>
-                            <Group>{chipsForValues(['max', 'min', 'sum', 'len', 'avg'], true)}</Group>
-                        </Chip.Group>
+                            <Text>Agg Func</Text>
+                            <Chip.Group multiple={false} value={binConfig.aggFuncName} onChange={value => handleInputChange('aggFuncName', value)}>
+                                <Group>{chipsForValues(['max', 'min', 'sum', 'len', 'avg'], true)}</Group>
+                            </Chip.Group>
 
-                        <Text>Bin Type</Text>
-                        <Chip.Group multiple={false} value={binConfig.binType} onChange={value => handleInputChange('binType', value)}>
-                            <Group>{chipsForValues(['hex', 'grid', 'feature'], true)}</Group>
-                        </Chip.Group>
+                            <Text>Interval Mode</Text>
+                            <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)} >
+                                <Group>{chipsForValues(['full', 'IQR', 'manual'], true)}</Group>
+                            </Chip.Group>
 
-                        <Text>Hex Style</Text>
-                        <Chip.Group multiple={false} value={binConfig.hexStyle} onChange={value => handleInputChange('hexStyle', value)}>
-                            <Group>{chipsForValues(['pointy', 'flat'], true, binConfig.binType !== 'hex')}</Group>
-                        </Chip.Group>
 
-                        <Text>Color Mode</Text>
-                        <Chip.Group multiple={false} value={binConfig.colorMode} onChange={value => handleInputChange('binStyle', value)}>
-                            {/* <Group>{chipsForValues(['gradient', 'step', 'point'], true)}</Group> */}
-                            <Group>{chipsForValues(['gradient', 'step'], true)}</Group>
-                        </Chip.Group>
+                            <Text>Interval</Text>
+                            <RangeSlider
+                                min={intervalSliderValues.min}
+                                max={intervalSliderValues.max}
+                                step={1}
+                                value={intervalSliderValues.values as any}
+                                onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
+                                // labelAlwaysOn
+                                onChangeEnd={value => {
+                                    binConfig.manualMin = value[0];
+                                    binConfig.manualMax = value[1];
+                                    updateCallback({ ...config });
+                                }}
+                                disabled={binConfig.intervalMode !== 'manual'}
+                            />
 
-                        <Select
-                            label="Color Scale"
-                            data={Object.keys(chroma.brewer)}
-                            defaultValue={binConfig.colorScaleName}
-                            onChange={value => handleInputChange('colorScaleName', value)}
-                            searchable
-                        />
+                        </Fieldset>
+                        <Fieldset legend="Colors">
 
-                        <NumberInput
-                            label='Num Color Steps'
-                            min={0}
-                            max={16}
-                            step={1}
-                            defaultValue={binConfig.numColorSteps}
-                            allowDecimal={false}
-                            onChange={value => handleInputChange('numColorSteps', value)}
-                            disabled={binConfig.colorMode !== 'step'}
-                        />
+                            <Text>Color Mode</Text>
+                            <Chip.Group multiple={false} value={binConfig.colorMode} onChange={value => handleInputChange('binStyle', value)}>
+                                {/* <Group>{chipsForValues(['gradient', 'step', 'point'], true)}</Group> */}
+                                <Group>{chipsForValues(['gradient', 'step'], true)}</Group>
+                            </Chip.Group>
+
+                            <Select
+                                label="Color Scale"
+                                data={Object.keys(chroma.brewer)}
+                                defaultValue={binConfig.colorScaleName}
+                                onChange={value => handleInputChange('colorScaleName', value)}
+                                searchable
+                            />
+
+                            <NumberInput
+                                label='Num Color Steps'
+                                min={0}
+                                max={16}
+                                step={1}
+                                defaultValue={binConfig.numColorSteps}
+                                allowDecimal={false}
+                                onChange={value => handleInputChange('numColorSteps', value)}
+                                disabled={binConfig.colorMode !== 'step'}
+                            />
+                        </Fieldset>
                     </Fieldset>
                 );
         }
@@ -221,7 +229,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                 id: {config.id}
             </div>
 
-            <Fieldset legend="Layer">
+            <Fieldset legend="General">
                 <Checkbox
                     checked={config.visible}
                     onChange={(event) => handleInputChange('visible', event.currentTarget.checked)}
