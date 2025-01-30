@@ -177,8 +177,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         <Fieldset legend="Colors">
 
                             <Text>Color Mode</Text>
-                            <Chip.Group multiple={false} value={binConfig.colorMode} onChange={value => handleInputChange('binStyle', value)}>
-                                {/* <Group>{chipsForValues(['gradient', 'step', 'point'], true)}</Group> */}
+                            <Chip.Group multiple={false} value={binConfig.colorMode} onChange={value => handleInputChange('colorMode', value)}>
                                 <Group>{chipsForValues(['gradient', 'step'], true)}</Group>
                             </Chip.Group>
 
