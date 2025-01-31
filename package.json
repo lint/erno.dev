@@ -30,7 +30,7 @@
     "@mantine/core": "^7.16.1",
     "@mantine/hooks": "^7.16.1",
     "@observablehq/plot": "github:observablehq/plot",
-    "@tabler/icons-react": "^3.29.0",
+    "@tabler/icons-react": "^3.17.0",
     "@types/geojson": "^7946.0.15",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
