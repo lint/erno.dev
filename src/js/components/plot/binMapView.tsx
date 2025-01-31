@@ -22,7 +22,7 @@ import Fill from 'ol/style/Fill';
 import RegularShape from 'ol/style/RegularShape.js';
 import Style from 'ol/style/Style';
 import React, { useEffect, useRef } from 'react';
-import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, TileLayerOptions } from './binMapLayerOptions';
 import './map.css';
 
 export interface BinMapViewProps {
@@ -161,8 +161,8 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
         let ranges = binMaxesRef.current[binLayerConfig.id];
         switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
-            case 'manual':
-                return isMax ? binLayerConfig.manualMax : binLayerConfig.manualMin;
+            case 'custom':
+                return isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
             case 'IQR':
                 return isMax ? ranges.iqr_max : ranges.iqr_min;
             case 'full':
@@ -268,6 +268,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
             source: createBins(binLayerConfig),
             opacity: Number(binLayerConfig.opacity) / 100,
             style: (f: FeatureLike, res: number) => styleForBin(f, res, binLayerConfig),
+            background: getBackgroundColor(binLayerConfig)
         });
 
         return binLayer;
@@ -350,6 +351,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
                 // recreate the syling function so options are refreshed
                 layer.setStyle((f: FeatureLike, res: number) => styleForBin(f, res, binLayerConfig));
+                layer.setBackground(getBackgroundColor(binLayerConfig));
 
                 // update hexbin style (point or flat)
                 if (binLayerConfig.binType === "hex") {

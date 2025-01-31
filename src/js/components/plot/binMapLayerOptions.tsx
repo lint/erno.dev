@@ -1,3 +1,5 @@
+import chroma from "chroma-js";
+
 export interface BaseLayerOptions {
     visible: boolean;
     opacity: number;
@@ -19,7 +21,24 @@ export interface BinLayerOptions extends BaseLayerOptions {
     isVectorImage: boolean;
     numColorSteps: number;
     colorScaleName: string;
-    manualMin: number;
-    manualMax: number;
+    customMin: number;
+    customMax: number;
     intervalMode: string;
+    backgroundColorMode: string;
+    customBackgroundColor: string;
 };
+
+// returns the background color for a given bin config
+export function getBackgroundColor(binLayerConfig: BinLayerOptions) {
+
+    switch (binLayerConfig.backgroundColorMode) {
+        case 'auto':
+            let color = chroma.scale(binLayerConfig.colorScaleName)(0).darken().alpha(binLayerConfig.opacity / 100).hex();
+            return color ? color : '';
+        case 'custom':
+            return binLayerConfig.customBackgroundColor;
+        case 'none':
+        default:
+            return '';
+    }
+}

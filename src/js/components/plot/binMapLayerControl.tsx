@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, TileLayerOptions } from './binMapLayerOptions';
 import chroma from 'chroma-js';
-import { Checkbox, Chip, Fieldset, Group, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
+import { Checkbox, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
 
 export interface BinMapLayerControlProps {
     config: BaseLayerOptions;
@@ -86,7 +86,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         let value = 0;
         switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
             case 'manual':
-                value = isMax ? binLayerConfig.manualMax : binLayerConfig.manualMin;
+                value = isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
                 break;
             case 'IQR':
                 value = isMax ? binRange.iqr_max : binRange.iqr_min;
@@ -153,9 +153,8 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
 
                             <Text>Interval Mode</Text>
                             <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)} >
-                                <Group>{chipsForValues(['full', 'IQR', 'manual'], true)}</Group>
+                                <Group>{chipsForValues(['full', 'IQR', 'custom'], true)}</Group>
                             </Chip.Group>
-
 
                             <Text>Interval</Text>
                             <RangeSlider
@@ -166,11 +165,11 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                 onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
                                 // labelAlwaysOn
                                 onChangeEnd={value => {
-                                    binConfig.manualMin = value[0];
-                                    binConfig.manualMax = value[1];
+                                    binConfig.customMin = value[0];
+                                    binConfig.customMax = value[1];
                                     updateCallback({ ...config });
                                 }}
-                                disabled={binConfig.intervalMode !== 'manual'}
+                                disabled={binConfig.intervalMode !== 'custom'}
                             />
 
                         </Fieldset>
@@ -199,6 +198,20 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                 onChange={value => handleInputChange('numColorSteps', value)}
                                 disabled={binConfig.colorMode !== 'step'}
                             />
+
+                            <Text>Background Color</Text>
+                            <ColorInput
+                                defaultValue={binConfig.customBackgroundColor}
+                                value={binConfig.backgroundColorMode !== 'custom' ? getBackgroundColor(binConfig) : undefined}
+                                disabled={binConfig.backgroundColorMode !== 'custom'}
+                                // fixOnBlur={false}
+                                // onChangeEnd={value => handleInputChange('customBackgroundColor', value)} // TODO: would be preferrable but gets wrong value for some reason
+                                onChange={value => handleInputChange('customBackgroundColor', value)}
+                            />
+                            <Chip.Group multiple={false} value={binConfig.backgroundColorMode} onChange={value => handleInputChange('backgroundColorMode', value)}>
+                                <Group>{chipsForValues(['auto', 'custom', 'none'], true)}</Group>
+                            </Chip.Group>
+
                         </Fieldset>
                     </Fieldset>
                 );
