@@ -19,7 +19,7 @@ const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'g
 
 export function BinMap() {
 
-    console.log("BinMap function called ...");
+    // console.log("BinMap function called ...");
 
     const mapRef = useRef<Map>();
     const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
@@ -45,6 +45,7 @@ export function BinMap() {
             zIndex: 3,
             blur: 10,
             radius: 10,
+            followsBinLayerId: 'bin_test'
         } as HeatmapLayerOptions,
         {
             id: "bin_test",
@@ -246,7 +247,6 @@ export function BinMap() {
     function handlePrintExtentButton() {
         if (!mapRef.current) return;
         let map = mapRef.current;
-
         console.log(map.getView().calculateExtent(map.getSize()));
     }
 

@@ -142,7 +142,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             <Slider
                                 defaultValue={heatmapConfig.blur}
                                 min={0}
-                                max={50}
+                                max={100}
                                 step={1}
                                 onChange={value => handleInputChange('blur', value)}
                                 style={{ flexGrow: 1, maxWidth: "200px" }}
@@ -157,7 +157,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                 defaultValue={heatmapConfig.radius}
                                 min={0}
                                 max={50}
-                                step={1}
+                                step={0.5}
                                 onChange={value => handleInputChange('radius', value)}
                                 style={{ flexGrow: 1, maxWidth: "200px" }}
                                 label={null}

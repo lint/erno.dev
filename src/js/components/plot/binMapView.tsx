@@ -44,7 +44,7 @@ export interface BinValues {
 
 export function BinMapView({ features, layerConfigs, featureBinSource, mapCallback, rangesCallback }: BinMapViewProps) {
 
-    console.log("BinMapView called ...");
+    // console.log("BinMapView called ...");
 
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
@@ -156,7 +156,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     }
 
     function getRangeValue(binLayerConfig: BinLayerOptions, isMax: boolean, modeOverride?: string) {
-        if (!Object.hasOwn(binMaxesRef.current, binLayerConfig.id)) {
+        if (!binLayerConfig || !Object.hasOwn(binMaxesRef.current, binLayerConfig.id)) {
             return -1;
         }
 
@@ -277,6 +277,9 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
     // create and return a new tile layer
     function createTileLayer(tileLayerConfig: TileLayerOptions) {
+
+        console.log("creating new tile layer", tileLayerConfig);
+
         const tileLayer = new TileLayer({
             source: new OSM({ url: tileLayerConfig.tileSourceUrl }),
             // preload: Infinity 
@@ -289,48 +292,83 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
     // create and return a new heatmap layer
     function createHeatmapLayer(heatmapLayerConfig: HeatmapLayerOptions) {
+
+        console.log("creating new heatmap layer", heatmapLayerConfig);
+
+        // TODO: there are some issues with getting the heatmap layer to update alongside bin layer
+        // find a better way to link the layers, or to have a way to reset the weight function
+        // issue is that weight function gets stale values
+
         const heatmapLayer = new HeatmapLayer({
             source: vectorSourceRef.current,
             blur: heatmapLayerConfig.blur,
             radius: heatmapLayerConfig.radius,
             opacity: Number(heatmapLayerConfig.opacity) / 100,
+            weight: (feature) => {
+                let binLayerConfig = configForId(heatmapLayerConfig.followsBinLayerId) as BinLayerOptions;
+                let value = 1;
+                if (binLayerConfig && binLayerConfig.layerType === 'bin') {
+                    let min = getRangeValue(binLayerConfig, false);
+                    let max = getRangeValue(binLayerConfig, true);
+                    value = (feature.get(binLayerConfig.aggFuncName) - min) / (max - min);
+                }
+                return value;
+            },
+            // gradient: binLayerConfig ? chroma.scale(binLayerConfig.colorScaleName).colors(binLayerConfig.numColorSteps) : undefined
         });
-        // heatmapLayer.on('error', (error) => {
-        //     console.log(error);
-        // })
+
         return heatmapLayer;
     }
 
+    // get the layer config associated with a given id
+    function configForId(layerId: string) {
+
+        for (let layerConfig of layerConfigs) {
+            if (layerConfig.id === layerId) return layerConfig;
+        }
+
+        return undefined;
+    }
+
     // get the layer associated witht the given layer config
-    function layerForConfig(layerConfig: BaseLayerOptions, resetBinLayer: boolean) {
+    function layerForConfig(layerConfig: BaseLayerOptions, resetDataLayers: boolean) {
 
         if (!layerConfig) return;
 
         let layer = layersRef.current[layerConfig.id];
-        if (layer && layerConfig.layerType === 'bin' && resetBinLayer) {
-            mapRef.current?.removeLayer(layer);
-            layer = undefined;
+        if (layer && resetDataLayers) {
+
+            if (layerConfig.layerType === 'bin') {
+                mapRef.current?.removeLayer(layer);
+                layer = undefined;
+
+            } else if (layerConfig.layerType === 'heatmap') {
+                layer.setMap(null);
+                layer.setSource(null);
+                layer = undefined;
+            }
         }
 
         // make new layer if it does not exist
         if (!layer) {
 
-            // create bin layer
             if (layerConfig.layerType === "bin") {
                 layer = createBinLayer(layerConfig as BinLayerOptions);
-
-                // create tile layer
             } else if (layerConfig.layerType === "tile") {
                 layer = createTileLayer(layerConfig as TileLayerOptions);
             } else if (layerConfig.layerType === "heatmap") {
                 layer = createHeatmapLayer(layerConfig as HeatmapLayerOptions);
             }
+            layersRef.current[layerConfig.id] = layer;
 
             // continue if could not create layer
             if (!layer) return;
 
-            layersRef.current[layerConfig.id] = layer;
-            mapRef.current?.addLayer(layer);
+            if (layerConfig.layerType === 'heatmap') {
+                layer.setMap(mapRef.current);
+            } else {
+                mapRef.current?.addLayer(layer);
+            }
         }
 
         return layer;
@@ -340,14 +378,6 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     function refreshLayers(resetBinLayers: boolean) {
 
         console.log("BinMapView refreshLayers", resetBinLayers);
-
-        // set bin layer background color
-        // if (options.binLayerBackgroundEnabled) {
-        //     let scale = getColorScale();
-        //     binLayerRef.current?.setBackground(scale(0).alpha(binLayerRef.current.getOpacity()).darken().name());
-        // } else {
-        //     binLayerRef.current?.setBackground();
-        // }
 
         layerConfigs.forEach((layerConfig) => {
             let layer = layerForConfig(layerConfig, resetBinLayers);
@@ -368,10 +398,16 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
                 // update heatmap layer properties 
             } else if (layerConfig.layerType === 'heatmap') {
                 let heatmapLayerConfig = layerConfig as HeatmapLayerOptions;
+                let binLayerConfig = configForId(heatmapLayerConfig.followsBinLayerId) as BinLayerOptions;
 
                 layer.setRadius(heatmapLayerConfig.radius);
                 layer.setBlur(heatmapLayerConfig.blur);
                 // layer.setSource(vectorSourceRef.current);
+
+                if (binLayerConfig) {
+                    layer.setGradient(chroma.scale(binLayerConfig.colorScaleName).colors(Math.max(2, binLayerConfig.numColorSteps)));
+                }
+
                 // layer.changed();
 
                 // update bin layer properties
