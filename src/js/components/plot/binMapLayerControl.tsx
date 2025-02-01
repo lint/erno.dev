@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, TileLayerOptions } from './binMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import chroma from 'chroma-js';
 import { ActionIcon, Box, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
@@ -15,6 +15,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
 
     const binConfig = config as BinLayerOptions;
     const tileConfig = config as TileLayerOptions;
+    const heatmapConfig = config as HeatmapLayerOptions;
     const [intervalSliderValues, setIntervalSliderValues] = useState({
         min: 0,
         max: 1,
@@ -132,6 +133,38 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         </Box>
                     </Fieldset>
                 );
+            case 'heatmap':
+                return (
+                    <Fieldset pb={10} pt={5} legend={<Text fw={500}>Heatmap</Text>}>
+                        <Box className='option-container'>
+                            <Text size='sm' style={{ width: 50 }} fw={500}>Blur</Text>
+                            <Text size='sm' style={{ width: 20 }} fw={500}>{heatmapConfig.blur}</Text>
+                            <Slider
+                                defaultValue={heatmapConfig.blur}
+                                min={0}
+                                max={50}
+                                step={1}
+                                onChange={value => handleInputChange('blur', value)}
+                                style={{ flexGrow: 1, maxWidth: "200px" }}
+                                label={null}
+                            />
+                        </Box>
+
+                        <Box className='option-container'>
+                            <Text size='sm' style={{ width: 50 }} fw={500}>Radius</Text>
+                            <Text size='sm' style={{ width: 20 }} fw={500}>{heatmapConfig.radius}</Text>
+                            <Slider
+                                defaultValue={heatmapConfig.radius}
+                                min={0}
+                                max={50}
+                                step={1}
+                                onChange={value => handleInputChange('radius', value)}
+                                style={{ flexGrow: 1, maxWidth: "200px" }}
+                                label={null}
+                            />
+                        </Box>
+                    </Fieldset>
+                )
             case "bin":
                 return (
                     <div>

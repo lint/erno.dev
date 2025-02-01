@@ -12,6 +12,11 @@ export interface TileLayerOptions extends BaseLayerOptions {
     tileSourceUrl: string;
 };
 
+export interface HeatmapLayerOptions extends BaseLayerOptions {
+    blur: number;
+    radius: number;
+};
+
 export interface BinLayerOptions extends BaseLayerOptions {
     hexStyle: string;
     colorMode: string;

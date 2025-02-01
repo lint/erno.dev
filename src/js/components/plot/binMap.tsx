@@ -12,7 +12,7 @@ import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
 import { BinMapView } from './binMapView';
 import Geometry from 'ol/geom/Geometry';
-import { BaseLayerOptions, BinLayerOptions, TileLayerOptions } from './binMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import BinMapLayerControl from './binMapLayerControl';
 
 const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
@@ -37,6 +37,15 @@ export function BinMap() {
             tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
             zIndex: 1,
         } as TileLayerOptions,
+        {
+            id: "heatmap_test",
+            layerType: "heatmap",
+            visible: false,
+            opacity: 100,
+            zIndex: 3,
+            blur: 10,
+            radius: 10,
+        } as HeatmapLayerOptions,
         {
             id: "bin_test",
             layerType: "bin",

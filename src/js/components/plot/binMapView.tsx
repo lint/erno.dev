@@ -21,8 +21,9 @@ import VectorSource from 'ol/source/Vector';
 import Fill from 'ol/style/Fill';
 import RegularShape from 'ol/style/RegularShape.js';
 import Style from 'ol/style/Style';
+import HeatmapLayer from 'ol/layer/Heatmap.js';
 import React, { useEffect, useRef } from 'react';
-import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, TileLayerOptions } from './binMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './binMapLayerOptions';
 import './map.css';
 
 export interface BinMapViewProps {
@@ -275,13 +276,29 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     }
 
     // create and return a new tile layer
-    function createTileLayer(url: string) {
+    function createTileLayer(tileLayerConfig: TileLayerOptions) {
         const tileLayer = new TileLayer({
-            source: new OSM({ url: url }),
+            source: new OSM({ url: tileLayerConfig.tileSourceUrl }),
             // preload: Infinity 
-            preload: 1
+            preload: 1,
+            opacity: Number(tileLayerConfig.opacity) / 100,
+
         });
         return tileLayer;
+    }
+
+    // create and return a new heatmap layer
+    function createHeatmapLayer(heatmapLayerConfig: HeatmapLayerOptions) {
+        const heatmapLayer = new HeatmapLayer({
+            source: vectorSourceRef.current,
+            blur: heatmapLayerConfig.blur,
+            radius: heatmapLayerConfig.radius,
+            opacity: Number(heatmapLayerConfig.opacity) / 100,
+        });
+        // heatmapLayer.on('error', (error) => {
+        //     console.log(error);
+        // })
+        return heatmapLayer;
     }
 
     // get the layer associated witht the given layer config
@@ -304,7 +321,9 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
                 // create tile layer
             } else if (layerConfig.layerType === "tile") {
-                layer = createTileLayer((layerConfig as TileLayerOptions).tileSourceUrl);
+                layer = createTileLayer(layerConfig as TileLayerOptions);
+            } else if (layerConfig.layerType === "heatmap") {
+                layer = createHeatmapLayer(layerConfig as HeatmapLayerOptions);
             }
 
             // continue if could not create layer
@@ -332,6 +351,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
         layerConfigs.forEach((layerConfig) => {
             let layer = layerForConfig(layerConfig, resetBinLayers);
+            // if (!layer) return;
 
             // update common layer properties
             layer.setZIndex(layerConfig.zIndex);
@@ -344,6 +364,15 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
                 let osmSource = layer.getSource() as OSM;
                 osmSource.setUrl(tileLayerConfig.tileSourceUrl);
+
+                // update heatmap layer properties 
+            } else if (layerConfig.layerType === 'heatmap') {
+                let heatmapLayerConfig = layerConfig as HeatmapLayerOptions;
+
+                layer.setRadius(heatmapLayerConfig.radius);
+                layer.setBlur(heatmapLayerConfig.blur);
+                // layer.setSource(vectorSourceRef.current);
+                // layer.changed();
 
                 // update bin layer properties
             } else if (layerConfig.layerType === "bin") {
