@@ -5,10 +5,10 @@
 .map-container {
     display: flex;
     flex-direction: row;
+    height: 100%;
 }
 
 .map-settings {
-    height: 96vh;
     max-width: 20%;
     overflow-y: auto;
     display: flex;
