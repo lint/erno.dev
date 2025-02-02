@@ -144,7 +144,7 @@ export function BinMap() {
             new Promise((resolve, reject) => {
 
                 if (url in cachedFeatures) {
-                    console.log("found cached features for: ", url)
+                    // console.log("found cached features for: ", url)
                     resolve(cachedFeatures[url as keyof typeof cachedFeatures]);
                     return;
                 }
@@ -155,7 +155,7 @@ export function BinMap() {
                     // loader: () => {
                     // }
                 });
-                console.log("loading features for url:", url)
+                // console.log("loading features for url:", url)
                 // force source to load
                 binSource.loadFeatures([0, 0, 0, 0], 0, proj);
 

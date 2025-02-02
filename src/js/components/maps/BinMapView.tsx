@@ -437,7 +437,9 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     // called when component has mounted
     useEffect(() => {
         console.log("BinMapView useEffect ...");
-        if (!mapContainerRef.current) return;
+
+        // TODO: fixed the issue where tile layer is gone when navigating to page, but now i don't think i'm cleaning things up properly
+        if (!mapContainerRef.current || mapRef.current) return;
 
         // initialize the map object
         const map = new Map({
@@ -457,7 +459,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
         map.addInteraction(select);
         select.on('select', handleFeatureSelect);
 
-        return () => map.setTarget('');
+        // return () => map.setTarget('');
     }, []);
 
     useEffect(() => {
