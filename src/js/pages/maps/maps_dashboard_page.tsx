@@ -1,13 +1,17 @@
 
 import React from 'react';
-import { BinMap } from '../../components/plot/binMap';
 import BasePage from '../base_page';
+import { Link } from 'react-router-dom';
 
 export default function MapsDashboardPage() {
 
     return (
         <BasePage>
-            <BinMap />
+            <ul>
+                <li>
+                    <Link to="/maps/address">Address</Link>
+                </li>
+            </ul>
         </BasePage>
     );
 }

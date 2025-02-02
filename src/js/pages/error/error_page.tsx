@@ -4,25 +4,31 @@ import { useRouteError, isRouteErrorResponse } from "react-router-dom";
 import BasePage from '../base_page';
 import ErrorDisplay from '../../components/error/error_display';
 
-export default function ErrorPage() {
+export interface ErrorPageProps {
+    message?: string;
+}
+
+export default function ErrorPage({ message }: ErrorPageProps) {
 
     const err = useRouteError();
-    let message: string;
+    let status: string;
 
-    if (isRouteErrorResponse(err)) {
-        message = String(err.status);
+    if (message) {
+        status = message;
+    } else if (isRouteErrorResponse(err)) {
+        status = String(err.status);
     } else if (err instanceof Error) {
-        message = err.message;
+        status = err.message;
     } else if (typeof err === 'string') {
-        message = err;
+        status = err;
     } else {
         console.error(err);
-        message = 'Unknown error';
+        status = 'Unknown error';
     }
 
     return (
         <BasePage>
-            <ErrorDisplay status={message} />
+            <ErrorDisplay status={status} />
         </BasePage>
     );
 }

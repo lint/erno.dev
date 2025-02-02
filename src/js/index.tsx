@@ -12,6 +12,7 @@ import HomePage from './pages/home/home_page';
 import ErrorPage from './pages/error/error_page';
 import TempPage from './pages/temp_page';
 import MapsDashboardPage from './pages/maps/maps_dashboard_page';
+import MapPage from './pages/maps/map_page';
 
 // amplify
 import { Amplify } from 'aws-amplify';
@@ -31,12 +32,16 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
     },
     {
-        path: "/temp",
+        path: "/about",
         element: <TempPage />
     },
     {
-        path: "/map",
+        path: "/maps",
         element: <MapsDashboardPage />
+    },
+    {
+        path: "/maps/:mapId",
+        element: <MapPage />
     }
 ]);
 

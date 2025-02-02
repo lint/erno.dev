@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
-import './map.css';
+import './maps.css';
 import { Map } from 'ol';
 import Feature from 'ol/Feature.js';
 import Point from 'ol/geom/Point.js';
@@ -10,10 +10,10 @@ import VectorSource, { VectorSourceEvent } from 'ol/source/Vector';
 import { Projection } from 'ol/proj';
 import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
-import { BinMapView } from './binMapView';
+import { BinMapView } from './BinMapView';
 import Geometry from 'ol/geom/Geometry';
-import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOptions } from './binMapLayerOptions';
-import BinMapLayerControl from './binMapLayerControl';
+import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
+import BinMapLayerControl from './BinMapLayerControl';
 
 const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
 

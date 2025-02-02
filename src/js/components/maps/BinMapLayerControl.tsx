@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './binMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
 import chroma from 'chroma-js';
 import { ActionIcon, Box, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';

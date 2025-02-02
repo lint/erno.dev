@@ -5,8 +5,8 @@ import styles from './navbar.module.css';
 import { Divider, UnstyledButton } from '@mantine/core';
 
 const linkData = [
-    { label: 'maps', url: '/map' },
-    { label: 'about', url: '/temp' },
+    { label: 'maps', url: '/maps' },
+    { label: 'about', url: '/about' },
 ];
 
 export default function NavBar() {
