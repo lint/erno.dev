@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
 import chroma from 'chroma-js';
-import { ActionIcon, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, Select, Slider } from '@mantine/core';
+import { ActionIcon, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, SegmentedControl, Select, Slider } from '@mantine/core';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 import styles from './BinMap.module.css';
 
@@ -85,14 +85,14 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     }
 
     // creates capatalized CombodivData for list of values
-    function capatalizeValues(values: string[]) {
+    function capitalizeValues(values: string[]) {
         return values.map(value => ({ value: value, label: String(value).charAt(0).toUpperCase() + String(value).slice(1) }))
     }
 
     // creates chips for list of values
     function chipsForValues(values: string[], capitalize: boolean, disabled: boolean = false) {
         if (capitalize) {
-            let capValues = capatalizeValues(values);
+            let capValues = capitalizeValues(values);
             return capValues.map(val => (<Chip disabled={disabled} value={val.value} key={val.value}>{val.label}</Chip>))
         } else {
             return values.map(val => (<Chip disabled={disabled} value={val} key={val}>{val}</Chip>))
@@ -100,14 +100,31 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     }
 
     // create chips options item
-    function createChipsOptionsItem(configKey: string, label: string, values: string[], capitalize: boolean, disabled: boolean) {
+    function createSingleSelectOptionsItem(configKey: string, label: string, values: string[], capitalize: boolean, disabled: boolean, style?: string) {
 
-        let chipGroup = (
-            <Chip.Group multiple={false} value={`${config[configKey as keyof typeof config]}`} onChange={value => handleInputChange(configKey, value)} >
-                <Group gap="5px">{chipsForValues(values, capitalize, disabled)}</Group>
-            </Chip.Group>
-        );
-        return createOptionsItem(label, chipGroup);
+        let item;
+        switch (style) {
+            case 'chip':
+                item = (
+                    <Chip.Group multiple={false} value={`${config[configKey as keyof typeof config]}`} onChange={value => handleInputChange(configKey, value)} >
+                        <Group gap="5px">{chipsForValues(values, capitalize, disabled)}</Group>
+                    </Chip.Group>
+                );
+                break;
+            case 'segmented':
+            default:
+                item = (
+                    <SegmentedControl
+                        data={capitalize ? capitalizeValues(values) : values}
+                        value={`${config[configKey as keyof typeof config]}`}
+                        onChange={value => handleInputChange(configKey, value)}
+                        color="blue"
+                    />
+                );
+                break;
+
+        }
+        return createOptionsItem(label, item);
     }
 
     // create general options item
@@ -191,9 +208,9 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                     <div>
                         <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Bins</div>}>
 
-                            {createChipsOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
-                            {createChipsOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
-                            {createChipsOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
+                            {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
+                            {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
+                            {createSingleSelectOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
                             {createOptionsItem('Bin Size',
                                 <NumberInput
                                     min={0}
@@ -210,8 +227,8 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         </Fieldset>
                         <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Data</div>}>
 
-                            {createChipsOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
-                            {createChipsOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
+                            {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
+                            {createSingleSelectOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
 
                             <RangeSlider
                                 min={intervalSliderValues.min}
@@ -230,7 +247,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         </Fieldset>
                         <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Colors</div>}>
 
-                            {createChipsOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
+                            {createSingleSelectOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
                             {createOptionsItem('Color Scale',
                                 <Select
                                     data={Object.keys(chroma.brewer)}
@@ -251,7 +268,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                     inputSize='4'
                                 />
                             )}
-                            {createChipsOptionsItem('backgroundColorMode', 'Background Color', ['auto', 'custom', 'none'], true, false)}
+                            {createSingleSelectOptionsItem('backgroundColorMode', 'Background Color', ['auto', 'custom', 'none'], true, false)}
 
                             <ColorInput
                                 defaultValue={binConfig.customBackgroundColor}
