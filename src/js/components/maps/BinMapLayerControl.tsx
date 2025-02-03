@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
 import chroma from 'chroma-js';
-import { ActionIcon, Box, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, Select, Slider, Text } from '@mantine/core';
+import { ActionIcon, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, Select, Slider } from '@mantine/core';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
+import styles from './BinMap.module.css';
 
 export interface BinMapLayerControlProps {
     config: BaseLayerOptions;
@@ -83,7 +84,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         }
     }
 
-    // creates capatalized ComboboxData for list of values
+    // creates capatalized CombodivData for list of values
     function capatalizeValues(values: string[]) {
         return values.map(value => ({ value: value, label: String(value).charAt(0).toUpperCase() + String(value).slice(1) }))
     }
@@ -96,6 +97,27 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         } else {
             return values.map(val => (<Chip disabled={disabled} value={val} key={val}>{val}</Chip>))
         }
+    }
+
+    // create chips options item
+    function createChipsOptionsItem(configKey: string, label: string, values: string[], capitalize: boolean, disabled: boolean) {
+
+        let chipGroup = (
+            <Chip.Group multiple={false} value={`${config[configKey as keyof typeof config]}`} onChange={value => handleInputChange(configKey, value)} >
+                <Group gap="5px">{chipsForValues(values, capitalize, disabled)}</Group>
+            </Chip.Group>
+        );
+        return createOptionsItem(label, chipGroup);
+    }
+
+    // create general options item
+    function createOptionsItem(label: string, node: React.ReactNode) {
+        return (
+            <div className={styles.optionsItem}>
+                <div className={styles.label}>{label}</div>
+                {node}
+            </div>
+        );
     }
 
     // TODO: this is duplicated in binMapView, you should refactor so this is not the case
@@ -121,24 +143,23 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         switch (layerType) {
             case "tile":
                 return (
-                    <Fieldset pb={10} pt={5} legend={<Text fw={500}>Tiles</Text>}>
-                        <Box className='option-container'>
-                            <Text size='sm' fw={500}>Source</Text>
+                    <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Tiles</div>}>
+                        {createOptionsItem('Source',
                             <Select
                                 data={tileSources}
                                 defaultValue={tileConfig.tileSourceUrl}
                                 onChange={value => handleInputChange('tileSourceUrl', value)}
                                 searchable
                             />
-                        </Box>
+                        )}
                     </Fieldset>
                 );
             case 'heatmap':
                 return (
-                    <Fieldset pb={10} pt={5} legend={<Text fw={500}>Heatmap</Text>}>
-                        <Box className='option-container'>
-                            <Text size='sm' style={{ width: 50 }} fw={500}>Blur</Text>
-                            <Text size='sm' style={{ width: 20 }} fw={500}>{heatmapConfig.blur}</Text>
+                    <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Heatmap</div>}>
+                        <div className={styles.optionsItem}>
+                            <div className={styles.label} style={{ width: 50 }} >Blur</div>
+                            <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.blur}</div>
                             <Slider
                                 defaultValue={heatmapConfig.blur}
                                 min={0}
@@ -148,11 +169,11 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                 style={{ flexGrow: 1, maxWidth: "200px" }}
                                 label={null}
                             />
-                        </Box>
+                        </div>
 
-                        <Box className='option-container'>
-                            <Text size='sm' style={{ width: 50 }} fw={500}>Radius</Text>
-                            <Text size='sm' style={{ width: 20 }} fw={500}>{heatmapConfig.radius}</Text>
+                        <div className={styles.optionsItem}>
+                            <div className={styles.label} style={{ width: 50 }} >Radius</div>
+                            <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.radius}</div>
                             <Slider
                                 defaultValue={heatmapConfig.radius}
                                 min={0}
@@ -162,36 +183,18 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                 style={{ flexGrow: 1, maxWidth: "200px" }}
                                 label={null}
                             />
-                        </Box>
+                        </div>
                     </Fieldset>
                 )
             case "bin":
                 return (
                     <div>
-                        <Fieldset pb={10} pt={5} legend={<Text fw={500}>Bins</Text>}>
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Layer Type</Text>
-                                <Chip.Group multiple={false} value={binConfig.isVectorImage ? 'VectorImage' : 'Vector'} onChange={value => handleInputChange('isVectorImage', value === 'VectorImage')}>
-                                    <Group gap="5px">{chipsForValues(['VectorImage', 'Vector'], false)}</Group>
-                                </Chip.Group>
-                            </Box>
+                        <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Bins</div>}>
 
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Bin Type</Text>
-                                <Chip.Group multiple={false} value={binConfig.binType} onChange={value => handleInputChange('binType', value)}>
-                                    <Group gap="5px">{chipsForValues(['hex', 'grid', 'feature'], true)}</Group>
-                                </Chip.Group>
-                            </Box>
-
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Hex Style</Text>
-                                <Chip.Group multiple={false} value={binConfig.hexStyle} onChange={value => handleInputChange('hexStyle', value)}>
-                                    <Group gap="5px">{chipsForValues(['pointy', 'flat'], true, binConfig.binType !== 'hex')}</Group>
-                                </Chip.Group>
-                            </Box>
-
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Bin Size</Text>
+                            {createChipsOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
+                            {createChipsOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
+                            {createChipsOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
+                            {createOptionsItem('Bin Size',
                                 <NumberInput
                                     min={0}
                                     max={binConfig.binType === 'hex' ? 1000000 : 10}
@@ -202,24 +205,13 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                     disabled={binConfig.binType === 'feature'}
                                     inputSize='10'
                                 />
-                            </Box>
+                            )}
 
                         </Fieldset>
-                        <Fieldset pb={10} pt={5} legend={<Text fw={500}>Data</Text>}>
+                        <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Data</div>}>
 
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Agg Func</Text>
-                                <Chip.Group multiple={false} value={binConfig.aggFuncName} onChange={value => handleInputChange('aggFuncName', value)}>
-                                    <Group gap="5px">{chipsForValues(['max', 'min', 'sum', 'len', 'avg'], true)}</Group>
-                                </Chip.Group>
-                            </Box>
-
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Interval</Text>
-                                <Chip.Group multiple={false} value={binConfig.intervalMode} onChange={value => handleInputChange('intervalMode', value)} >
-                                    <Group gap="5px">{chipsForValues(['full', 'IQR', 'custom'], true)}</Group>
-                                </Chip.Group>
-                            </Box>
+                            {createChipsOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
+                            {createChipsOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
 
                             <RangeSlider
                                 min={intervalSliderValues.min}
@@ -227,7 +219,6 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                 step={1}
                                 value={intervalSliderValues.values as any}
                                 onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
-                                // labelAlwaysOn
                                 onChangeEnd={value => {
                                     binConfig.customMin = value[0];
                                     binConfig.customMax = value[1];
@@ -237,27 +228,18 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             />
 
                         </Fieldset>
-                        <Fieldset pb={10} pt={5} legend={<Text fw={500}>Colors</Text>}>
+                        <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Colors</div>}>
 
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Color Mode</Text>
-                                <Chip.Group multiple={false} value={binConfig.colorMode} onChange={value => handleInputChange('colorMode', value)}>
-                                    <Group gap="5px">{chipsForValues(['gradient', 'step'], true)}</Group>
-                                </Chip.Group>
-                            </Box>
-
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Color Scale</Text>
+                            {createChipsOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
+                            {createOptionsItem('Color Scale',
                                 <Select
                                     data={Object.keys(chroma.brewer)}
                                     defaultValue={binConfig.colorScaleName}
                                     onChange={value => handleInputChange('colorScaleName', value)}
                                     searchable
                                 />
-                            </Box>
-
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Num Color Steps</Text>
+                            )}
+                            {createOptionsItem('Num Color Steps',
                                 <NumberInput
                                     min={0}
                                     max={16}
@@ -268,21 +250,13 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                     disabled={binConfig.colorMode !== 'step'}
                                     inputSize='4'
                                 />
-                            </Box>
-
-                            <Box className='option-container'>
-                                <Text size='sm' fw={500}>Background Color</Text>
-                                <Chip.Group multiple={false} value={binConfig.backgroundColorMode} onChange={value => handleInputChange('backgroundColorMode', value)}>
-                                    <Group gap="5px">{chipsForValues(['auto', 'custom', 'none'], true)}</Group>
-                                </Chip.Group>
-                            </Box>
+                            )}
+                            {createChipsOptionsItem('backgroundColorMode', 'Background Color', ['auto', 'custom', 'none'], true, false)}
 
                             <ColorInput
                                 defaultValue={binConfig.customBackgroundColor}
                                 value={binConfig.backgroundColorMode !== 'custom' ? getBackgroundColor(binConfig) : undefined}
                                 disabled={binConfig.backgroundColorMode !== 'custom'}
-                                // fixOnBlur={false}
-                                // onChangeEnd={value => handleInputChange('customBackgroundColor', value)} // TODO: would be preferrable but gets wrong value for some reason
                                 onChange={value => handleInputChange('customBackgroundColor', value)}
                                 style={{ maxWidth: 200, paddingLeft: 5 }}
                             />
@@ -311,14 +285,14 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     }, [binConfig.binType]);
 
     return (
-        <div className='layer-options'>
+        <div className={styles.optionsGroup}>
 
-            <Text size='md' fw={700} ml={25}>{config.id}</Text>
-            <Fieldset pb={10} pt={5} legend={<Text fw={500}>General</Text>}>
-                <Box className='option-container'>
+            <div className={styles.title}>{config.id}</div>
+            <Fieldset pb={10} pt={5} legend={<div className={styles.title}>General</div>}>
+                <div className={styles.optionsItem}>
 
-                    <Text size='sm' fw={500}>Visibility</Text>
-                    <Box className='option-container' style={{ flexGrow: 1 }}>
+                    <div className={styles.label}>Visibility</div>
+                    <div className={styles.optionsItem} style={{ flexGrow: 1 }}>
 
                         <ActionIcon
                             onClick={() => handleInputChange('visible', !config.visible)}
@@ -328,7 +302,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             {config.visible ? <IconEye /> : <IconEyeClosed />}
                         </ActionIcon>
 
-                        <Text style={{ width: 40 }}>{config.opacity + '%'}</Text>
+                        <div style={{ width: 40 }}>{config.opacity + '%'}</div>
                         <Slider
                             defaultValue={config.opacity}
                             min={0}
@@ -339,17 +313,17 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             disabled={!config.visible}
                             label={null}
                         />
-                    </Box>
-                </Box>
-                <Box className='option-container'>
-                    <Text size='sm' fw={500}>z-index</Text>
+                    </div>
+                </div>
+                <div className={styles.optionsItem}>
+                    <div className={styles.label}>z-index</div>
                     <NumberInput
                         defaultValue={`${config.zIndex || 0}`}
                         allowDecimal={false}
                         onChange={value => handleInputChange('zIndex', value)}
                         inputSize='2'
                     />
-                </Box>
+                </div>
 
             </Fieldset>
             {controlForType(config.layerType)}

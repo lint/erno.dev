@@ -24,7 +24,7 @@ import Style from 'ol/style/Style';
 import HeatmapLayer from 'ol/layer/Heatmap.js';
 import React, { useEffect, useRef } from 'react';
 import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
-import './maps.css';
+import styles from './BinMap.module.css';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
@@ -52,7 +52,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     const minRadius = 1; // minimum radius used for 'point' hex style
     const layersRef = useRef({} as any); // maps id => layer object
     const prevLayerConfigs = useRef(layerConfigs); // stores previous version of layerConfigs for later comparision
-    const optionsTriggeringReload = ['isVectorImage', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval'];
+    const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval'];
     const binMaxesRef = useRef({} as any);
 
     // handle selection of a feature
@@ -262,9 +262,9 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     // create and return a new bin layer
     function createBinLayer(binLayerConfig: BinLayerOptions) {
 
-        console.log("creating new bin layer", binLayerConfig.binType, binLayerConfig.isVectorImage);
+        console.log("creating new bin layer", binLayerConfig.binType, binLayerConfig.layerClass);
 
-        let vClass = binLayerConfig.isVectorImage ? VectorImageLayer : VectorLayer;
+        let vClass = binLayerConfig.layerClass === 'VectorImage' ? VectorImageLayer : VectorLayer;
         const binLayer = new vClass({
             source: createBins(binLayerConfig),
             opacity: Number(binLayerConfig.opacity) / 100,
@@ -507,6 +507,6 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     }, [features]);
 
     return (
-        <div ref={mapContainerRef} className="map" />
+        <div ref={mapContainerRef} className={styles.map} />
     );
 }

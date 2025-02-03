@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
-import './maps.css';
 import { Map } from 'ol';
 import Feature from 'ol/Feature.js';
 import Point from 'ol/geom/Point.js';
@@ -14,6 +13,7 @@ import { BinMapView } from './BinMapView';
 import Geometry from 'ol/geom/Geometry';
 import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
 import BinMapLayerControl from './BinMapLayerControl';
+import styles from './BinMap.module.css';
 
 const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
 
@@ -23,7 +23,7 @@ export function BinMap() {
 
     const mapRef = useRef<Map>();
     const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
-    const legendContainerRef = useRef(null);
+    // const legendContainerRef = useRef(null);
     const [reloadState, setReloadState] = useState(false);
 
     const [cachedFeatures, setCachedFeatures] = useState({});
@@ -57,7 +57,7 @@ export function BinMap() {
             binType: "hex",
             binSize: 0,
             aggFuncName: "max",
-            isVectorImage: true,
+            layerClass: 'VectorImage',
             numColorSteps: 5,
             colorScaleName: "Viridis",
             customMin: 1,
@@ -178,13 +178,13 @@ export function BinMap() {
 
 
     // returns the chroma js color scale for the currently selected input
-    function getColorScale() {
-        // let scaleName = optionsRef.current.colorScaleName;
-        // TODO: better legend system now that you can have multiple bin layers
-        let scaleName = 'viridis';
-        let scale = chroma.scale(scaleName);
-        return scale
-    }
+    // function getColorScale() {
+    //     // let scaleName = optionsRef.current.colorScaleName;
+    //     // TODO: better legend system now that you can have multiple bin layers
+    //     let scaleName = 'viridis';
+    //     let scale = chroma.scale(scaleName);
+    //     return scale
+    // }
 
     // update legend colors
     // function refreshLegend() {
@@ -340,8 +340,8 @@ export function BinMap() {
     // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
 
     return (
-        <div className='map-container'>
-            <div className='map-settings'>
+        <div className={styles.page}>
+            <div className={styles.sidebar}>
                 {layerConfigs.map(layerConfig => {
                     if (layerConfig.layerType === 'bin') {
                         return <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} binRange={binLayerRanges[layerConfig.id]} key={layerConfig.id} />
@@ -349,18 +349,14 @@ export function BinMap() {
                         return <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} key={layerConfig.id} />
                     }
                 })}
-                <div ref={legendContainerRef} className="legend-container">
+                {/* <div ref={legendContainerRef} className="legend-container">
                     <div className="gradient">
                         {getColorScale().colors(100).map((color, index) => (
                             <span className="grad-step" key={index} style={{ backgroundColor: color }}></span>
                         ))}
                     </div>
-                </div>
-                <div>
-                    <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
-                    <button onClick={handleResetFeaturesButton}>Reset Features</button>
-                    <button onClick={handlePrintExtentButton}>Print Extent</button>
-                </div>
+                </div> */}
+
                 <div>
                     <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
                     <div id="TODO-MOVE-state-chkboxes">
@@ -387,6 +383,11 @@ export function BinMap() {
                     </select>
                     <button onClick={handleSelectAllStates}>Select All</button>
                     <button onClick={handleClearAllStates}>Clear All</button>
+                </div>
+                <div>
+                    <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
+                    <button onClick={handleResetFeaturesButton}>Reset Features</button>
+                    <button onClick={handlePrintExtentButton}>Print Extent</button>
                 </div>
             </div>
             <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} mapCallback={handleMapRefFromView} rangesCallback={setBinLayerRanges} />

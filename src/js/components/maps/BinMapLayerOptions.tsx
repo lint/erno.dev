@@ -22,9 +22,9 @@ export interface BinLayerOptions extends BaseLayerOptions {
     hexStyle: string;
     colorMode: string;
     binType: string;
+    layerClass: string;
     binSize: number;
     aggFuncName: string;
-    isVectorImage: boolean;
     numColorSteps: number;
     colorScaleName: string;
     customMin: number;

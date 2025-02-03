@@ -1,21 +1,43 @@
-.map {
-    width: 100vw;
-}
-
-.map-container {
+.page {
     display: flex;
     flex-direction: row;
     height: 100%;
 }
 
-.map-settings {
+.map {
+    width: 100%;
+}
+
+.sidebar {
     max-width: 20%;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
 
-.gradient .domain-min {
+/* .optionsGroup {} */
+
+.optionsItem {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0;
+}
+
+.label {
+    font-weight: 500;
+    font-size: var(--mantine-font-size-sm);
+}
+
+.title {
+    font-weight: 700;
+    font-size: var(--mantine-font-size-md);
+}
+
+
+/* .gradient .domain-min {
     position: absolute;
     left: 0;
     font-size: 11px;
@@ -42,21 +64,4 @@
     display: inline-block;
     height: 20px;
     width: 1%;
-}
-
-.legend-container {
-    max-width: 500px;
-}
-
-.layer-options {
-    border-bottom: solid 2px #444;
-}
-
-.option-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    margin: 4px 0;
-}
+} */
