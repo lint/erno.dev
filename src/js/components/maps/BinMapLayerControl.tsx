@@ -119,6 +119,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         value={`${config[configKey as keyof typeof config]}`}
                         onChange={value => handleInputChange(configKey, value)}
                         color="blue"
+                        disabled={disabled}
                     />
                 );
                 break;
@@ -131,7 +132,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     function createOptionsItem(label: string, node: React.ReactNode) {
         return (
             <div className={styles.optionsItem}>
-                <div className={styles.label}>{label}</div>
+                <div className={`${styles.optionsLabel} ${styles.label}`}>{label}</div>
                 {node}
             </div>
         );
@@ -174,35 +175,36 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
             case 'heatmap':
                 return (
                     <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Heatmap</div>}>
-                        <div className={styles.optionsItem}>
-                            <div className={styles.label} style={{ width: 50 }} >Blur</div>
-                            <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.blur}</div>
-                            <Slider
-                                defaultValue={heatmapConfig.blur}
-                                min={0}
-                                max={100}
-                                step={1}
-                                onChange={value => handleInputChange('blur', value)}
-                                style={{ flexGrow: 1, maxWidth: "200px" }}
-                                label={null}
-                            />
-                        </div>
-
-                        <div className={styles.optionsItem}>
-                            <div className={styles.label} style={{ width: 50 }} >Radius</div>
-                            <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.radius}</div>
-                            <Slider
-                                defaultValue={heatmapConfig.radius}
-                                min={0}
-                                max={50}
-                                step={0.5}
-                                onChange={value => handleInputChange('radius', value)}
-                                style={{ flexGrow: 1, maxWidth: "200px" }}
-                                label={null}
-                            />
-                        </div>
+                        {createOptionsItem('Blur',
+                            <>
+                                <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.blur}</div>
+                                <Slider
+                                    defaultValue={heatmapConfig.blur}
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    onChange={value => handleInputChange('blur', value)}
+                                    style={{ flexGrow: 1, maxWidth: "200px" }}
+                                    label={null}
+                                />
+                            </>
+                        )}
+                        {createOptionsItem('Radius',
+                            <>
+                                <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.radius}</div>
+                                <Slider
+                                    defaultValue={heatmapConfig.radius}
+                                    min={0}
+                                    max={50}
+                                    step={0.5}
+                                    onChange={value => handleInputChange('radius', value)}
+                                    style={{ flexGrow: 1, maxWidth: "200px" }}
+                                    label={null}
+                                />
+                            </>
+                        )}
                     </Fieldset>
-                )
+                );
             case "bin":
                 return (
                     <div>
@@ -229,34 +231,28 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
 
                             {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
                             {createSingleSelectOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
-
-                            <RangeSlider
-                                min={intervalSliderValues.min}
-                                max={intervalSliderValues.max}
-                                step={1}
-                                value={intervalSliderValues.values as any}
-                                onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
-                                onChangeEnd={value => {
-                                    binConfig.customMin = value[0];
-                                    binConfig.customMax = value[1];
-                                    updateCallback({ ...config });
-                                }}
-                                disabled={binConfig.intervalMode !== 'custom'}
-                            />
+                            {createOptionsItem('',
+                                <RangeSlider
+                                    min={intervalSliderValues.min}
+                                    max={intervalSliderValues.max}
+                                    step={1}
+                                    value={intervalSliderValues.values as any}
+                                    onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
+                                    onChangeEnd={value => {
+                                        binConfig.customMin = value[0];
+                                        binConfig.customMax = value[1];
+                                        updateCallback({ ...config });
+                                    }}
+                                    disabled={binConfig.intervalMode !== 'custom'}
+                                    style={{ width: '200px' }}
+                                />
+                            )}
 
                         </Fieldset>
                         <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Colors</div>}>
 
                             {createSingleSelectOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
-                            {createOptionsItem('Color Scale',
-                                <Select
-                                    data={Object.keys(chroma.brewer)}
-                                    defaultValue={binConfig.colorScaleName}
-                                    onChange={value => handleInputChange('colorScaleName', value)}
-                                    searchable
-                                />
-                            )}
-                            {createOptionsItem('Num Color Steps',
+                            {createOptionsItem('Steps',
                                 <NumberInput
                                     min={0}
                                     max={16}
@@ -268,15 +264,24 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                     inputSize='4'
                                 />
                             )}
-                            {createSingleSelectOptionsItem('backgroundColorMode', 'Background Color', ['auto', 'custom', 'none'], true, false)}
-
-                            <ColorInput
-                                defaultValue={binConfig.customBackgroundColor}
-                                value={binConfig.backgroundColorMode !== 'custom' ? getBackgroundColor(binConfig) : undefined}
-                                disabled={binConfig.backgroundColorMode !== 'custom'}
-                                onChange={value => handleInputChange('customBackgroundColor', value)}
-                                style={{ maxWidth: 200, paddingLeft: 5 }}
-                            />
+                            {createOptionsItem('Color Scale',
+                                <Select
+                                    data={Object.keys(chroma.brewer)}
+                                    defaultValue={binConfig.colorScaleName}
+                                    onChange={value => handleInputChange('colorScaleName', value)}
+                                    searchable
+                                />
+                            )}
+                            {createSingleSelectOptionsItem('backgroundColorMode', 'Background', ['auto', 'custom', 'none'], true, false)}
+                            {createOptionsItem('',
+                                <ColorInput
+                                    defaultValue={binConfig.customBackgroundColor}
+                                    value={binConfig.backgroundColorMode !== 'custom' ? getBackgroundColor(binConfig) : undefined}
+                                    disabled={binConfig.backgroundColorMode !== 'custom'}
+                                    onChange={value => handleInputChange('customBackgroundColor', value)}
+                                    style={{ maxWidth: 200 }}
+                                />
+                            )}
 
                         </Fieldset>
                     </div>
@@ -306,11 +311,8 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
 
             <div className={styles.title}>{config.id}</div>
             <Fieldset pb={10} pt={5} legend={<div className={styles.title}>General</div>}>
-                <div className={styles.optionsItem}>
-
-                    <div className={styles.label}>Visibility</div>
-                    <div className={styles.optionsItem} style={{ flexGrow: 1 }}>
-
+                {createOptionsItem('Visibility',
+                    <>
                         <ActionIcon
                             onClick={() => handleInputChange('visible', !config.visible)}
                             title={'Enable/Disable Layer'}
@@ -330,18 +332,16 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             disabled={!config.visible}
                             label={null}
                         />
-                    </div>
-                </div>
-                <div className={styles.optionsItem}>
-                    <div className={styles.label}>z-index</div>
+                    </>
+                )}
+                {createOptionsItem('z-index',
                     <NumberInput
                         defaultValue={`${config.zIndex || 0}`}
                         allowDecimal={false}
                         onChange={value => handleInputChange('zIndex', value)}
                         inputSize='2'
                     />
-                </div>
-
+                )}
             </Fieldset>
             {controlForType(config.layerType)}
         </div>

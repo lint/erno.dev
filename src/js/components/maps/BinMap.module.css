@@ -26,6 +26,11 @@
     margin: 4px 0;
 }
 
+.optionsLabel {
+    width: 80px;
+    text-align: right;
+}
+
 .label {
     font-weight: 500;
     font-size: var(--mantine-font-size-sm);
