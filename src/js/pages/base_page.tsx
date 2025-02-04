@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Navbar from '../components/navbar/navbar';
+import Navbar from '../components/layout/navbar';
 import './pages.css';
 
 export interface BasePageProps {

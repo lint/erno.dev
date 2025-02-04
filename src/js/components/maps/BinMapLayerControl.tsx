@@ -177,7 +177,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                     <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Heatmap</div>}>
                         {createOptionsItem('Blur',
                             <>
-                                <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.blur}</div>
+                                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
                                 <Slider
                                     defaultValue={heatmapConfig.blur}
                                     min={0}
@@ -191,7 +191,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         )}
                         {createOptionsItem('Radius',
                             <>
-                                <div className={styles.label} style={{ width: 20 }} >{heatmapConfig.radius}</div>
+                                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.radius}</div>
                                 <Slider
                                     defaultValue={heatmapConfig.radius}
                                     min={0}
@@ -308,8 +308,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
 
     return (
         <div className={styles.optionsGroup}>
-
-            <div className={styles.title}>{config.id}</div>
+            {/* <div className={styles.title}>{config.id}</div> */}
             <Fieldset pb={10} pt={5} legend={<div className={styles.title}>General</div>}>
                 {createOptionsItem('Visibility',
                     <>
@@ -321,7 +320,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             {config.visible ? <IconEye /> : <IconEyeClosed />}
                         </ActionIcon>
 
-                        <div style={{ width: 40 }}>{config.opacity + '%'}</div>
+                        <div style={{ width: 42 }}>{config.opacity + '%'}</div>
                         <Slider
                             defaultValue={config.opacity}
                             min={0}

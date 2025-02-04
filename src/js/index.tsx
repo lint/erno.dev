@@ -20,7 +20,7 @@ import outputs from '../../amplify_outputs.json';
 
 // mantine ui
 import '@mantine/core/styles.css';
-import { createTheme, MantineProvider } from '@mantine/core';
+import { createTheme, MantineProvider, virtualColor } from '@mantine/core';
 
 // configure application
 Amplify.configure(outputs);
@@ -48,6 +48,13 @@ const router = createBrowserRouter([
 // create mantine theme
 const theme = createTheme({
     fontFamily: "font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif", // https://systemfontstack.com
+    colors: {
+        primary: virtualColor({
+            name: 'primary',
+            dark: 'pink',
+            light: 'cyan',
+        }),
+    },
 });
 
 // main app component

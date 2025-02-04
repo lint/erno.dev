@@ -1,0 +1,23 @@
+.sidebar {
+    width: 20%;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+
+}
+
+.content {
+    width: 100%;
+    overflow-y: scroll;
+}
+
+.nav {
+
+    width: 42px;
+    display: flex;
+    flex-direction: column;
+
+    .item {
+        border-radius: 5px;
+    }
+}

@@ -14,6 +14,9 @@ import Geometry from 'ol/geom/Geometry';
 import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
 import BinMapLayerControl from './BinMapLayerControl';
 import styles from './BinMap.module.css';
+import { Accordion } from '@mantine/core';
+import { IconStackFront, IconTableFilled } from '@tabler/icons-react';
+import SideBar from '../layout/sidebar';
 
 const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
 
@@ -91,6 +94,8 @@ export function BinMap() {
     const resEnabledRef = useRef({});
     const defaultEnabledStates = [...usStates];
     // const defaultEnabledStates = ['pa'];
+
+
 
     // handler method to add random features to the dataset
     function handleRandomFeaturesButton() {
@@ -339,58 +344,82 @@ export function BinMap() {
     //     refreshLegend();
     // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
 
+    const layerConfigComponents = (
+        <Accordion multiple defaultValue={layerConfigs.map(config => config.id)} className={styles.layerConfigs} classNames={{ content: styles.content }}>
+            {layerConfigs.map(layerConfig => (
+                <Accordion.Item value={layerConfig.id}>
+                    <Accordion.Control>
+                        <div className={styles.title}>
+                            {layerConfig.id}
+                        </div>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                        <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} binRange={binLayerRanges[layerConfig.id]} key={layerConfig.id} />
+                    </Accordion.Panel>
+                </Accordion.Item>
+            ))}
+        </Accordion>
+    );
+    const dataComponents = (<>
+        <div>
+            <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
+            <div id="TODO-MOVE-state-chkboxes">
+                {
+                    usStates.map((state) => {
+                        let displayName = state.toUpperCase();
+                        return (
+                            <span style={{ display: 'inline-block', width: '50px' }} key={"input-" + state}>
+                                <input id={"load-chkbox-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
+                                <label htmlFor={"load-chkbox-" + state} >{displayName}</label>
+                            </span>
+                        );
+                    })
+                }
+            </div>
+            <label htmlFor="TODO-MOVE-res-size-input">Data Resolution:</label>
+            <select id="TODO-MOVE-res-size-input" name="TODO-MOVE-res-size-input" defaultValue="res-0.5" ref={resSelectRef} onChange={handleResetFeaturesButton}>
+                <option value="res-0.01">res-0.01</option>
+                <option value="res-0.05">res-0.05</option>
+                <option value="res-0.1">res-0.1</option>
+                <option value="res-0.5">res-0.5</option>
+                <option value="res-1">res-1</option>
+                <option value="res-5">res-5</option>
+            </select>
+            <button onClick={handleSelectAllStates}>Select All</button>
+            <button onClick={handleClearAllStates}>Clear All</button>
+        </div>
+        <div>
+            <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
+            <button onClick={handleResetFeaturesButton}>Reset Features</button>
+            <button onClick={handlePrintExtentButton}>Print Extent</button>
+        </div>
+    </>);
+
+    const sidebarItems = [
+        {
+            label: "Layers",
+            icon: IconStackFront,
+            content: layerConfigComponents,
+        },
+        {
+            label: "Data",
+            icon: IconTableFilled,
+            content: dataComponents,
+        }
+    ];
+
     return (
         <div className={styles.page}>
-            <div className={styles.sidebar}>
-                {layerConfigs.map(layerConfig => {
-                    if (layerConfig.layerType === 'bin') {
-                        return <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} binRange={binLayerRanges[layerConfig.id]} key={layerConfig.id} />
-                    } else {
-                        return <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} key={layerConfig.id} />
-                    }
-                })}
-                {/* <div ref={legendContainerRef} className="legend-container">
+            {/* <div ref={legendContainerRef} className="legend-container">
                     <div className="gradient">
                         {getColorScale().colors(100).map((color, index) => (
                             <span className="grad-step" key={index} style={{ backgroundColor: color }}></span>
                         ))}
                     </div>
-                </div> */}
+            </div> */}
 
-                <div>
-                    <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
-                    <div id="TODO-MOVE-state-chkboxes">
-                        {
-                            usStates.map((state) => {
-                                let displayName = state.toUpperCase();
-                                return (
-                                    <span style={{ display: 'inline-block', width: '50px' }} key={"input-" + state}>
-                                        <input id={"load-chkbox-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
-                                        <label htmlFor={"load-chkbox-" + state} >{displayName}</label>
-                                    </span>
-                                );
-                            })
-                        }
-                    </div>
-                    <label htmlFor="TODO-MOVE-res-size-input">Data Resolution:</label>
-                    <select id="TODO-MOVE-res-size-input" name="TODO-MOVE-res-size-input" defaultValue="res-0.5" ref={resSelectRef} onChange={handleResetFeaturesButton}>
-                        <option value="res-0.01">res-0.01</option>
-                        <option value="res-0.05">res-0.05</option>
-                        <option value="res-0.1">res-0.1</option>
-                        <option value="res-0.5">res-0.5</option>
-                        <option value="res-1">res-1</option>
-                        <option value="res-5">res-5</option>
-                    </select>
-                    <button onClick={handleSelectAllStates}>Select All</button>
-                    <button onClick={handleClearAllStates}>Clear All</button>
-                </div>
-                <div>
-                    <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
-                    <button onClick={handleResetFeaturesButton}>Reset Features</button>
-                    <button onClick={handlePrintExtentButton}>Print Extent</button>
-                </div>
-            </div>
+            <SideBar items={sidebarItems} />
             <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} mapCallback={handleMapRefFromView} rangesCallback={setBinLayerRanges} />
-        </div>
+        </div >
     );
 }
