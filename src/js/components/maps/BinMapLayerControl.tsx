@@ -161,7 +161,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         switch (layerType) {
             case "tile":
                 return (
-                    <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Tiles</div>}>
+                    <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Tiles</div>}>
                         {createOptionsItem('Source',
                             <Select
                                 data={tileSources}
@@ -174,7 +174,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                 );
             case 'heatmap':
                 return (
-                    <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Heatmap</div>}>
+                    <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Heatmap</div>}>
                         {createOptionsItem('Blur',
                             <>
                                 <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
@@ -208,7 +208,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
             case "bin":
                 return (
                     <div>
-                        <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Bins</div>}>
+                        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Bins</div>}>
 
                             {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
                             {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
@@ -227,7 +227,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             )}
 
                         </Fieldset>
-                        <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Data</div>}>
+                        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Data</div>}>
 
                             {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
                             {createSingleSelectOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
@@ -249,7 +249,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             )}
 
                         </Fieldset>
-                        <Fieldset pb={10} pt={5} legend={<div className={styles.title}>Colors</div>}>
+                        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Colors</div>}>
 
                             {createSingleSelectOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
                             {createOptionsItem('Steps',
@@ -309,7 +309,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     return (
         <div className={styles.optionsGroup}>
             {/* <div className={styles.title}>{config.id}</div> */}
-            <Fieldset pb={10} pt={5} legend={<div className={styles.title}>General</div>}>
+            <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>General</div>}>
                 {createOptionsItem('Visibility',
                     <>
                         <ActionIcon

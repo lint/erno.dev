@@ -7,22 +7,38 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    color: white;
+    color: var(--color-text-primary);
     /* background-color: var(--mantine-color-dark-7); */
-    background-color: #222;
+    background-color: var(--color-primary);
 }
 
 .link {
     all: unset;
     cursor: pointer;
-    color: var(--mantine-color-white);
+    color: var(--color-text-primary);
 
     &[data-active] {
         font-weight: bold;
+        color: var(--color-text-highlight)
     }
 }
 
 .linkList {
     display: flex;
     gap: 15px;
+}
+
+.rightItems {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    vertical-align: middle;
+    gap: 10px;
+}
+
+.outlineButton {
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
 }

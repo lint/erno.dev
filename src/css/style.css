@@ -1,3 +1,23 @@
+:root[data-mantine-color-scheme="dark"] {
+    --color-primary: #1A1A20;
+    --color-secondary: var(--mantine-color-gray-8);
+    --color-tertiary: #222327;
+    --color-action: #1553B8;
+    --color-text-primary: var(--mantine-color-gray-3);
+    --color-text-highlight: white;
+    --color-highlight: var(--mantine-color-gray-7);
+}
+
+:root[data-mantine-color-scheme="light"] {
+    --color-primary: var(--mantine-color-gray-3);
+    --color-secondary: var(--mantine-color-gray-4);
+    --color-tertiary: var(--mantine-color-gray-5);
+    --color-highlight: var(--mantine-color-gray-6);
+    --color-action: #1553B8;
+    --color-text-primary: var(--mantine-color-gray-9);
+    --color-text-highlight: #111;
+}
+
 body,
 html {
     height: 100%;
@@ -9,40 +29,6 @@ html {
     /* color-scheme: dark; */
 }
 
-.common-button {
-    all: unset;
-    background-color: #1553B8;
-    color: white;
-    padding: 5px 8px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.75em;
-}
-
-.text-1 {
-    font-size: 1em;
-}
-
-.text-1d25 {
-    font-size: 1.25em;
-}
-
-.text-1d5 {
-    font-size: 1.5em;
-}
-
-.text-2 {
-    font-size: 2em;
-}
-
-.text-4 {
-    font-size: 4em;
-}
-
 .unset {
     all: unset;
-}
-
-.interactive-blue {
-    color: #1553B8;
 }

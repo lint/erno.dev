@@ -15,7 +15,7 @@ import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOption
 import BinMapLayerControl from './BinMapLayerControl';
 import styles from './BinMap.module.css';
 import { Accordion } from '@mantine/core';
-import { IconStackFront, IconTableFilled } from '@tabler/icons-react';
+import { IconFlame, IconHexagons, IconMap, IconStackFront, IconTableFilled } from '@tabler/icons-react';
 import SideBar from '../layout/sidebar';
 
 const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
@@ -318,6 +318,18 @@ export function BinMap() {
         addPresetFeatures();
     }
 
+    // get the icon for a given layer type
+    function iconForLayerType(layerType: string) {
+        switch (layerType) {
+            case 'bin':
+                return <IconHexagons title='Bin Layer' />;
+            case 'heatmap':
+                return <IconFlame title='Heatmap Layer' />;
+            case 'tile':
+                return <IconMap title='Tile Layer' />;
+        }
+    }
+
     useEffect(() => {
 
         for (let state of usStates) {
@@ -345,10 +357,10 @@ export function BinMap() {
     // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
 
     const layerConfigComponents = (
-        <Accordion multiple defaultValue={layerConfigs.map(config => config.id)} className={styles.layerConfigs} classNames={{ content: styles.content }}>
+        <Accordion multiple defaultValue={layerConfigs.map(config => config.id)} className={styles.layerConfigs} classNames={{ label: styles.label, chevron: styles.chevron, control: styles.control, item: styles.item }}>
             {layerConfigs.map(layerConfig => (
                 <Accordion.Item value={layerConfig.id}>
-                    <Accordion.Control>
+                    <Accordion.Control icon={iconForLayerType(layerConfig.layerType)}>
                         <div className={styles.title}>
                             {layerConfig.id}
                         </div>

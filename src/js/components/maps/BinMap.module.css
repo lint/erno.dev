@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: row;
     height: 100%;
+    background-color: var(--color-primary);
 }
 
 .map {
@@ -35,6 +36,9 @@
     font-size: var(--mantine-font-size-md);
 }
 
+.fieldsetRoot {
+    border: solid 1px var(--color-highlight);
+}
 
 /* .gradient .domain-min {
     position: absolute;
@@ -65,7 +69,20 @@
     width: 1%;
 } */
 
-/* .layerConfigs {
-    .content {
+.layerConfigs {
+    .root {
+        color: var(--color-text-primary);
     }
-} */
+
+    .chevron,
+    .control,
+    .label,
+    .control:hover {
+        color: var(--color-text-primary);
+        background-color: var(--color-secondary);
+    }
+
+    .item {
+        border-bottom: solid 1px var(--color-highlight);
+    }
+}

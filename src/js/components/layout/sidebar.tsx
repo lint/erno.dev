@@ -45,6 +45,9 @@ export default function SideBar({ items }: SideBarProps) {
                 })}
             </div>
             <div className={styles.content}>
+                <div className={styles.header}>
+                    {active}
+                </div>
                 {contentForLabel(active)}
             </div>
         </div>

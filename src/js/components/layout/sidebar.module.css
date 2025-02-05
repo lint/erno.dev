@@ -1,9 +1,17 @@
 .sidebar {
-    width: 20%;
+    width: 22%;
     display: flex;
     flex-direction: row;
     overflow: hidden;
+    background-color: var(--color-secondary);
+    color: var(--color-text-primary);
 
+    .header {
+        color: var(--color-text-highlight);
+        font-weight: 700;
+        padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+        border-bottom: solid 1px var(--color-highlight)
+    }
 }
 
 .content {
@@ -13,11 +21,26 @@
 
 .nav {
 
-    width: 42px;
+    /* width: 64px; */
     display: flex;
     flex-direction: column;
+    background-color: var(--color-tertiary);
 
     .item {
-        border-radius: 5px;
+        padding: var(--mantine-spacing-xs);
+        color: var(--color-text-primary);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &[data-active] {
+            background-color: var(--color-highlight);
+            color: var(--color-text-highlight);
+        }
+
+        &:hover {
+            background-color: var(--color-primary);
+        }
     }
 }
