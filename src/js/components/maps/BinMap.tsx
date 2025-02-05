@@ -357,7 +357,7 @@ export function BinMap() {
     // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
 
     const layerConfigComponents = (
-        <Accordion multiple defaultValue={layerConfigs.map(config => config.id)} className={styles.layerConfigs} classNames={{ label: styles.label, chevron: styles.chevron, control: styles.control, item: styles.item }}>
+        <Accordion multiple defaultValue={["bin_test"]} className={styles.layerConfigs} classNames={{ label: styles.label, chevron: styles.chevron, control: styles.control, item: styles.item }}>
             {layerConfigs.map(layerConfig => (
                 <Accordion.Item value={layerConfig.id}>
                     <Accordion.Control icon={iconForLayerType(layerConfig.layerType)}>
