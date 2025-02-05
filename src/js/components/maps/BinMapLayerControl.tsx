@@ -218,7 +218,8 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                                     min={0}
                                     max={binConfig.binType === 'hex' ? 1000000 : 10}
                                     step={binConfig.binType === 'hex' ? 1000 : 0.1}
-                                    value={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
+                                    // TODO: weird behavior when switching tabs
+                                    defaultValue={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
                                     // allowDecimal={false}
                                     onChange={value => handleInputChange('binSize', value)}
                                     disabled={binConfig.binType === 'feature'}
