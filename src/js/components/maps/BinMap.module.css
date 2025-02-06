@@ -36,6 +36,12 @@
     font-size: var(--mantine-font-size-md);
 }
 
+.titleDisabled {
+    font-weight: 700;
+    font-size: var(--mantine-font-size-md);
+    color: var(--color-text-disabled);
+}
+
 .fieldsetRoot {
     border: solid 1px var(--color-highlight);
 }

@@ -5,6 +5,7 @@
     --color-action: #1553B8;
     --color-text-primary: var(--mantine-color-gray-3);
     --color-text-highlight: white;
+    --color-text-disabled: var(--mantine-color-gray-6);
     --color-highlight: var(--mantine-color-gray-7);
 }
 
@@ -16,6 +17,8 @@
     --color-action: #1553B8;
     --color-text-primary: var(--mantine-color-gray-9);
     --color-text-highlight: #111;
+    --color-text-disabled: var(--mantine-color-gray-6);
+
 }
 
 body,

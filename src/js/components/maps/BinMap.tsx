@@ -404,8 +404,8 @@ export function BinMap() {
         >
             {layerConfigs.map(layerConfig => (
                 <Accordion.Item value={layerConfig.id}>
-                    <Accordion.Control icon={iconForLayerType(layerConfig.layerType)}>
-                        <div className={styles.title}>
+                    <Accordion.Control classNames={{ icon: layerConfig.visible ? styles.title : styles.titleDisabled }} icon={iconForLayerType(layerConfig.layerType)}>
+                        <div className={layerConfig.visible ? styles.title : styles.titleDisabled}>
                             {layerConfig.title}
                         </div>
                     </Accordion.Control>
