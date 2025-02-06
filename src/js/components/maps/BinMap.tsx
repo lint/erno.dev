@@ -11,7 +11,7 @@ import chroma from 'chroma-js';
 import GeoJSON from 'ol/format/GeoJSON';
 import { BinMapView } from './BinMapView';
 import Geometry from 'ol/geom/Geometry';
-import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, LayerDisplayInfo, LayerDisplayInfoSet, TileLayerOptions } from './BinMapLayerOptions';
 import BinMapLayerControl from './BinMapLayerControl';
 import styles from './BinMap.module.css';
 import { Accordion } from '@mantine/core';
@@ -26,14 +26,19 @@ export function BinMap() {
 
     const mapRef = useRef<Map>();
     const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
+
+    const resSelectRef = useRef(null);
+    const resEnabledRef = useRef({});
+    const defaultEnabledStates = [...usStates];
+    const defaultExpandedLayerControls = ['bin_test'];
     // const legendContainerRef = useRef(null);
-    const [reloadState, setReloadState] = useState(false);
 
     const [cachedFeatures, setCachedFeatures] = useState({});
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
     const defaultLayerConfigs = [
         {
             id: "tile_test",
+            title: "Tile Layer",
             layerType: "tile",
             visible: true,
             opacity: 100,
@@ -41,17 +46,8 @@ export function BinMap() {
             zIndex: 1,
         } as TileLayerOptions,
         {
-            id: "heatmap_test",
-            layerType: "heatmap",
-            visible: false,
-            opacity: 100,
-            zIndex: 3,
-            blur: 10,
-            radius: 10,
-            followsBinLayerId: 'bin_test'
-        } as HeatmapLayerOptions,
-        {
             id: "bin_test",
+            title: "Bin Layer",
             layerType: "bin",
             visible: true,
             opacity: 100,
@@ -70,6 +66,17 @@ export function BinMap() {
             backgroundColorMode: 'none',
             customBackgroundColor: chroma.scale("Viridis")(0).darken().hex(),
         } as BinLayerOptions,
+        {
+            id: "heatmap_test",
+            title: "Heatmap Layer",
+            layerType: "heatmap",
+            visible: false,
+            opacity: 100,
+            zIndex: 3,
+            blur: 10,
+            radius: 10,
+            followsBinLayerId: 'bin_test'
+        } as HeatmapLayerOptions,
         // {
         //     id: "bin_test2",
         //     layerType: "bin",
@@ -88,14 +95,22 @@ export function BinMap() {
         // } as BinLayerOptions, 
     ];
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
-    const [binLayerRanges, setBinLayerRanges] = useState<any>({});
+    const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(createLayerDisplaySet());
 
-    const resSelectRef = useRef(null);
-    const resEnabledRef = useRef({});
-    const defaultEnabledStates = [...usStates];
-    // const defaultEnabledStates = ['pa'];
+    function createLayerDisplaySet() {
 
+        let displaySet: LayerDisplayInfoSet = {};
 
+        for (let config of layerConfigs) {
+            let displayInfo: LayerDisplayInfo = {
+                controlExpanded: defaultExpandedLayerControls.indexOf(config.id) > -1,
+                binRanges: undefined
+            };
+            displaySet[config.id] = displayInfo;
+        }
+
+        return displaySet;
+    }
 
     // handler method to add random features to the dataset
     function handleRandomFeaturesButton() {
@@ -231,6 +246,31 @@ export function BinMap() {
         mapRef.current = map;
     }
 
+    function handleRangesCallback(displaySet: LayerDisplayInfoSet) {
+        for (let id in displaySet) {
+            if (!(id in layerInfos)) continue;
+            layerInfos[id].binRanges = displaySet[id].binRanges;
+        }
+        setLayerInfos(oldLayerInfos => ({ ...oldLayerInfos }));
+    }
+
+    function handleLayerExpandedChanged(ids: string[]) {
+        for (let id in layerInfos) {
+            layerInfos[id].controlExpanded = ids.indexOf(id) > -1;
+        }
+        setLayerInfos(oldLayerInfos => ({ ...oldLayerInfos }));
+    }
+
+    function getExpandedLayers() {
+        let expandedLayers = [];
+
+        for (let id in layerInfos) {
+            if (layerInfos[id].controlExpanded) expandedLayers.push(id);
+        }
+
+        return expandedLayers;
+    }
+
     function handleLayerControlChange(updatedLayerConfig: BaseLayerOptions) {
 
         setLayerConfigs((oldLayerConfigs) => {
@@ -304,7 +344,6 @@ export function BinMap() {
 
         updateStateCheckboxes();
         setFeatures([]);
-        setReloadState(!reloadState);
         addPresetFeatures();
     }
 
@@ -314,7 +353,6 @@ export function BinMap() {
         }
         updateStateCheckboxes();
         setFeatures([]);
-        setReloadState(!reloadState);
         addPresetFeatures();
     }
 
@@ -357,16 +395,22 @@ export function BinMap() {
     // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
 
     const layerConfigComponents = (
-        <Accordion multiple defaultValue={["bin_test"]} className={styles.layerConfigs} classNames={{ label: styles.label, chevron: styles.chevron, control: styles.control, item: styles.item }}>
+        <Accordion
+            multiple
+            defaultValue={getExpandedLayers()}
+            className={styles.layerConfigs}
+            classNames={{ label: styles.label, chevron: styles.chevron, control: styles.control, item: styles.item }}
+            onChange={handleLayerExpandedChanged}
+        >
             {layerConfigs.map(layerConfig => (
                 <Accordion.Item value={layerConfig.id}>
                     <Accordion.Control icon={iconForLayerType(layerConfig.layerType)}>
                         <div className={styles.title}>
-                            {layerConfig.id}
+                            {layerConfig.title}
                         </div>
                     </Accordion.Control>
                     <Accordion.Panel>
-                        <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} binRange={binLayerRanges[layerConfig.id]} key={layerConfig.id} />
+                        <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} binRange={layerInfos[layerConfig.id].binRanges} key={layerConfig.id} />
                     </Accordion.Panel>
                 </Accordion.Item>
             ))}
@@ -377,15 +421,12 @@ export function BinMap() {
             <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
             <div id="TODO-MOVE-state-chkboxes">
                 {
-                    usStates.map((state) => {
-                        let displayName = state.toUpperCase();
-                        return (
-                            <span style={{ display: 'inline-block', width: '50px' }} key={"input-" + state}>
-                                <input id={"load-chkbox-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
-                                <label htmlFor={"load-chkbox-" + state} >{displayName}</label>
-                            </span>
-                        );
-                    })
+                    usStates.map((state) => (
+                        <span style={{ display: 'inline-block', width: '50px' }} key={"input-" + state}>
+                            <input id={"load-chkbox-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
+                            <label htmlFor={"load-chkbox-" + state} >{state.toUpperCase()}</label>
+                        </span>
+                    ))
                 }
             </div>
             <label htmlFor="TODO-MOVE-res-size-input">Data Resolution:</label>
@@ -431,7 +472,7 @@ export function BinMap() {
             </div> */}
 
             <SideBar items={sidebarItems} />
-            <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} mapCallback={handleMapRefFromView} rangesCallback={setBinLayerRanges} />
+            <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} mapCallback={handleMapRefFromView} rangesCallback={handleRangesCallback} />
         </div >
     );
 }

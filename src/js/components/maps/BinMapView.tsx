@@ -23,7 +23,7 @@ import RegularShape from 'ol/style/RegularShape.js';
 import Style from 'ol/style/Style';
 import HeatmapLayer from 'ol/layer/Heatmap.js';
 import React, { useEffect, useRef } from 'react';
-import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapLayerOptions';
 import styles from './BinMap.module.css';
 
 export interface BinMapViewProps {
@@ -31,7 +31,7 @@ export interface BinMapViewProps {
     featureBinSource?: VectorSource;
     layerConfigs: BaseLayerOptions[];
     mapCallback: (map: Map) => void;
-    rangesCallback: (binLayerRanges: any[]) => void;
+    rangesCallback: (binLayerRanges: LayerDisplayInfoSet) => void;
 };
 
 export interface BinValues {
@@ -53,7 +53,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
     const layersRef = useRef({} as any); // maps id => layer object
     const prevLayerConfigs = useRef(layerConfigs); // stores previous version of layerConfigs for later comparision
     const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval'];
-    const binMaxesRef = useRef({} as any);
+    const binMaxesRef = useRef<LayerDisplayInfoSet>({});
 
     // handle selection of a feature
     function handleFeatureSelect(event: SelectEvent) {
@@ -145,13 +145,13 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
 
         console.log(`q1=${q1} q3=${q3} iqr=${iqr}\nmin=${min} max=${max}\n q1-1.5*iqr=${minFence} q3+1.5*iqr=${maxFence}`)
 
-        let ranges = {
+        let ranges: BinRange = {
             full_min: min,
             full_max: max,
             iqr_min: minFence,
             iqr_max: maxFence
         };
-        binMaxesRef.current[binLayerConfig.id] = ranges;
+        binMaxesRef.current[binLayerConfig.id] = { binRanges: ranges };
         rangesCallback({ ...binMaxesRef.current });
     }
 
@@ -160,7 +160,8 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
             return -1;
         }
 
-        let ranges = binMaxesRef.current[binLayerConfig.id];
+        let ranges = binMaxesRef.current[binLayerConfig.id].binRanges;
+        if (!ranges) return -1;
         switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
             case 'custom':
                 return isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
