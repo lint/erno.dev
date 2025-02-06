@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
 import chroma from 'chroma-js';
-import { ActionIcon, Chip, ColorInput, Fieldset, Group, NumberInput, RangeSlider, SegmentedControl, Select, Slider } from '@mantine/core';
+import { ActionIcon, Chip, ColorInput, Fieldset, Group, Input, NumberInput, RangeSlider, SegmentedControl, Select, Slider } from '@mantine/core';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 import styles from './BinMap.module.css';
 
@@ -311,6 +311,12 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         <div className={styles.optionsGroup}>
             {/* <div className={styles.title}>{config.id}</div> */}
             <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>General</div>}>
+                {createOptionsItem('Name',
+                    <Input
+                        defaultValue={config.title}
+                        onChange={event => handleInputChange('title', event.currentTarget.value)}
+                    />
+                )}
                 {createOptionsItem('Visibility',
                     <>
                         <ActionIcon
