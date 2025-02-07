@@ -34,7 +34,7 @@ export default function SideBar({ items }: SideBarProps) {
                             key={item.label}
                         >
                             <UnstyledButton
-                                onClick={() => setActive(item.label)}
+                                onClick={() => active !== item.label ? setActive(item.label) : setActive('')}
                                 className={styles.item}
                                 data-active={item.label === active || undefined}
                             >

@@ -22,6 +22,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         max: 1,
         values: [0, 1]
     });
+    // console.log("BIN RANGE: ", binRange)
 
     const tileSources = [
         {
@@ -281,21 +282,27 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                 {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
                 {createSingleSelectOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
                 {createOptionsItem('',
-                    <RangeSlider
-                        min={intervalSliderValues.min}
-                        max={intervalSliderValues.max}
-                        step={1}
-                        value={intervalSliderValues.values as any}
-                        onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
-                        onChangeEnd={value => {
-                            binConfig.customMin = value[0];
-                            binConfig.customMax = value[1];
-                            updateCallback({ ...config });
-                        }}
-                        disabled={binConfig.intervalMode !== 'custom'}
-                        style={{ width: '200px' }}
-                    />
+                    <div className={styles.intervalSlider}>
+                        {intervalSliderValues.min}
+                        <RangeSlider
+                            min={intervalSliderValues.min}
+                            max={intervalSliderValues.max}
+                            step={0.001}
+                            minRange={0}
+                            value={intervalSliderValues.values as [number, number]}
+                            onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
+                            onChangeEnd={value => {
+                                binConfig.customMin = value[0];
+                                binConfig.customMax = value[1];
+                                updateCallback({ ...config });
+                            }}
+                            disabled={binConfig.intervalMode !== 'custom'}
+                            style={{ width: '200px' }}
+                        />
+                        {intervalSliderValues.max}
+                    </div>
                 )}
+                {/* {`min: ${intervalSliderValues.min} max: ${intervalSliderValues.max} values: ${intervalSliderValues.values}`} */}
             </>))}
             {createFieldset('Colors', (<>
                 {createSingleSelectOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
@@ -348,10 +355,28 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     // update interval slider values when props change
     useEffect(() => {
         if (!binRange) return;
-        let interval = [getRangeValue(binConfig, false), getRangeValue(binConfig, true)];
+        let interval;
+        let min = 0;
+        let max = 1;
+
+        if (binConfig.intervalMode === 'full') {
+            interval = [0, 1];
+        } else if (binConfig.intervalMode === 'IQR') {
+            let fullMin = getRangeValue(binConfig, false, 'full');
+            let fullMax = getRangeValue(binConfig, true, 'full');
+            let iqrMin = getRangeValue(binConfig, false, 'IQR');
+            let iqrMax = getRangeValue(binConfig, true, 'IQR');
+            interval = [(iqrMin - fullMin) / (fullMax - fullMin), (iqrMax - fullMin) / (fullMax - fullMin)];
+        } else {
+            interval = [binConfig.customMin, binConfig.customMax];
+            // TODO: increase custom range values for more control
+            // min = -1;
+            // max = 2;
+        }
+
         setIntervalSliderValues({
-            min: getRangeValue(binConfig, false, 'full'),
-            max: getRangeValue(binConfig, true, 'full'),
+            min: min,
+            max: max,
             values: interval
         });
     }, [binConfig.aggFuncName, binConfig.binType, binConfig.intervalMode, binRange]);

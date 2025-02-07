@@ -15,7 +15,7 @@
 .optionsItem {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
     align-items: center;
     gap: 10px;
     margin: var(--mantine-spacing-xs) 0;
@@ -91,4 +91,11 @@
     .item {
         border-bottom: solid 1px var(--color-highlight);
     }
+}
+
+.intervalSlider {
+    display: flex;
+    gap: var(--mantine-spacing-sm);
+    /* vertical-align: middle; */
+    align-items: center;
 }

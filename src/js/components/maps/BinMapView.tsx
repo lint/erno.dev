@@ -164,7 +164,8 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
         if (!ranges) return -1;
         switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
             case 'custom':
-                return isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
+                let normal = isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
+                return normal * (ranges.full_max - ranges.full_min) + ranges.full_min;
             case 'IQR':
                 return isMax ? ranges.iqr_max : ranges.iqr_min;
             case 'full':
@@ -179,11 +180,16 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
         // TODO: this method is called thousands of times, ensure there are no wasteful calculations
         // TODO: normal calculation is not correct
 
+        // when you switch to custom for the first time everything is one color, this is because you have not set a value. when you switch agg fun you should also set the custom amount to the full amount? hmm or do you want to set it b
+        // make the interval slider a scale of 0 to 1 and then calc the normal from values from that
+
         let value = f.get('value');
         let min = getRangeValue(binLayerConfig, false);
         let max = getRangeValue(binLayerConfig, true);
-        let normal = (value - min) / (max - min);
+        let normal = 0;
+        if (value !== min && max !== min) normal = (value - min) / (max - min);
         normal = Math.min(1, Math.max(0, normal));
+        // console.log(`value: ${value}, min: ${min}, max: ${max}, normal: ${normal}`)
 
         let scale = chroma.scale(binLayerConfig.colorScaleName);
         let steppedColors = scale.colors(binLayerConfig.numColorSteps);

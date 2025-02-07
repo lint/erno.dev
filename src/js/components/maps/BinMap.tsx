@@ -59,8 +59,8 @@ export function BinMap() {
             layerClass: 'VectorImage',
             numColorSteps: 5,
             colorScaleName: "Viridis",
-            customMin: 1,
-            customMax: 30000,
+            customMin: 0,
+            customMax: 1,
             zIndex: 2,
             intervalMode: 'full',
             backgroundColorMode: 'none',
@@ -417,7 +417,7 @@ export function BinMap() {
         </Accordion>
     );
     const dataComponents = (<>
-        <div>
+        <div style={{ width: 300 }}>
             <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
             <div id="TODO-MOVE-state-chkboxes">
                 {
