@@ -436,7 +436,7 @@ export function BinMap() {
                 <option value="res-0.1">res-0.1</option>
                 <option value="res-0.5">res-0.5</option>
                 <option value="res-1">res-1</option>
-                <option value="res-5">res-5</option>
+                {/* <option value="res-5">res-5</option> */}
             </select>
             <button onClick={handleSelectAllStates}>Select All</button>
             <button onClick={handleClearAllStates}>Clear All</button>

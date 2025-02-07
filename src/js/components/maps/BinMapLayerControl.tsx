@@ -260,9 +260,6 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     function createBinFieldset() {
         return (<>
             {createFieldset('Bins', (<>
-                {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
-                {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
-                {createSingleSelectOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
                 {createOptionsItem('Bin Size',
                     <NumberInput
                         min={0}
@@ -276,6 +273,9 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         inputSize='10'
                     />
                 )}
+                {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
+                {createSingleSelectOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
+                {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
             </>))}
             {createFieldset('Data', (<>
                 {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
