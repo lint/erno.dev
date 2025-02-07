@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapLayerOptions';
 import chroma from 'chroma-js';
 import { ActionIcon, Chip, ColorInput, Fieldset, Group, Input, NumberInput, RangeSlider, SegmentedControl, Select, Slider } from '@mantine/core';
@@ -156,137 +156,192 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         return value;
     }
 
+    // create Fieldset node
+    function createFieldset(title: string, children: ReactNode) {
+        return (
+            <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>{title}</div>}>
+                {children}
+            </Fieldset>
+        );
+    }
+
+    // creates new General fieldset
+    function createGeneralFieldset() {
+        return createFieldset('General', <>
+            {createOptionsItem('Name',
+                <Input
+                    defaultValue={config.title}
+                    onChange={event => handleInputChange('title', event.currentTarget.value)}
+                />
+            )}
+            {createOptionsItem('Visibility',
+                <>
+                    <ActionIcon
+                        onClick={() => handleInputChange('visible', !config.visible)}
+                        title={'Enable/Disable Layer'}
+                        variant={config.visible ? 'filled' : 'outline'}
+                    >
+                        {config.visible ? <IconEye /> : <IconEyeClosed />}
+                    </ActionIcon>
+
+                    <div style={{ width: 42 }}>{config.opacity + '%'}</div>
+                    <Slider
+                        defaultValue={config.opacity}
+                        min={0}
+                        max={100}
+                        step={1}
+                        onChange={value => handleInputChange('opacity', value)}
+                        style={{ flexGrow: 1, maxWidth: "200px" }}
+                        disabled={!config.visible}
+                        label={null}
+                    />
+                </>
+            )}
+            {createOptionsItem('z-index',
+                <NumberInput
+                    defaultValue={`${config.zIndex || 0}`}
+                    allowDecimal={false}
+                    onChange={value => handleInputChange('zIndex', value)}
+                    inputSize='2'
+                />
+            )}
+        </>);
+    }
+
+    // create tile layer fieldset
+    function createTileFieldset() {
+        return createFieldset('Tile', <>
+            {createOptionsItem('Source',
+                <Select
+                    data={tileSources}
+                    defaultValue={tileConfig.tileSourceUrl}
+                    onChange={value => handleInputChange('tileSourceUrl', value)}
+                    searchable
+                />
+            )}
+        </>);
+    }
+
+    // create heatmap layer fieldset
+    function createHeatmapFieldset() {
+        return createFieldset('Heatmap', <>
+            {createOptionsItem('Blur',
+                <>
+                    <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
+                    <Slider
+                        defaultValue={heatmapConfig.blur}
+                        min={0}
+                        max={100}
+                        step={1}
+                        onChange={value => handleInputChange('blur', value)}
+                        style={{ flexGrow: 1, maxWidth: "200px" }}
+                        label={null}
+                    />
+                </>
+            )}
+            {createOptionsItem('Radius',
+                <>
+                    <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.radius}</div>
+                    <Slider
+                        defaultValue={heatmapConfig.radius}
+                        min={0}
+                        max={50}
+                        step={0.5}
+                        onChange={value => handleInputChange('radius', value)}
+                        style={{ flexGrow: 1, maxWidth: "200px" }}
+                        label={null}
+                    />
+                </>
+            )}
+        </>);
+    }
+
+    // create bin layer fieldset
+    function createBinFieldset() {
+        return (<>
+            {createFieldset('Bins', (<>
+                {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
+                {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
+                {createSingleSelectOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
+                {createOptionsItem('Bin Size',
+                    <NumberInput
+                        min={0}
+                        max={binConfig.binType === 'hex' ? 1000000 : 10}
+                        step={binConfig.binType === 'hex' ? 1000 : 0.1}
+                        // TODO: weird behavior when switching tabs
+                        defaultValue={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
+                        // allowDecimal={false}
+                        onChange={value => handleInputChange('binSize', value)}
+                        disabled={binConfig.binType === 'feature'}
+                        inputSize='10'
+                    />
+                )}
+            </>))}
+            {createFieldset('Data', (<>
+                {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
+                {createSingleSelectOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
+                {createOptionsItem('',
+                    <RangeSlider
+                        min={intervalSliderValues.min}
+                        max={intervalSliderValues.max}
+                        step={1}
+                        value={intervalSliderValues.values as any}
+                        onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
+                        onChangeEnd={value => {
+                            binConfig.customMin = value[0];
+                            binConfig.customMax = value[1];
+                            updateCallback({ ...config });
+                        }}
+                        disabled={binConfig.intervalMode !== 'custom'}
+                        style={{ width: '200px' }}
+                    />
+                )}
+            </>))}
+            {createFieldset('Colors', (<>
+                {createSingleSelectOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
+                {createOptionsItem('Steps',
+                    <NumberInput
+                        min={0}
+                        max={16}
+                        step={1}
+                        defaultValue={binConfig.numColorSteps}
+                        allowDecimal={false}
+                        onChange={value => handleInputChange('numColorSteps', value)}
+                        disabled={binConfig.colorMode !== 'step'}
+                        inputSize='4'
+                    />
+                )}
+                {createOptionsItem('Color Scale',
+                    <Select
+                        data={Object.keys(chroma.brewer)}
+                        defaultValue={binConfig.colorScaleName}
+                        onChange={value => handleInputChange('colorScaleName', value)}
+                        searchable
+                    />
+                )}
+                {createSingleSelectOptionsItem('backgroundColorMode', 'Background', ['auto', 'custom', 'none'], true, false)}
+                {createOptionsItem('',
+                    <ColorInput
+                        defaultValue={binConfig.customBackgroundColor}
+                        value={binConfig.backgroundColorMode !== 'custom' ? getBackgroundColor(binConfig) : undefined}
+                        disabled={binConfig.backgroundColorMode !== 'custom'}
+                        onChange={value => handleInputChange('customBackgroundColor', value)}
+                        style={{ maxWidth: 200 }}
+                    />
+                )}
+            </>))}
+        </>);
+    }
+
     // create controls for a given layer type
     function controlForType(layerType: string) {
         switch (layerType) {
             case "tile":
-                return (
-                    <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Tiles</div>}>
-                        {createOptionsItem('Source',
-                            <Select
-                                data={tileSources}
-                                defaultValue={tileConfig.tileSourceUrl}
-                                onChange={value => handleInputChange('tileSourceUrl', value)}
-                                searchable
-                            />
-                        )}
-                    </Fieldset>
-                );
+                return createTileFieldset();
             case 'heatmap':
-                return (
-                    <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Heatmap</div>}>
-                        {createOptionsItem('Blur',
-                            <>
-                                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
-                                <Slider
-                                    defaultValue={heatmapConfig.blur}
-                                    min={0}
-                                    max={100}
-                                    step={1}
-                                    onChange={value => handleInputChange('blur', value)}
-                                    style={{ flexGrow: 1, maxWidth: "200px" }}
-                                    label={null}
-                                />
-                            </>
-                        )}
-                        {createOptionsItem('Radius',
-                            <>
-                                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.radius}</div>
-                                <Slider
-                                    defaultValue={heatmapConfig.radius}
-                                    min={0}
-                                    max={50}
-                                    step={0.5}
-                                    onChange={value => handleInputChange('radius', value)}
-                                    style={{ flexGrow: 1, maxWidth: "200px" }}
-                                    label={null}
-                                />
-                            </>
-                        )}
-                    </Fieldset>
-                );
+                return createHeatmapFieldset();
             case "bin":
-                return (
-                    <div>
-                        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Bins</div>}>
-
-                            {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
-                            {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
-                            {createSingleSelectOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
-                            {createOptionsItem('Bin Size',
-                                <NumberInput
-                                    min={0}
-                                    max={binConfig.binType === 'hex' ? 1000000 : 10}
-                                    step={binConfig.binType === 'hex' ? 1000 : 0.1}
-                                    // TODO: weird behavior when switching tabs
-                                    defaultValue={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
-                                    // allowDecimal={false}
-                                    onChange={value => handleInputChange('binSize', value)}
-                                    disabled={binConfig.binType === 'feature'}
-                                    inputSize='10'
-                                />
-                            )}
-
-                        </Fieldset>
-                        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Data</div>}>
-
-                            {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
-                            {createSingleSelectOptionsItem('intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false)}
-                            {createOptionsItem('',
-                                <RangeSlider
-                                    min={intervalSliderValues.min}
-                                    max={intervalSliderValues.max}
-                                    step={1}
-                                    value={intervalSliderValues.values as any}
-                                    onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
-                                    onChangeEnd={value => {
-                                        binConfig.customMin = value[0];
-                                        binConfig.customMax = value[1];
-                                        updateCallback({ ...config });
-                                    }}
-                                    disabled={binConfig.intervalMode !== 'custom'}
-                                    style={{ width: '200px' }}
-                                />
-                            )}
-
-                        </Fieldset>
-                        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Colors</div>}>
-
-                            {createSingleSelectOptionsItem('colorMode', 'Color Mode', ['gradient', 'step'], true, false)}
-                            {createOptionsItem('Steps',
-                                <NumberInput
-                                    min={0}
-                                    max={16}
-                                    step={1}
-                                    defaultValue={binConfig.numColorSteps}
-                                    allowDecimal={false}
-                                    onChange={value => handleInputChange('numColorSteps', value)}
-                                    disabled={binConfig.colorMode !== 'step'}
-                                    inputSize='4'
-                                />
-                            )}
-                            {createOptionsItem('Color Scale',
-                                <Select
-                                    data={Object.keys(chroma.brewer)}
-                                    defaultValue={binConfig.colorScaleName}
-                                    onChange={value => handleInputChange('colorScaleName', value)}
-                                    searchable
-                                />
-                            )}
-                            {createSingleSelectOptionsItem('backgroundColorMode', 'Background', ['auto', 'custom', 'none'], true, false)}
-                            {createOptionsItem('',
-                                <ColorInput
-                                    defaultValue={binConfig.customBackgroundColor}
-                                    value={binConfig.backgroundColorMode !== 'custom' ? getBackgroundColor(binConfig) : undefined}
-                                    disabled={binConfig.backgroundColorMode !== 'custom'}
-                                    onChange={value => handleInputChange('customBackgroundColor', value)}
-                                    style={{ maxWidth: 200 }}
-                                />
-                            )}
-
-                        </Fieldset>
-                    </div>
-                );
+                return createBinFieldset();
         }
     }
 
@@ -310,45 +365,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     return (
         <div className={styles.optionsGroup}>
             {/* <div className={styles.title}>{config.id}</div> */}
-            <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>General</div>}>
-                {createOptionsItem('Name',
-                    <Input
-                        defaultValue={config.title}
-                        onChange={event => handleInputChange('title', event.currentTarget.value)}
-                    />
-                )}
-                {createOptionsItem('Visibility',
-                    <>
-                        <ActionIcon
-                            onClick={() => handleInputChange('visible', !config.visible)}
-                            title={'Enable/Disable Layer'}
-                            variant={config.visible ? 'filled' : 'outline'}
-                        >
-                            {config.visible ? <IconEye /> : <IconEyeClosed />}
-                        </ActionIcon>
-
-                        <div style={{ width: 42 }}>{config.opacity + '%'}</div>
-                        <Slider
-                            defaultValue={config.opacity}
-                            min={0}
-                            max={100}
-                            step={1}
-                            onChange={value => handleInputChange('opacity', value)}
-                            style={{ flexGrow: 1, maxWidth: "200px" }}
-                            disabled={!config.visible}
-                            label={null}
-                        />
-                    </>
-                )}
-                {createOptionsItem('z-index',
-                    <NumberInput
-                        defaultValue={`${config.zIndex || 0}`}
-                        allowDecimal={false}
-                        onChange={value => handleInputChange('zIndex', value)}
-                        inputSize='2'
-                    />
-                )}
-            </Fieldset>
+            {createGeneralFieldset()}
             {controlForType(config.layerType)}
         </div>
     );
