@@ -9,6 +9,7 @@ export interface SideBarProps {
 
 export default function SideBar({ items }: SideBarProps) {
     const [active, setActive] = useState(items[0].label);
+    const [lastActive, setLastActive] = useState(items[0].label);
     console.log("SideBar() called: active=", active);
 
     // searches the items prop entries for a label matching the provided string
@@ -34,7 +35,14 @@ export default function SideBar({ items }: SideBarProps) {
                             key={item.label}
                         >
                             <UnstyledButton
-                                onClick={() => active !== item.label ? setActive(item.label) : setActive('')}
+                                onClick={() => {
+                                    if (active !== item.label) {
+                                        setActive(item.label);
+                                    } else {
+                                        setActive('');
+                                        setLastActive(item.label);
+                                    }
+                                }}
                                 className={styles.item}
                                 data-active={item.label === active || undefined}
                             >
@@ -44,11 +52,11 @@ export default function SideBar({ items }: SideBarProps) {
                     );
                 })}
             </div>
-            <div className={styles.content}>
+            <div className={styles.content} data-active={active || undefined}>
                 <div className={styles.header}>
                     {active}
                 </div>
-                {contentForLabel(active)}
+                {contentForLabel(active !== '' ? active : lastActive)}
             </div>
         </div>
     );

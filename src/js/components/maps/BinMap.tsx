@@ -271,16 +271,20 @@ export function BinMap() {
         return expandedLayers;
     }
 
-    function handleLayerControlChange(updatedLayerConfig: BaseLayerOptions) {
+    function handleLayerControlChange(layerId: string, key: string, value: any) {
 
         setLayerConfigs((oldLayerConfigs) => {
 
             for (let i = 0; i < oldLayerConfigs.length; i++) {
                 let layerConfig = oldLayerConfigs[i];
-                if (layerConfig.id === updatedLayerConfig.id) {
+                if (layerConfig.id === layerId) {
+                    let newLayerConfig = {
+                        ...layerConfig,
+                        [key]: value
+                    };
 
                     let newLayerConfigs = [...oldLayerConfigs];
-                    newLayerConfigs[i] = updatedLayerConfig;
+                    newLayerConfigs[i] = newLayerConfig;
                     return newLayerConfigs;
                 }
             }
@@ -417,7 +421,7 @@ export function BinMap() {
         </Accordion>
     );
     const dataComponents = (<>
-        <div style={{ width: 300 }}>
+        <div>
             <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
             <div id="TODO-MOVE-state-chkboxes">
                 {

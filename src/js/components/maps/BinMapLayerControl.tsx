@@ -78,8 +78,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         console.log(`input change key=${key} value=${value}`)
 
         try {
-            let newConfig = { ...config, [key]: value };
-            if (updateCallback) updateCallback(newConfig);
+            if (updateCallback) updateCallback(config.id, key, value);
         } catch {
             console.log(`failed to update key=${key} value=${value}`);
         }
@@ -292,9 +291,11 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                             value={intervalSliderValues.values as [number, number]}
                             onChange={value => { setIntervalSliderValues((old) => ({ ...old, values: value })) }}
                             onChangeEnd={value => {
-                                binConfig.customMin = value[0];
-                                binConfig.customMax = value[1];
-                                updateCallback({ ...config });
+                                // binConfig.customMin = value[0];
+                                // binConfig.customMax = value[1];
+                                // updateCallback({ ...config, customMin: value[0], customMax: value[1] });
+                                updateCallback(config.id, 'customMin', value[0]);
+                                updateCallback(config.id, 'customMax', value[1]);
                             }}
                             disabled={binConfig.intervalMode !== 'custom'}
                             style={{ width: '200px' }}

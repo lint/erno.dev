@@ -44,6 +44,8 @@
 
 .fieldsetRoot {
     border: solid 1px var(--color-highlight);
+    /* padding: 0;
+    margin: 0; */
 }
 
 /* .gradient .domain-min {

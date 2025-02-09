@@ -10,16 +10,20 @@
     .header {
         color: var(--color-text-highlight);
         font-weight: 700;
-        /* margin: var(--mantine-spacing-xs) var(--mantine-spacing-md); */
-        /* TODO: want padding/margin here but the current way i collapse the sidebar is incompatible */
+        padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
         border-bottom: solid 1px var(--color-highlight)
     }
 
 }
 
 .content {
-    width: 100%;
+    max-width: 100vw;
+    width: 0;
     overflow-y: scroll;
+
+    &[data-active] {
+        width: 450px;
+    }
 }
 
 .nav {
