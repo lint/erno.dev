@@ -3,7 +3,6 @@ import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
 import { Map } from 'ol';
 import Feature from 'ol/Feature.js';
-import Point from 'ol/geom/Point.js';
 import { Vector } from 'ol/source';
 import VectorSource, { VectorSourceEvent } from 'ol/source/Vector';
 import { Projection } from 'ol/proj';
@@ -17,6 +16,7 @@ import styles from './BinMap.module.css';
 import { Accordion } from '@mantine/core';
 import { IconFlame, IconHexagons, IconMap, IconStackFront, IconTableFilled } from '@tabler/icons-react';
 import SideBar from '../layout/sidebar';
+import BinMapDataControl from './BinMapDataControl';
 
 const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
 
@@ -112,43 +112,11 @@ export function BinMap() {
         return displaySet;
     }
 
-    // handler method to add random features to the dataset
-    function handleRandomFeaturesButton() {
-        // if (!dataSourceRef.current) return;
-        addRandomFeatures(5000);
-    }
-
     // reset any randomly added features
     function handleResetFeaturesButton() {
         // if (!dataSourceRef.current) return;
         setFeatures([]);
         addPresetFeatures();
-    }
-
-    // create a set of features on seed points
-    function addRandomFeatures(nb: any) {
-        console.log(mapRef)
-        if (!mapRef.current) return;
-
-        let ssize = 20;		// seed size
-        let ext = mapRef.current.getView().calculateExtent(mapRef.current.getSize());
-        let dx = ext[2] - ext[0];
-        let dy = ext[3] - ext[1];
-        let dl = Math.min(dx, dy);
-        let randFeatures = [];
-
-        for (let i = 0; i < nb / ssize; ++i) {
-            let seed = [ext[0] + dx * Math.random(), ext[1] + dy * Math.random()]
-            for (let j = 0; j < ssize; j++) {
-                let f = new Feature(new Point([
-                    seed[0] + dl / 10 * Math.random(),
-                    seed[1] + dl / 10 * Math.random()
-                ]));
-                f.set('number', Math.floor(Math.random() * 10000));
-                randFeatures.push(f);
-            }
-        }
-        setFeatures((oldFeatures) => { return [...oldFeatures, ...randFeatures] });
     }
 
     // load features from preset data file
@@ -291,12 +259,6 @@ export function BinMap() {
 
             return oldLayerConfigs;
         });
-    }
-
-    function handlePrintExtentButton() {
-        if (!mapRef.current) return;
-        let map = mapRef.current;
-        console.log(map.getView().calculateExtent(map.getSize()));
     }
 
     function getStateEnabled(stateName: string) {
@@ -446,9 +408,10 @@ export function BinMap() {
             <button onClick={handleClearAllStates}>Clear All</button>
         </div>
         <div>
-            <button onClick={handleRandomFeaturesButton}>Add Random Features</button>
             <button onClick={handleResetFeaturesButton}>Reset Features</button>
-            <button onClick={handlePrintExtentButton}>Print Extent</button>
+        </div>
+        <div>
+            <BinMapDataControl />
         </div>
     </>);
 
@@ -475,7 +438,7 @@ export function BinMap() {
                     </div>
             </div> */}
 
-            <SideBar items={sidebarItems} />
+            <SideBar items={sidebarItems} activeItem='Data' />
             <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} mapCallback={handleMapRefFromView} rangesCallback={handleRangesCallback} />
         </div >
     );

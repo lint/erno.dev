@@ -101,3 +101,25 @@
     /* vertical-align: middle; */
     align-items: center;
 }
+
+.checkboxTree {
+    font-weight: 700;
+}
+
+.checkboxSection {
+    .compressed {
+        /* display: inline; */
+        /* outline: solid 1px red; */
+        display: flex;
+        flex-direction: row;
+        gap: var(--mantine-spacing-sm);
+        flex-wrap: wrap;
+    }
+}
+
+.checkboxLabelWrapper {
+    padding-left: 0;
+    margin-left: 0;
+    /* border: solid 1px red; */
+    gap: 0;
+}

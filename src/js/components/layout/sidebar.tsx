@@ -5,11 +5,12 @@ import { Tooltip, UnstyledButton } from '@mantine/core';
 
 export interface SideBarProps {
     items: { label: string, icon: any, content: ReactNode }[];
+    activeItem?: string;
 }
 
-export default function SideBar({ items }: SideBarProps) {
-    const [active, setActive] = useState(items[0].label);
-    const [lastActive, setLastActive] = useState(items[0].label);
+export default function SideBar({ items, activeItem }: SideBarProps) {
+    const [active, setActive] = useState(activeItem ? activeItem : items[0].label);
+    const [lastActive, setLastActive] = useState(active);
     console.log("SideBar() called: active=", active);
 
     // searches the items prop entries for a label matching the provided string
