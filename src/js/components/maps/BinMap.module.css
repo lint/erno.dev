@@ -104,6 +104,7 @@
 
 .checkboxTree {
     font-weight: 700;
+    padding: 10px;
 }
 
 .checkboxSection {
@@ -112,14 +113,14 @@
         /* outline: solid 1px red; */
         display: flex;
         flex-direction: row;
-        gap: var(--mantine-spacing-sm);
+        gap: 4px;
         flex-wrap: wrap;
     }
 }
 
-.checkboxLabelWrapper {
-    padding-left: 0;
-    margin-left: 0;
+.checkboxLabel {
+    padding-left: var(--mantine-spacing-xs) !important;
+    margin: 0;
     /* border: solid 1px red; */
     gap: 0;
 }

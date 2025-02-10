@@ -1,132 +1,135 @@
+export const stateList: string[] = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
+
 const stateRegions = [
     {
-        id: 'usa',
+        value: 'usa',
         label: 'United States',
-        items: [
+        children: [
             {
-                id: 'northeast',
+                value: 'northeast',
                 label: 'Northeast',
-                items: [
+                children: [
                     {
-                        id: 'new_england',
+                        value: 'new_england',
                         label: 'New England',
-                        items: [
-                            { id: 'ct', short: 'CT', label: 'Connecticut' },
-                            { id: 'me', short: 'ME', label: 'Maine' },
-                            { id: 'ma', short: 'MA', label: 'Massachusetts' },
-                            { id: 'nh', short: 'NH', label: 'New Hampshire' },
-                            { id: 'ri', short: 'RI', label: 'Rhode Island' },
-                            { id: 'vt', short: 'VT', label: 'Vermont' },
+                        children: [
+                            { value: 'ct', label: 'Connecticut' },
+                            { value: 'me', label: 'Maine' },
+                            { value: 'ma', label: 'Massachusetts' },
+                            { value: 'nh', label: 'New Hampshire' },
+                            { value: 'ri', label: 'Rhode Island' },
+                            { value: 'vt', label: 'Vermont' },
                         ]
                     },
                     {
-                        id: 'mid_atlantic',
+                        value: 'mid_atlantic',
                         label: 'Middle Atlantic',
-                        items: [
-                            { id: 'nj', short: 'NJ', label: 'New Jersey' },
-                            { id: 'ny', short: 'NY', label: 'New York' },
-                            { id: 'pa', short: 'PA', label: 'Pennsylvania' },
+                        children: [
+                            { value: 'nj', label: 'New Jersey' },
+                            { value: 'ny', label: 'New York' },
+                            { value: 'pa', label: 'Pennsylvania' },
                         ]
                     }
                 ]
             },
             {
-                id: 'midwest',
+                value: 'midwest',
                 label: 'Midwest',
-                items: [
+                children: [
                     {
-                        id: 'east_north_central',
+                        value: 'east_north_central',
                         label: 'East North Central',
-                        items: [
-                            { id: 'il', short: 'IL', label: 'Illinois' },
-                            { id: 'in', short: 'IN', label: 'Indiana' },
-                            { id: 'mi', short: 'MI', label: 'Michigan' },
-                            { id: 'wi', short: 'WI', label: 'Wisconsin' },
+                        children: [
+                            { value: 'il', label: 'Illinois' },
+                            { value: 'in', label: 'Indiana' },
+                            { value: 'oh', label: 'Ohio' },
+                            { value: 'mi', label: 'Michigan' },
+                            { value: 'wi', label: 'Wisconsin' },
                         ]
                     },
                     {
-                        id: 'west_north_central',
+                        value: 'west_north_central',
                         label: 'West North Central',
-                        items: [
-                            { id: 'ia', short: 'IA', label: 'Iowa' },
-                            { id: 'ks', short: 'KS', label: 'Kansas' },
-                            { id: 'mn', short: 'MN', label: 'Minnesota' },
-                            { id: 'mo', short: 'MO', label: 'Missouri' },
-                            { id: 'ne', short: 'NE', label: 'Nebraska' },
-                            { id: 'nd', short: 'ND', label: 'North Dakota' },
-                            { id: 'sd', short: 'SD', label: 'South Dakota' },
+                        children: [
+                            { value: 'ia', label: 'Iowa' },
+                            { value: 'ks', label: 'Kansas' },
+                            { value: 'mn', label: 'Minnesota' },
+                            { value: 'mo', label: 'Missouri' },
+                            { value: 'ne', label: 'Nebraska' },
+                            { value: 'nd', label: 'North Dakota' },
+                            { value: 'sd', label: 'South Dakota' },
                         ]
                     }
                 ]
             },
             {
-                id: 'south',
+                value: 'south',
                 label: 'South',
-                items: [
+                children: [
                     {
-                        id: 'south_atlantic',
+                        value: 'south_atlantic',
                         label: 'South Atlantic',
-                        items: [
-                            { id: 'fl', short: 'FL', label: 'Florida' },
-                            { id: 'in', short: 'IN', label: 'Georgia' },
-                            { id: 'nc', short: 'NC', label: 'North Carolina' },
-                            { id: 'sc', short: 'SC', label: 'South Carolina' },
-                            { id: 'va', short: 'VA', label: 'Virginia' },
-                            { id: 'dc', short: 'DC', label: 'Washington, D.C.' },
-                            { id: 'md', short: 'MD', label: 'Maryland' },
-                            { id: 'de', short: 'DE', label: 'Delaware' },
-                            { id: 'wv', short: 'WV', label: 'West Virginia' },
+                        children: [
+                            { value: 'fl', label: 'Florvaluea' },
+                            { value: 'in', label: 'Georgia' },
+                            { value: 'nc', label: 'North Carolina' },
+                            { value: 'sc', label: 'South Carolina' },
+                            { value: 'va', label: 'Virginia' },
+                            { value: 'dc', label: 'Washington, D.C.' },
+                            { value: 'md', label: 'Maryland' },
+                            { value: 'de', label: 'Delaware' },
+                            { value: 'wv', label: 'West Virginia' },
                         ]
                     },
                     {
-                        id: 'east_south_central',
+                        value: 'east_south_central',
                         label: 'East South Central',
-                        items: [
-                            { id: 'al', short: 'AL', label: 'Alabama' },
-                            { id: 'ky', short: 'KY', label: 'Kentucky' },
-                            { id: 'ms', short: 'MS', label: 'Mississippi' },
-                            { id: 'tn', short: 'TN', label: 'Tennessee' },
+                        children: [
+                            { value: 'al', label: 'Alabama' },
+                            { value: 'ky', label: 'Kentucky' },
+                            { value: 'ms', label: 'Mississippi' },
+                            { value: 'tn', label: 'Tennessee' },
                         ]
                     },
                     {
-                        id: 'west_south_central',
+                        value: 'west_south_central',
                         label: 'West South Central',
-                        items: [
-                            { id: 'ar', short: 'AR', label: 'Arkansas' },
-                            { id: 'la', short: 'LA', label: 'Louisiana' },
-                            { id: 'ok', short: 'OK', label: 'Oklahoma' },
-                            { id: 'tx', short: 'TX', label: 'Texas' },
+                        children: [
+                            { value: 'ar', label: 'Arkansas' },
+                            { value: 'la', label: 'Louisiana' },
+                            { value: 'ok', label: 'Oklahoma' },
+                            { value: 'tx', label: 'Texas' },
                         ]
                     }
                 ]
             },
             {
-                id: 'west',
+                value: 'west',
                 label: 'West',
-                items: [
+                children: [
                     {
-                        id: 'mountain',
+                        value: 'mountain',
                         label: 'Mountain',
-                        items: [
-                            { id: 'az', short: 'AZ', label: 'Arizona' },
-                            { id: 'co', short: 'CO', label: 'Colorado' },
-                            { id: 'id', short: 'ID', label: 'Idaho' },
-                            { id: 'mt', short: 'MT', label: 'Montana' },
-                            { id: 'nv', short: 'NV', label: 'Nevada' },
-                            { id: 'nm', short: 'NM', label: 'New Mexico' },
-                            { id: 'ut', short: 'UT', label: 'Utah' },
-                            { id: 'wy', short: 'WY', label: 'Wyoming' },
+                        children: [
+                            { value: 'az', label: 'Arizona' },
+                            { value: 'co', label: 'Colorado' },
+                            { value: 'id', label: 'Idaho' },
+                            { value: 'mt', label: 'Montana' },
+                            { value: 'nv', label: 'Nevada' },
+                            { value: 'nm', label: 'New Mexico' },
+                            { value: 'ut', label: 'Utah' },
+                            { value: 'wy', label: 'Wyoming' },
                         ]
                     },
                     {
-                        id: 'pacific',
+                        value: 'pacific',
                         label: 'Pacific',
-                        items: [
-                            { id: 'ak', short: 'AK', label: 'Alaska' },
-                            { id: 'ca', short: 'CA', label: 'California' },
-                            { id: 'hi', short: 'HI', label: 'Hawaii' },
-                            { id: 'or', short: 'OR', label: 'Oregon' },
-                            { id: 'wa', short: 'WA', label: 'Washington' },
+                        children: [
+                            { value: 'ak', label: 'Alaska' },
+                            { value: 'ca', label: 'California' },
+                            { value: 'hi', label: 'Hawaii' },
+                            { value: 'or', label: 'Oregon' },
+                            { value: 'wa', label: 'Washington' },
                         ]
                     }
                 ]
