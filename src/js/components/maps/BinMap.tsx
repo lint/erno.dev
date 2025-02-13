@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'ol/ol.css';
 import "ol-ext/dist/ol-ext.css";
-import { Map } from 'ol';
 import Feature from 'ol/Feature.js';
 import { Vector } from 'ol/source';
 import VectorSource, { VectorSourceEvent } from 'ol/source/Vector';
@@ -17,21 +16,15 @@ import { Accordion } from '@mantine/core';
 import { IconFlame, IconHexagons, IconMap, IconStackFront, IconTableFilled } from '@tabler/icons-react';
 import SideBar from '../layout/sidebar';
 import BinMapDataControl from './BinMapDataControl';
-import stateRegions from './StateRegions';
-
-const usStates = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'dc', 'de', 'fl', 'ga', 'hi', 'ia', 'id', 'il', 'in', 'ks', 'ky', 'la', 'ma', 'md', 'me', 'mi', 'mn', 'mo', 'ms', 'mt', 'nc', 'nd', 'ne', 'nh', 'nj', 'nm', 'nv', 'ny', 'oh', 'ok', 'or', 'pa', 'ri', 'sc', 'sd', 'tn', 'tx', 'ut', 'va', 'vt', 'wa', 'wi', 'wv', 'wy'];
+import stateRegions, { stateList } from './StateRegions';
 
 export function BinMap() {
 
     // console.log("BinMap function called ...");
 
-    const mapRef = useRef<Map>();
-    const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
-
-    const resSelectRef = useRef(null);
-    const resEnabledRef = useRef({});
-    const defaultEnabledStates = [...usStates];
     const defaultExpandedLayerControls = ['bin_test'];
+    const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
+    const [dataSourceUrls, setDataSourceUrls] = useState<string[]>([]);
     // const legendContainerRef = useRef(null);
 
     const [cachedFeatures, setCachedFeatures] = useState({});
@@ -114,22 +107,19 @@ export function BinMap() {
     }
 
     // reset any randomly added features
-    function handleResetFeaturesButton() {
-        // if (!dataSourceRef.current) return;
-        setFeatures([]);
-        addPresetFeatures();
-    }
+    // function handleResetFeaturesButton() {
+    //     // if (!dataSourceRef.current) return;
+    //     setFeatures([]);
+    //     addPresetFeatures();
+    // }
 
     // load features from preset data file
     // function addPresetFeatures(vectorSource: Vector) {
     function addPresetFeatures() {
 
-        let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/{dataset}/us/{state}/data.geojson';
-        let dataset = resSelectRef.current ? (resSelectRef.current as HTMLInputElement).value : 'res-0.1';
-        let urls = getEnabledStates().map(state => baseUrl.replace('{dataset}', dataset).replace('{state}', state.toLowerCase()));
         let proj = new Projection({ code: "EPSG:3857" });
 
-        let promises = urls.map(url => (
+        let promises = dataSourceUrls.map(url => (
             new Promise((resolve, reject) => {
 
                 if (url in cachedFeatures) {
@@ -211,10 +201,6 @@ export function BinMap() {
     //     }
     // }
 
-    function handleMapRefFromView(map: Map) {
-        mapRef.current = map;
-    }
-
     function handleRangesCallback(displaySet: LayerDisplayInfoSet) {
         for (let id in displaySet) {
             if (!(id in layerInfos)) continue;
@@ -262,67 +248,6 @@ export function BinMap() {
         });
     }
 
-    function getStateEnabled(stateName: string) {
-        let val = (resEnabledRef.current as any)[stateName];
-        if (val !== undefined) {
-            return val;
-        }
-        return defaultEnabledStates.indexOf(stateName) > -1;
-    }
-
-    function setStateEnabled(stateName: string, enabled: boolean) {
-        // console.log("setStateEnabled", stateName, enabled);
-        (resEnabledRef.current as any)[stateName] = enabled;
-    }
-
-    function getEnabledStates() {
-        let enabledStates = [];
-        // console.log(defaultEnabledStates)
-        // console.log(resEnabledRef.current)
-        for (let state in resEnabledRef.current) {
-            if (getStateEnabled(state)) {
-                enabledStates.push(state);
-            }
-        }
-        return enabledStates;
-    }
-
-    // handle change in user checkbox input
-    function handleStateCheckboxChange(e: ChangeEvent<HTMLInputElement>) {
-        if (!e || !e.target) return;
-
-        const { name, checked } = e.target;
-        setStateEnabled(name, checked);
-        handleResetFeaturesButton();
-    }
-
-    function updateStateCheckboxes() {
-        usStates.forEach(state => {
-            let checkbox = document.getElementById("load-chkbox-" + state) as HTMLInputElement;
-            if (!checkbox) return;
-            checkbox.checked = getStateEnabled(state);
-        })
-    }
-
-    function handleSelectAllStates() {
-        for (let state of usStates) {
-            setStateEnabled(state, true);
-        }
-
-        updateStateCheckboxes();
-        setFeatures([]);
-        addPresetFeatures();
-    }
-
-    function handleClearAllStates() {
-        for (let state of usStates) {
-            setStateEnabled(state, false);
-        }
-        updateStateCheckboxes();
-        setFeatures([]);
-        addPresetFeatures();
-    }
-
     // get the icon for a given layer type
     function iconForLayerType(layerType: string) {
         switch (layerType) {
@@ -336,12 +261,6 @@ export function BinMap() {
     }
 
     useEffect(() => {
-
-        for (let state of usStates) {
-            setStateEnabled(state, defaultEnabledStates.indexOf(state) > -1);
-        }
-
-        addPresetFeatures();
 
         // load US county data source
         let binSource = new Vector({
@@ -357,6 +276,11 @@ export function BinMap() {
         // console.log(binSource.getFeatures())
     }, []);
 
+    useEffect(() => {
+        setFeatures([]);
+        addPresetFeatures();
+    }, [dataSourceUrls]);
+
     // useEffect(() => {
     //     refreshLegend();
     // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
@@ -370,7 +294,7 @@ export function BinMap() {
             onChange={handleLayerExpandedChanged}
         >
             {layerConfigs.map(layerConfig => (
-                <Accordion.Item value={layerConfig.id}>
+                <Accordion.Item value={layerConfig.id} key={layerConfig.id}>
                     <Accordion.Control classNames={{ icon: layerConfig.visible ? styles.title : styles.titleDisabled }} icon={iconForLayerType(layerConfig.layerType)}>
                         <div className={layerConfig.visible ? styles.title : styles.titleDisabled}>
                             {layerConfig.title}
@@ -384,36 +308,11 @@ export function BinMap() {
         </Accordion>
     );
     const dataComponents = (<>
-        <div>
-            <label htmlFor="TODO-MOVE-state-chkboxes">Load States:</label>
-            <div id="TODO-MOVE-state-chkboxes">
-                {
-                    usStates.map((state) => (
-                        <span style={{ display: 'inline-block', width: '50px' }} key={"input-" + state}>
-                            <input id={"load-chkbox-" + state} name={state} type="checkbox" onChange={handleStateCheckboxChange} defaultChecked={getStateEnabled(state)} />
-                            <label htmlFor={"load-chkbox-" + state} >{state.toUpperCase()}</label>
-                        </span>
-                    ))
-                }
-            </div>
-            <label htmlFor="TODO-MOVE-res-size-input">Data Resolution:</label>
-            <select id="TODO-MOVE-res-size-input" name="TODO-MOVE-res-size-input" defaultValue="res-0.5" ref={resSelectRef} onChange={handleResetFeaturesButton}>
-                <option value="res-0.01">res-0.01</option>
-                <option value="res-0.05">res-0.05</option>
-                <option value="res-0.1">res-0.1</option>
-                <option value="res-0.5">res-0.5</option>
-                <option value="res-1">res-1</option>
-                {/* <option value="res-5">res-5</option> */}
-            </select>
-            <button onClick={handleSelectAllStates}>Select All</button>
-            <button onClick={handleClearAllStates}>Clear All</button>
-        </div>
-        <div>
-            <button onClick={handleResetFeaturesButton}>Reset Features</button>
-        </div>
-        <div>
-            <BinMapDataControl items={stateRegions} />
-        </div>
+        <BinMapDataControl 
+            items={stateRegions} 
+            initialCheckedValues={stateList}
+            updateCallback={setDataSourceUrls}
+        />
     </>);
 
     const sidebarItems = [
@@ -440,7 +339,7 @@ export function BinMap() {
             </div> */}
 
             <SideBar items={sidebarItems} activeItem='Data' />
-            <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} mapCallback={handleMapRefFromView} rangesCallback={handleRangesCallback} />
+            <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} rangesCallback={handleRangesCallback} />
         </div >
     );
 }

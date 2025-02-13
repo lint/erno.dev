@@ -70,8 +70,8 @@ const stateRegions = [
                         value: 'south_atlantic',
                         label: 'South Atlantic',
                         children: [
-                            { value: 'fl', label: 'Florvaluea' },
-                            { value: 'in', label: 'Georgia' },
+                            { value: 'fl', label: 'Florida' },
+                            { value: 'ga', label: 'Georgia' },
                             { value: 'nc', label: 'North Carolina' },
                             { value: 'sc', label: 'South Carolina' },
                             { value: 'va', label: 'Virginia' },

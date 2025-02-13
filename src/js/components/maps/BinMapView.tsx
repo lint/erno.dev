@@ -30,7 +30,6 @@ export interface BinMapViewProps {
     features: Feature<Geometry>[];
     featureBinSource?: VectorSource;
     layerConfigs: BaseLayerOptions[];
-    mapCallback: (map: Map) => void;
     rangesCallback: (binLayerRanges: LayerDisplayInfoSet) => void;
 };
 
@@ -42,7 +41,7 @@ export interface BinValues {
     len: number;
 };
 
-export function BinMapView({ features, layerConfigs, featureBinSource, mapCallback, rangesCallback }: BinMapViewProps) {
+export function BinMapView({ features, layerConfigs, featureBinSource, rangesCallback }: BinMapViewProps) {
 
     // console.log("BinMapView called ...");
 
@@ -459,7 +458,6 @@ export function BinMapView({ features, layerConfigs, featureBinSource, mapCallba
             target: mapContainerRef.current
         });
         mapRef.current = map;
-        mapCallback(map);
 
         // add selection handler to the map
         let select = new Select();

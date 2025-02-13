@@ -9,7 +9,6 @@
     width: 100%;
 }
 
-
 /* .optionsGroup {} */
 
 .optionsItem {
@@ -103,7 +102,7 @@
 }
 
 .checkboxTree {
-    font-weight: 700;
+    /* font-weight: 700; */
     padding: 10px;
 }
 

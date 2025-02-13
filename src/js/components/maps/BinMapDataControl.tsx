@@ -1,121 +1,60 @@
-import React, { useState } from 'react';
-import { Checkbox, getTreeExpandedState, Group, RenderTreeNodePayload, Tree, useTree } from '@mantine/core';
+import React, { useEffect, useState } from 'react';
+import { Checkbox, getTreeExpandedState, Group, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
 import styles from './BinMap.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
+import { stateList } from './StateRegions';
 
 export interface BinMapDataControlProps {
     items: any[];
+    initialCheckedValues?: any;
     updateCallback?: any;
 };
 
-const renderTreeNode = ({
-    node,
-    expanded,
-    hasChildren,
-    elementProps,
-    tree,
-}: RenderTreeNodePayload) => {
-    const checked = tree.isNodeChecked(node.value);
-    const indeterminate = tree.isNodeIndeterminate(node.value);
+export default function BinMapDataControl({ items, initialCheckedValues, updateCallback }: BinMapDataControlProps) {
 
-    return (
-        <Group gap="xs" {...elementProps}>
-            <Checkbox.Indicator
-                checked={checked}
-                indeterminate={indeterminate}
-                onClick={() => (!checked ? tree.checkNode(node.value) : tree.uncheckNode(node.value))}
-            />
+    const [dataResolution, setDataResolution] = useState('res-0.5');
 
-            <Group gap={5} onClick={() => tree.toggleExpanded(node.value)}>
-                <span>{node.label}</span>
+    const tree = useTree({
+        initialExpandedState: getTreeExpandedState(items, getInitialExpandedValues(items, 2, 0)),
+        initialCheckedState: initialCheckedValues,
+    });
 
-                {hasChildren && (
-                    <IconChevronDown
-                        size={14}
-                        style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                    />
-                )}
-            </Group>
-        </Group>
-    );
-};
-
-
-export default function BinMapDataControl({ items }: BinMapDataControlProps) {
-
-    const [active, setActive] = useState({});
-
-    function getCheckboxStatus(id: string) {
-        return active[id as keyof typeof active];
-        if (!(id in active)) return undefined;
-
-        let item = itemForId(id);
-        if (!item) return undefined;
-
-
-    }
-
-    function setCheckboxStatus(id: string, status: string) {
-        setActive(oldActive => ({ ...oldActive, [id]: status }));
-    }
-
-    function refreshCheckboxStatuses(rootId: string) {
-        let rootItem = itemForId(rootId);
-        if (!rootItem) {
-            console.log("no root item found ...");
-            return;
-        }
-
-
-    }
-
-    function searchItem(item: any, forId: string): any {
-
-        if (item.id === forId) return item;
-        if (!item.items || item.items.length === 0) return undefined;
-        for (let childItem of item.items) {
-            let found = searchItem(childItem, forId);
-            if (found) return found;
-        }
-        return undefined;
-    }
-
-    function itemForId(id: string) {
-
-        for (let item of items) {
-            let foundItem = searchItem(item, id);
-            if (foundItem) return foundItem;
-        }
-        return undefined;
-    }
-
-    function createCheckboxLevel(data: any[], level: number, compressChildren: boolean) {
-
+    const renderTreeNode = ({
+        node,
+        expanded,
+        hasChildren,
+        elementProps,
+        tree,
+    }: RenderTreeNodePayload) => {
+        const checked = tree.isNodeChecked(node.value);
+        const indeterminate = tree.isNodeIndeterminate(node.value);
+    
         return (
-            <div className={`${styles.checkboxSection} ${compressChildren ? styles.compressed : ''}`} style={{ paddingLeft: 10 * level }}>
-                {data.map(item => {
-                    let shouldCompressSection = (item.items && item.items.length > 0 && item.items[0].short !== undefined) === true;
-                    console.log(item.label, shouldCompressSection, compressChildren)
-                    let children = item.items ? createCheckboxLevel(item.items, level + 1, shouldCompressSection) : undefined;
-                    let status = getCheckboxStatus(item.id);
-                    return (
-                        <div style={{ width: compressChildren ? 55 : undefined }}>
-                            <Checkbox
-                                label={item.short ? item.short : item.label}
-                                classNames={{ label: styles.checkboxLabel }}
-                                title={item.label}
-                                indeterminate={false}
-                            />
-
-                            {children}
-                        </div>
-                    );
-                })}
-            </div>
+            <Group gap="xs" {...elementProps}>
+                <Checkbox.Indicator
+                    checked={checked}
+                    indeterminate={indeterminate}
+                    onClick={() => {
+                        !checked ? tree.checkNode(node.value) : tree.uncheckNode(node.value);
+                    }}
+                    style={{cursor: 'pointer'}}
+                />
+    
+                <Group gap={5} onClick={() => tree.toggleExpanded(node.value)}>
+                    <span>{node.label}</span>
+    
+                    {hasChildren && (
+                        <IconChevronDown
+                            size={14}
+                            style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                        />
+                    )}
+                </Group>
+            </Group>
         );
-    }
+    };
 
-    function getExpandedData(data: any[], levelMax: number, level: number, path: string) {
+    function getInitialExpandedValues(data: any[], levelMax: number, level: number) {
 
         let result: any[] = [];
 
@@ -124,27 +63,54 @@ export default function BinMapDataControl({ items }: BinMapDataControlProps) {
         }
 
         for (let item of data) {
-            result = [item.value, ...result, ...getExpandedData(item.children, levelMax, level + 1, item.value)];
+            result = [item.value, ...result, ...getInitialExpandedValues(item.children, levelMax, level + 1)];
         }
 
         return result;
     }
 
-    function getStatesEnabled() {
-        let values = {};
-
-
+    function getUrls() {
+        let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/{dataset}/us/{state}/data.geojson';
+        let urls = stateList.filter(value => tree.checkedState.indexOf(value) > -1).map(state => baseUrl.replace('{dataset}', dataResolution).replace('{state}', state.toLowerCase()));
+        console.log(tree.checkedState)
+        return urls;
     }
 
-    const tree = useTree({
-        initialExpandedState: getTreeExpandedState(items, getExpandedData(items, 2, 0, '')),
-        // initialExpandedState: getTreeExpandedState(items, ['usa', 'usa/west']),
-    });
+    function handleUpdate() {
+        console.log("BinMapDataControl handleUpdate");
+        let urls = getUrls();
+        console.log(urls)
+        if (updateCallback) updateCallback(urls);
+    }
+
+    useEffect(() => {
+        // TODO: this causes way too many refreshes
+        handleUpdate();
+    }, [dataResolution, tree.checkedState]);
 
     return (
-        <div className={styles.checkboxTree}>
-            {/* {createCheckboxLevel(items, 0, false)} */}
-            <Tree data={items} tree={tree} levelOffset={23} expandOnClick={false} renderNode={renderTreeNode} />
+        <div>
+            <div className={styles.checkboxTree}>
+                <div className={styles.title}>
+                    Load Source
+                </div>
+                <Tree
+                    data={items} 
+                    tree={tree} 
+                    levelOffset={23} 
+                    expandOnClick={false} 
+                    renderNode={renderTreeNode} 
+                />
+            </div>
+            <div className={styles.optionsItem}>
+                <div className={`${styles.optionsLabel} ${styles.label}`}>Data Resolution</div>
+                <Select
+                    data={['res-0.01', 'res-0.05', 'res-0.1', 'res-0.5', 'res-1']}
+                    defaultValue={dataResolution}
+                    onChange={value => setDataResolution(value || dataResolution)}
+                    searchable
+                />
+            </div>
         </div>
     );
 }
