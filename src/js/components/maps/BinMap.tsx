@@ -151,7 +151,8 @@ export function BinMap() {
 
         Promise.all(promises)
             .then((featureSets) => {
-                setFeatures((oldFeatures) => { return [...oldFeatures, ...featureSets.flat() as Feature[]] });
+                // setFeatures((oldFeatures) => { return [...oldFeatures, ...featureSets.flat() as Feature[]] });
+                setFeatures(featureSets.flat() as Feature[]);
             });
     }
 
@@ -277,7 +278,7 @@ export function BinMap() {
     }, []);
 
     useEffect(() => {
-        setFeatures([]);
+        // setFeatures([]);
         addPresetFeatures();
     }, [dataSourceUrls]);
 
