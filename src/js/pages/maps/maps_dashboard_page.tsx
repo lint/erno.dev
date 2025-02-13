@@ -9,7 +9,7 @@ export default function MapsDashboardPage() {
         <BasePage>
             <ul>
                 <li>
-                    <Link to="/maps/address">Address</Link>
+                    <Link to="/maps/bin">Bin</Link>
                 </li>
             </ul>
         </BasePage>

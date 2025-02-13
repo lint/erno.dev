@@ -11,7 +11,7 @@ export default function MapPage() {
     let mapComponent = null;
 
     switch (mapId) {
-        case 'address':
+        case 'bin':
             mapComponent = <BinMap />;
             break;
         default:
