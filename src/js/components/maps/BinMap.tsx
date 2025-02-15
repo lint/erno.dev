@@ -1,30 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import 'ol/ol.css';
+import React, { useEffect, useState } from "react";
+import "ol/ol.css";
 import "ol-ext/dist/ol-ext.css";
-import Feature from 'ol/Feature.js';
-import { Vector } from 'ol/source';
-import VectorSource, { VectorSourceEvent } from 'ol/source/Vector';
-import { Projection } from 'ol/proj';
-import chroma from 'chroma-js';
-import GeoJSON from 'ol/format/GeoJSON';
-import { BinMapView } from './BinMapView';
-import Geometry from 'ol/geom/Geometry';
-import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, LayerDisplayInfo, LayerDisplayInfoSet, TileLayerOptions } from './BinMapLayerOptions';
-import BinMapLayerControl from './BinMapLayerControl';
-import styles from './BinMap.module.css';
-import { Accordion } from '@mantine/core';
-import { IconFlame, IconHexagons, IconMap, IconStackFront, IconTableFilled } from '@tabler/icons-react';
-import SideBar from '../layout/sidebar';
-import BinMapDataControl from './BinMapDataControl';
-import stateRegions, { stateList } from './StateRegions';
+import Feature from "ol/Feature.js";
+import { Vector } from "ol/source";
+import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
+import { Projection } from "ol/proj";
+import chroma from "chroma-js";
+import GeoJSON from "ol/format/GeoJSON";
+import { BinMapView } from "./BinMapView";
+import Geometry from "ol/geom/Geometry";
+import {
+    BaseLayerOptions,
+    BinLayerOptions,
+    DataOptions,
+    HeatmapLayerOptions,
+    LayerDisplayInfo,
+    LayerDisplayInfoSet,
+    TileLayerOptions,
+} from "./BinMapOptions";
+import BinMapLayerControl from "./BinMapLayerControl";
+import styles from "./BinMap.module.css";
+import { Accordion } from "@mantine/core";
+import {
+    IconFlame,
+    IconHexagons,
+    IconMap,
+    IconStackFront,
+    IconTableFilled,
+} from "@tabler/icons-react";
+import SideBar from "../layout/sidebar";
+import BinMapDataControl from "./BinMapDataControl";
+import stateRegions, { stateList } from "./StateRegions";
 
 export function BinMap() {
-
     // console.log("BinMap function called ...");
 
-    const defaultExpandedLayerControls = ['bin_test'];
+    const defaultExpandedLayerControls = ["bin_test"];
     const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
-    const [dataSourceUrls, setDataSourceUrls] = useState<string[]>([]);
+    const [dataConfig, setDataConfig] = useState<DataOptions>({dataResolution: 'res-0.5', selectedStates: stateList});
     // const legendContainerRef = useRef(null);
 
     const [cachedFeatures, setCachedFeatures] = useState({});
@@ -36,7 +49,7 @@ export function BinMap() {
             layerType: "tile",
             visible: true,
             opacity: 100,
-            tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+            tileSourceUrl:"https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
             zIndex: 1,
         } as TileLayerOptions,
         {
@@ -50,14 +63,14 @@ export function BinMap() {
             binType: "hex",
             binSize: 0,
             aggFuncName: "max",
-            layerClass: 'VectorImage',
+            layerClass: "VectorImage",
             numColorSteps: 5,
             colorScaleName: "Viridis",
             customMin: 0,
             customMax: 1,
             zIndex: 2,
-            intervalMode: 'full',
-            backgroundColorMode: 'none',
+            intervalMode: "full",
+            backgroundColorMode: "none",
             customBackgroundColor: chroma.scale("Viridis")(0).darken().hex(),
         } as BinLayerOptions,
         {
@@ -69,7 +82,7 @@ export function BinMap() {
             zIndex: 3,
             blur: 10,
             radius: 10,
-            followsBinLayerId: 'bin_test'
+            followsBinLayerId: "bin_test",
         } as HeatmapLayerOptions,
         // {
         //     id: "bin_test2",
@@ -86,19 +99,21 @@ export function BinMap() {
         //     colorScaleName: "viridis",
         //     intervalMin: 0,
         //     intervalMax: 30000,
-        // } as BinLayerOptions, 
+        // } as BinLayerOptions,
     ];
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
-    const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(createLayerDisplaySet());
+    const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(
+        createLayerDisplaySet()
+    );
 
     function createLayerDisplaySet() {
-
         let displaySet: LayerDisplayInfoSet = {};
 
         for (let config of layerConfigs) {
             let displayInfo: LayerDisplayInfo = {
-                controlExpanded: defaultExpandedLayerControls.indexOf(config.id) > -1,
-                binRanges: undefined
+                controlExpanded:
+                    defaultExpandedLayerControls.indexOf(config.id) > -1,
+                binRanges: undefined,
             };
             displaySet[config.id] = displayInfo;
         }
@@ -116,46 +131,49 @@ export function BinMap() {
     // load features from preset data file
     // function addPresetFeatures(vectorSource: Vector) {
     function addPresetFeatures() {
-
+        let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/{dataset}/us/{state}/data.geojson';
+        let urls = dataConfig.selectedStates.map(state => baseUrl.replace('{dataset}', dataConfig.dataResolution).replace('{state}', state.toLowerCase()));
         let proj = new Projection({ code: "EPSG:3857" });
 
-        let promises = dataSourceUrls.map(url => (
-            new Promise((resolve, reject) => {
-
-                if (url in cachedFeatures) {
-                    // console.log("found cached features for: ", url)
-                    resolve(cachedFeatures[url as keyof typeof cachedFeatures]);
-                    return;
-                }
-
-                let binSource = new Vector({
-                    url: url,
-                    format: new GeoJSON(),
-                    // loader: () => {
-                    // }
-                });
-                // console.log("loading features for url:", url)
-                // force source to load
-                binSource.loadFeatures([0, 0, 0, 0], 0, proj);
-
-                binSource.on('featuresloadend', (e: VectorSourceEvent) => {
-                    if (e.features) {
-                        setCachedFeatures(oldFeatures => { return { ...oldFeatures, [url]: e.features } })
-                        resolve(e.features);
-                    } else {
-                        reject(`No features loaded for url: ${url}`);
+        let promises = urls.map(
+            (url) =>
+                new Promise((resolve, reject) => {
+                    if (url in cachedFeatures) {
+                        // console.log("found cached features for: ", url)
+                        resolve(
+                            cachedFeatures[url as keyof typeof cachedFeatures]
+                        );
+                        return;
                     }
-                });
-            })
-        ));
 
-        Promise.all(promises)
-            .then((featureSets) => {
-                // setFeatures((oldFeatures) => { return [...oldFeatures, ...featureSets.flat() as Feature[]] });
-                setFeatures(featureSets.flat() as Feature[]);
-            });
+                    let binSource = new Vector({
+                        url: url,
+                        format: new GeoJSON(),
+                        // loader: () => {
+                        // }
+                    });
+                    // console.log("loading features for url:", url)
+                    // force source to load
+                    binSource.loadFeatures([0, 0, 0, 0], 0, proj);
+
+                    binSource.on("featuresloadend", (e: VectorSourceEvent) => {
+                        if (e.features) {
+                            setCachedFeatures((oldFeatures) => {
+                                return { ...oldFeatures, [url]: e.features };
+                            });
+                            resolve(e.features);
+                        } else {
+                            reject(`No features loaded for url: ${url}`);
+                        }
+                    });
+                })
+        );
+
+        Promise.all(promises).then((featureSets) => {
+            // setFeatures((oldFeatures) => { return [...oldFeatures, ...featureSets.flat() as Feature[]] });
+            setFeatures(featureSets.flat() as Feature[]);
+        });
     }
-
 
     // returns the chroma js color scale for the currently selected input
     // function getColorScale() {
@@ -207,14 +225,14 @@ export function BinMap() {
             if (!(id in layerInfos)) continue;
             layerInfos[id].binRanges = displaySet[id].binRanges;
         }
-        setLayerInfos(oldLayerInfos => ({ ...oldLayerInfos }));
+        setLayerInfos((oldLayerInfos) => ({ ...oldLayerInfos }));
     }
 
     function handleLayerExpandedChanged(ids: string[]) {
         for (let id in layerInfos) {
             layerInfos[id].controlExpanded = ids.indexOf(id) > -1;
         }
-        setLayerInfos(oldLayerInfos => ({ ...oldLayerInfos }));
+        setLayerInfos((oldLayerInfos) => ({ ...oldLayerInfos }));
     }
 
     function getExpandedLayers() {
@@ -227,16 +245,18 @@ export function BinMap() {
         return expandedLayers;
     }
 
-    function handleLayerControlChange(layerId: string, key: string, value: any) {
-
+    function handleLayerControlChange(
+        layerId: string,
+        key: string,
+        value: any
+    ) {
         setLayerConfigs((oldLayerConfigs) => {
-
             for (let i = 0; i < oldLayerConfigs.length; i++) {
                 let layerConfig = oldLayerConfigs[i];
                 if (layerConfig.id === layerId) {
                     let newLayerConfig = {
                         ...layerConfig,
-                        [key]: value
+                        [key]: value,
                     };
 
                     let newLayerConfigs = [...oldLayerConfigs];
@@ -249,23 +269,29 @@ export function BinMap() {
         });
     }
 
+    function handleDataControlChange(key: string, value: any) {
+        setDataConfig(oldConfig => ({
+            ...oldConfig,
+            [key]: value
+        }));
+    }
+
     // get the icon for a given layer type
     function iconForLayerType(layerType: string) {
         switch (layerType) {
-            case 'bin':
-                return <IconHexagons title='Bin Layer' />;
-            case 'heatmap':
-                return <IconFlame title='Heatmap Layer' />;
-            case 'tile':
-                return <IconMap title='Tile Layer' />;
+            case "bin":
+                return <IconHexagons title="Bin Layer" />;
+            case "heatmap":
+                return <IconFlame title="Heatmap Layer" />;
+            case "tile":
+                return <IconMap title="Tile Layer" />;
         }
     }
 
     useEffect(() => {
-
         // load US county data source
         let binSource = new Vector({
-            url: '/data/counties.geojson',
+            url: "/data/counties.geojson",
             format: new GeoJSON(),
             // loader: () => {
             // }
@@ -273,14 +299,18 @@ export function BinMap() {
         setCountyFeatureSource(binSource);
 
         // force source to load
-        binSource.loadFeatures([0, 0, 0, 0], 0, new Projection({ code: "EPSG:3857" }));
+        binSource.loadFeatures(
+            [0, 0, 0, 0],
+            0,
+            new Projection({ code: "EPSG:3857" })
+        );
         // console.log(binSource.getFeatures())
     }, []);
 
     useEffect(() => {
         // setFeatures([]);
         addPresetFeatures();
-    }, [dataSourceUrls]);
+    }, [dataConfig.dataResolution, dataConfig.selectedStates]);
 
     // useEffect(() => {
     //     refreshLegend();
@@ -291,30 +321,55 @@ export function BinMap() {
             multiple
             defaultValue={getExpandedLayers()}
             className={styles.layerConfigs}
-            classNames={{ label: styles.label, chevron: styles.chevron, control: styles.control, item: styles.item }}
+            classNames={{
+                label: styles.label,
+                chevron: styles.chevron,
+                control: styles.control,
+                item: styles.item,
+            }}
             onChange={handleLayerExpandedChanged}
         >
-            {layerConfigs.map(layerConfig => (
+            {layerConfigs.map((layerConfig) => (
                 <Accordion.Item value={layerConfig.id} key={layerConfig.id}>
-                    <Accordion.Control classNames={{ icon: layerConfig.visible ? styles.title : styles.titleDisabled }} icon={iconForLayerType(layerConfig.layerType)}>
-                        <div className={layerConfig.visible ? styles.title : styles.titleDisabled}>
+                    <Accordion.Control
+                        classNames={{
+                            icon: layerConfig.visible
+                                ? styles.title
+                                : styles.titleDisabled,
+                        }}
+                        icon={iconForLayerType(layerConfig.layerType)}
+                    >
+                        <div
+                            className={
+                                layerConfig.visible
+                                    ? styles.title
+                                    : styles.titleDisabled
+                            }
+                        >
                             {layerConfig.title}
                         </div>
                     </Accordion.Control>
                     <Accordion.Panel>
-                        <BinMapLayerControl config={layerConfig} updateCallback={handleLayerControlChange} binRange={layerInfos[layerConfig.id].binRanges} key={layerConfig.id} />
+                        <BinMapLayerControl
+                            config={layerConfig}
+                            updateCallback={handleLayerControlChange}
+                            binRange={layerInfos[layerConfig.id].binRanges}
+                            key={layerConfig.id}
+                        />
                     </Accordion.Panel>
                 </Accordion.Item>
             ))}
         </Accordion>
     );
-    const dataComponents = (<>
-        <BinMapDataControl 
-            items={stateRegions} 
-            initialCheckedValues={stateList}
-            updateCallback={setDataSourceUrls}
-        />
-    </>);
+    const dataComponents = (
+        <>
+            <BinMapDataControl
+                items={stateRegions}
+                updateCallback={handleDataControlChange}
+                config={dataConfig}
+            />
+        </>
+    );
 
     const sidebarItems = [
         {
@@ -326,7 +381,7 @@ export function BinMap() {
             label: "Data",
             icon: IconTableFilled,
             content: dataComponents,
-        }
+        },
     ];
 
     return (
@@ -339,8 +394,13 @@ export function BinMap() {
                     </div>
             </div> */}
 
-            <SideBar items={sidebarItems} activeItem='Data' />
-            <BinMapView features={features} layerConfigs={layerConfigs} featureBinSource={countyFeatureSource} rangesCallback={handleRangesCallback} />
-        </div >
+            <SideBar items={sidebarItems} activeItem="Data" />
+            <BinMapView
+                features={features}
+                layerConfigs={layerConfigs}
+                featureBinSource={countyFeatureSource}
+                rangesCallback={handleRangesCallback}
+            />
+        </div>
     );
 }

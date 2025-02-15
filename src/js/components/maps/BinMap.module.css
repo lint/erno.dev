@@ -123,3 +123,7 @@
     /* border: solid 1px red; */
     gap: 0;
 }
+
+.dataTitle {
+    padding-bottom: 2px;
+}

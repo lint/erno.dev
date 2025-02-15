@@ -65,3 +65,9 @@ export function getBackgroundColor(binLayerConfig: BinLayerOptions) {
             return '';
     }
 }
+
+export interface DataOptions {
+    dataResolution: string;
+    selectedStates: string[];
+    expandedItems?: string[];
+};

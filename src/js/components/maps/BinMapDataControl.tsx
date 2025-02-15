@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Checkbox, getTreeExpandedState, Group, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
+import React, { useEffect } from 'react';
+import { Checkbox, Fieldset, getTreeExpandedState, Group, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
 import styles from './BinMap.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
 import { stateList } from './StateRegions';
+import { DataOptions } from './BinMapOptions';
 
 export interface BinMapDataControlProps {
     items: any[];
-    initialCheckedValues?: any;
     updateCallback?: any;
+    config: DataOptions;
 };
 
-export default function BinMapDataControl({ items, initialCheckedValues, updateCallback }: BinMapDataControlProps) {
-
-    const [dataResolution, setDataResolution] = useState('res-0.5');
+export default function BinMapDataControl({ items, updateCallback, config }: BinMapDataControlProps) {
 
     const tree = useTree({
         initialExpandedState: getTreeExpandedState(items, getInitialExpandedValues(items, 2, 0)),
-        initialCheckedState: initialCheckedValues,
+        initialCheckedState: config.selectedStates,
     });
 
     const renderTreeNode = ({
@@ -69,48 +68,53 @@ export default function BinMapDataControl({ items, initialCheckedValues, updateC
         return result;
     }
 
-    function getUrls() {
-        let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/{dataset}/us/{state}/data.geojson';
-        let urls = stateList.filter(value => tree.checkedState.indexOf(value) > -1).map(state => baseUrl.replace('{dataset}', dataResolution).replace('{state}', state.toLowerCase()));
-        console.log(tree.checkedState)
-        return urls;
-    }
+    // general input change handler
+    function handleInputChange(key: string, value: any) {
+        console.log(`input change key=${key} value=${value}`)
 
-    function handleUpdate() {
-        console.log("BinMapDataControl handleUpdate");
-        let urls = getUrls();
-        console.log(urls)
-        if (updateCallback) updateCallback(urls);
+        try {
+            if (updateCallback) updateCallback(key, value);
+        } catch {
+            console.log(`failed to update key=${key} value=${value}`);
+        }
     }
 
     useEffect(() => {
         // TODO: this causes way too many refreshes
-        handleUpdate();
-    }, [dataResolution, tree.checkedState]);
+        let newSelectedStates = stateList.filter(value => tree.checkedState.indexOf(value) > -1);
+        console.log("new selected states:", newSelectedStates)
+        if (!(newSelectedStates.length === config.selectedStates.length && newSelectedStates.every(function(value, index) { return value === config.selectedStates[index]}))) {
+            handleInputChange('selectedStates', newSelectedStates);
+        }
+    }, [ tree.checkedState ]);
 
     return (
         <div>
-            <div className={styles.checkboxTree}>
-                <div className={styles.title}>
-                    Load Source
+            <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>State Data</div>}>
+                <div className={styles.checkboxTree}>
+                    <div className={`${styles.title} ${styles.dataTitle}`}>
+                        Select States
+                    </div>
+                    <Tree
+                        data={items} 
+                        tree={tree} 
+                        levelOffset={23} 
+                        expandOnClick={false} 
+                        renderNode={renderTreeNode} 
+                    />
                 </div>
-                <Tree
-                    data={items} 
-                    tree={tree} 
-                    levelOffset={23} 
-                    expandOnClick={false} 
-                    renderNode={renderTreeNode} 
-                />
-            </div>
-            <div className={styles.optionsItem}>
-                <div className={`${styles.optionsLabel} ${styles.label}`}>Data Resolution</div>
-                <Select
-                    data={['res-0.01', 'res-0.05', 'res-0.1', 'res-0.5', 'res-1']}
-                    defaultValue={dataResolution}
-                    onChange={value => setDataResolution(value || dataResolution)}
-                    searchable
-                />
-            </div>
+                <div className={styles.optionsItem}>
+                    <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
+                    <div style={{width: 100}}>
+                        <Select
+                            data={[{value:'res-0.01', label: '0.01°'}, {value:'res-0.05', label:'0.05°'}, {value:'res-0.1', label: '0.1°'}, {value:'res-0.5', label: '0.5°'},  {value:'res-1', label: '1°'}]}
+                            defaultValue={config.dataResolution}
+                            onChange={value => handleInputChange('dataResolution', value)}
+                            searchable
+                        />
+                    </div>
+                </div>
+            </Fieldset>
         </div>
     );
 }

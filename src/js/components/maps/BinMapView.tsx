@@ -23,7 +23,7 @@ import RegularShape from 'ol/style/RegularShape.js';
 import Style from 'ol/style/Style';
 import HeatmapLayer from 'ol/layer/Heatmap.js';
 import React, { useEffect, useRef } from 'react';
-import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapLayerOptions';
+import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import styles from './BinMap.module.css';
 
 export interface BinMapViewProps {
