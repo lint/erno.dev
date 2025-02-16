@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Checkbox, Fieldset, getTreeExpandedState, Group, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
+import { Button, Checkbox, Fieldset, getTreeExpandedState, Group, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
 import styles from './BinMap.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
 import { stateList } from './StateRegions';
@@ -14,7 +14,7 @@ export interface BinMapDataControlProps {
 export default function BinMapDataControl({ items, updateCallback, config }: BinMapDataControlProps) {
 
     const tree = useTree({
-        initialExpandedState: getTreeExpandedState(items, getInitialExpandedValues(items, 2, 0)),
+        initialExpandedState: getTreeExpandedState(items, getInitialExpandedValues(items, 1, 0)),
         initialCheckedState: config.selectedStates,
     });
 
@@ -90,19 +90,7 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
 
     return (
         <div>
-            <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>State Data</div>}>
-                <div className={styles.checkboxTree}>
-                    <div className={`${styles.title} ${styles.dataTitle}`}>
-                        Select States
-                    </div>
-                    <Tree
-                        data={items} 
-                        tree={tree} 
-                        levelOffset={23} 
-                        expandOnClick={false} 
-                        renderNode={renderTreeNode} 
-                    />
-                </div>
+            <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Regions</div>}>
                 <div className={styles.optionsItem}>
                     <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
                     <div style={{width: 100}}>
@@ -113,6 +101,22 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
                             searchable
                         />
                     </div>
+                </div>
+                <div className={styles.checkboxTree}>
+                    <div className={`${styles.title} ${styles.dataTitle}`}>
+                        Select Loaded Regions
+                    </div>
+                    <div className={styles.checkboxTreeActions}>
+                        <Button size="xs" onClick={() => tree.checkAllNodes()}>Select all</Button>
+                        <Button size="xs" onClick={() => tree.uncheckAllNodes()}>Unselect all</Button>
+                    </div>
+                    <Tree
+                        data={items} 
+                        tree={tree} 
+                        levelOffset={23} 
+                        expandOnClick={false} 
+                        renderNode={renderTreeNode} 
+                    />
                 </div>
             </Fieldset>
         </div>

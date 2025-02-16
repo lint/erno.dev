@@ -104,6 +104,7 @@
 .checkboxTree {
     /* font-weight: 700; */
     padding: 10px;
+    padding-top: 0;
 }
 
 .checkboxSection {
@@ -126,4 +127,11 @@
 
 .dataTitle {
     padding-bottom: 2px;
+}
+
+.checkboxTreeActions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--mantine-spacing-xs);
+    padding-bottom: var(--mantine-spacing-xs);
 }

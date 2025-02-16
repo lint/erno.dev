@@ -2,10 +2,10 @@ export const stateList: string[] = ['ak', 'al', 'ar', 'az', 'ca', 'co', 'ct', 'd
 
 const stateRegions = [
     {
-        value: 'usa',
-        label: 'United States',
-        children: [
-            {
+        // value: 'usa',
+        // label: 'United States',
+        // children: [
+        //     {
                 value: 'northeast',
                 label: 'Northeast',
                 children: [
@@ -133,8 +133,8 @@ const stateRegions = [
                         ]
                     }
                 ]
-            }
-        ]
+        //     }
+        // ]
     }
 ];
 export default stateRegions;
