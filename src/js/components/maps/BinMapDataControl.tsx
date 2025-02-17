@@ -4,6 +4,7 @@ import styles from './BinMap.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
 import { stateList } from './StateRegions';
 import { DataOptions } from './BinMapOptions';
+import arraysEqual from '../../util/arrays';
 
 export interface BinMapDataControlProps {
     items: any[];
@@ -29,7 +30,7 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
         const indeterminate = tree.isNodeIndeterminate(node.value);
 
         return (
-            <Group gap="xs" {...elementProps}>
+            <Group gap="xs" {...elementProps} classNames={{ root: styles.checkboxSection }}>
                 <Checkbox.Indicator
                     checked={checked}
                     indeterminate={indeterminate}
@@ -39,8 +40,8 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
                     style={{ cursor: 'pointer' }}
                 />
 
-                <Group gap={5} onClick={() => tree.toggleExpanded(node.value)}>
-                    <span>{node.label}</span>
+                <Group gap={5} onClick={() => tree.toggleExpanded(node.value)} classNames={{ root: styles.checkboxLabelContainer }}>
+                    <span className={styles.checkboxLabel}>{node.label}</span>
 
                     {hasChildren && (
                         <IconChevronDown
@@ -80,16 +81,15 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
     }
 
     useEffect(() => {
-        // TODO: this causes way too many refreshes
         let newSelectedStates = stateList.filter(value => tree.checkedState.indexOf(value) > -1);
-        if (!(newSelectedStates.length === config.selectedStates.length && newSelectedStates.every(function (value, index) { return value === config.selectedStates[index] }))) {
+        if (!arraysEqual(newSelectedStates, config.selectedStates)) {
             console.log("new selected states:", newSelectedStates)
             handleInputChange('selectedStates', newSelectedStates);
         }
     }, [tree.checkedState]);
 
     return (
-        <div>
+        <div className={styles.dataControl}>
             <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Regions</div>}>
                 <div className={styles.optionsItem}>
                     <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
@@ -103,7 +103,7 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
                     </div>
                 </div>
                 <div className={styles.checkboxTree}>
-                    <div className={`${styles.title} ${styles.dataTitle}`}>
+                    <div className={styles.dataTitle}>
                         Select Loaded Regions
                     </div>
                     <div className={styles.checkboxTreeActions}>

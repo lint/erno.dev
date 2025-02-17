@@ -22,7 +22,6 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         max: 1,
         values: [0, 1]
     });
-    // console.log("BIN RANGE: ", binRange)
 
     const tileSources = [
         {
@@ -118,7 +117,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         data={capitalize ? capitalizeValues(values) : values}
                         value={`${config[configKey as keyof typeof config]}`}
                         onChange={value => handleInputChange(configKey, value)}
-                        color="blue"
+                        color={disabled ? "gray" : "blue"}
                         disabled={disabled}
                     />
                 );
@@ -266,14 +265,25 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         max={binConfig.binType === 'hex' ? 1000000 : 10}
                         step={binConfig.binType === 'hex' ? 1000 : 0.1}
                         // TODO: weird behavior when switching tabs
-                        defaultValue={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
+                        value={binConfig.binSize ? binConfig.binSize : (binConfig.binType === 'hex' ? 80000 : 1)}
                         // allowDecimal={false}
                         onChange={value => handleInputChange('binSize', value)}
                         disabled={binConfig.binType === 'feature'}
                         inputSize='10'
                     />
                 )}
-                {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)}
+                {createOptionsItem('Bin Type',
+                    <SegmentedControl
+                        data={capitalizeValues(['hex', 'grid', 'feature'])}
+                        value={binConfig.binType}
+                        onChange={value => {
+                            handleInputChange('binType', value);
+                            handleInputChange('binSize', 0); // reset bin size when bin type changes
+                        }}
+                        color="blue"
+                    />
+                )}
+                {/* {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)} */}
                 {createSingleSelectOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
                 {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
             </>))}
@@ -381,12 +391,6 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
             values: interval
         });
     }, [binConfig.aggFuncName, binConfig.binType, binConfig.intervalMode, binRange]);
-
-    // reset bin size when bin type changes
-    // TODO: should this be done here?
-    useEffect(() => {
-        handleInputChange('binSize', 0);
-    }, [binConfig.binType]);
 
     return (
         <div className={styles.optionsGroup}>
