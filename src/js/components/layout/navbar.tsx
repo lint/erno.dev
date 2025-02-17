@@ -6,7 +6,7 @@ import { Divider, UnstyledButton, useComputedColorScheme, useMantineColorScheme 
 import { IconBrandGithub, IconMoon, IconSun } from '@tabler/icons-react';
 
 const linkData = [
-    { label: 'maps', url: '/maps/bin' },
+    { label: 'map', url: '/map' },
     { label: 'about', url: '/about' },
 ];
 

@@ -11,7 +11,6 @@ import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 import HomePage from './pages/home/home_page';
 import ErrorPage from './pages/error/error_page';
 import TempPage from './pages/temp_page';
-import MapsDashboardPage from './pages/maps/maps_dashboard_page';
 import MapPage from './pages/maps/map_page';
 
 // amplify
@@ -36,13 +35,9 @@ const router = createBrowserRouter([
         element: <TempPage />
     },
     {
-        path: "/maps",
-        element: <MapsDashboardPage />
-    },
-    {
-        path: "/maps/:mapId",
+        path: "/map",
         element: <MapPage />
-    }
+    },
 ]);
 
 // create mantine theme
