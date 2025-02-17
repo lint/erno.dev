@@ -451,7 +451,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, rangesCal
         const map = new Map({
             view: new View({
                 // center: fromLonLat([-80, 40.440]), // Pittsburgh, PA
-                center: fromLonLat([-98.303646, 39.869390]), // Burr Oak, KA (center of US-ish)
+                center: fromLonLat([-100.303646, 39.869390]), // Burr Oak, KA (center of US-ish)
                 zoom: 4.5,
             }),
             layers: [],
