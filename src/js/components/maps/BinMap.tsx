@@ -37,7 +37,7 @@ export function BinMap() {
 
     const defaultExpandedLayerControls = ["bin_test"];
     const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
-    const [dataConfig, setDataConfig] = useState<DataOptions>({dataResolution: 'res-0.5', selectedStates: stateList});
+    const [dataConfig, setDataConfig] = useState<DataOptions>({ dataResolution: 'res-0.5', selectedStates: stateList });
     // const legendContainerRef = useRef(null);
 
     const [cachedFeatures, setCachedFeatures] = useState({});
@@ -49,7 +49,7 @@ export function BinMap() {
             layerType: "tile",
             visible: true,
             opacity: 100,
-            tileSourceUrl:"https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+            tileSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
             zIndex: 1,
         } as TileLayerOptions,
         {
@@ -394,7 +394,7 @@ export function BinMap() {
                     </div>
             </div> */}
 
-            <SideBar items={sidebarItems} activeItem="Data" />
+            <SideBar items={sidebarItems} activeItem="Layers" />
             <BinMapView
                 features={features}
                 layerConfigs={layerConfigs}

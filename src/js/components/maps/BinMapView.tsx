@@ -452,7 +452,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, rangesCal
             view: new View({
                 // center: fromLonLat([-80, 40.440]), // Pittsburgh, PA
                 center: fromLonLat([-98.303646, 39.869390]), // Burr Oak, KA (center of US-ish)
-                zoom: 5,
+                zoom: 4.5,
             }),
             layers: [],
             target: mapContainerRef.current

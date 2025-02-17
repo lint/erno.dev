@@ -27,7 +27,7 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
     }: RenderTreeNodePayload) => {
         const checked = tree.isNodeChecked(node.value);
         const indeterminate = tree.isNodeIndeterminate(node.value);
-    
+
         return (
             <Group gap="xs" {...elementProps}>
                 <Checkbox.Indicator
@@ -36,12 +36,12 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
                     onClick={() => {
                         !checked ? tree.checkNode(node.value) : tree.uncheckNode(node.value);
                     }}
-                    style={{cursor: 'pointer'}}
+                    style={{ cursor: 'pointer' }}
                 />
-    
+
                 <Group gap={5} onClick={() => tree.toggleExpanded(node.value)}>
                     <span>{node.label}</span>
-    
+
                     {hasChildren && (
                         <IconChevronDown
                             size={14}
@@ -82,20 +82,20 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
     useEffect(() => {
         // TODO: this causes way too many refreshes
         let newSelectedStates = stateList.filter(value => tree.checkedState.indexOf(value) > -1);
-        console.log("new selected states:", newSelectedStates)
-        if (!(newSelectedStates.length === config.selectedStates.length && newSelectedStates.every(function(value, index) { return value === config.selectedStates[index]}))) {
+        if (!(newSelectedStates.length === config.selectedStates.length && newSelectedStates.every(function (value, index) { return value === config.selectedStates[index] }))) {
+            console.log("new selected states:", newSelectedStates)
             handleInputChange('selectedStates', newSelectedStates);
         }
-    }, [ tree.checkedState ]);
+    }, [tree.checkedState]);
 
     return (
         <div>
             <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Regions</div>}>
                 <div className={styles.optionsItem}>
                     <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
-                    <div style={{width: 100}}>
+                    <div style={{ width: 100 }}>
                         <Select
-                            data={[{value:'res-0.01', label: '0.01°'}, {value:'res-0.05', label:'0.05°'}, {value:'res-0.1', label: '0.1°'}, {value:'res-0.5', label: '0.5°'},  {value:'res-1', label: '1°'}]}
+                            data={[{ value: 'res-0.01', label: '0.01°' }, { value: 'res-0.05', label: '0.05°' }, { value: 'res-0.1', label: '0.1°' }, { value: 'res-0.5', label: '0.5°' }, { value: 'res-1', label: '1°' }]}
                             defaultValue={config.dataResolution}
                             onChange={value => handleInputChange('dataResolution', value)}
                             searchable
@@ -111,11 +111,11 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
                         <Button size="xs" onClick={() => tree.uncheckAllNodes()}>Unselect all</Button>
                     </div>
                     <Tree
-                        data={items} 
-                        tree={tree} 
-                        levelOffset={23} 
-                        expandOnClick={false} 
-                        renderNode={renderTreeNode} 
+                        data={items}
+                        tree={tree}
+                        levelOffset={23}
+                        expandOnClick={false}
+                        renderNode={renderTreeNode}
                     />
                 </div>
             </Fieldset>
