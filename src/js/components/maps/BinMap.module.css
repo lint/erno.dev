@@ -144,7 +144,3 @@
     gap: var(--mantine-spacing-xs);
     padding-bottom: 5px;
 }
-
-.dataControl {
-    padding: var(--mantine-spacing-sm);
-}

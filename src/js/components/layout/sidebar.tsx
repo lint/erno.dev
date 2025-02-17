@@ -9,12 +9,12 @@ export interface SideBarProps {
 }
 
 export default function SideBar({ items, activeItem }: SideBarProps) {
-    const [active, setActive] = useState(activeItem ? activeItem : items[0].label);
+    const [active, setActive] = useState(activeItem);
     const [lastActive, setLastActive] = useState(active);
     // console.log("SideBar() called: active=", active);
 
     // searches the items prop entries for a label matching the provided string
-    function contentForLabel(label: string) {
+    function contentForLabel(label: any) {
 
         for (let item of items) {
             if (item.label === label) return item.content;

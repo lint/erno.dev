@@ -24,6 +24,7 @@ import { Accordion } from "@mantine/core";
 import {
     IconFlame,
     IconHexagons,
+    IconHome,
     IconMap,
     IconStackFront,
     IconTableFilled,
@@ -362,13 +363,34 @@ export function BinMap() {
         </Accordion>
     );
     const dataComponents = (
-        <>
-            <BinMapDataControl
-                items={stateRegions}
-                updateCallback={handleDataControlChange}
-                config={dataConfig}
-            />
-        </>
+        <Accordion
+            multiple
+            defaultValue={['addresses']}
+            className={styles.layerConfigs}
+            classNames={{
+                label: styles.label,
+                chevron: styles.chevron,
+                control: styles.control,
+                item: styles.item,
+            }}
+        >
+            <Accordion.Item value='addresses'>
+                <Accordion.Control
+                    classNames={{ icon: styles.title }}
+                    icon={<IconHome />}
+                >
+                    <div className={styles.title}>Street Address</div>
+                </Accordion.Control>
+                <Accordion.Panel>
+                    <BinMapDataControl
+                        items={stateRegions}
+                        updateCallback={handleDataControlChange}
+                        config={dataConfig}
+                    />
+                </Accordion.Panel>
+            </Accordion.Item>
+
+        </Accordion>
     );
 
     const sidebarItems = [
@@ -394,7 +416,7 @@ export function BinMap() {
                     </div>
             </div> */}
 
-            <SideBar items={sidebarItems} activeItem="Layers" />
+            <SideBar items={sidebarItems} />
             <BinMapView
                 features={features}
                 layerConfigs={layerConfigs}

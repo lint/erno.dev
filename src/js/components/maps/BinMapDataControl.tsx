@@ -89,36 +89,34 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
     }, [tree.checkedState]);
 
     return (
-        <div className={styles.dataControl}>
-            <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Regions</div>}>
-                <div className={styles.optionsItem}>
-                    <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
-                    <div style={{ width: 100 }}>
-                        <Select
-                            data={[{ value: 'res-0.01', label: '0.01°' }, { value: 'res-0.05', label: '0.05°' }, { value: 'res-0.1', label: '0.1°' }, { value: 'res-0.5', label: '0.5°' }, { value: 'res-1', label: '1°' }]}
-                            defaultValue={config.dataResolution}
-                            onChange={value => handleInputChange('dataResolution', value)}
-                            searchable
-                        />
-                    </div>
-                </div>
-                <div className={styles.checkboxTree}>
-                    <div className={styles.dataTitle}>
-                        Select Loaded Regions
-                    </div>
-                    <div className={styles.checkboxTreeActions}>
-                        <Button size="xs" onClick={() => tree.checkAllNodes()}>Select all</Button>
-                        <Button size="xs" onClick={() => tree.uncheckAllNodes()}>Unselect all</Button>
-                    </div>
-                    <Tree
-                        data={items}
-                        tree={tree}
-                        levelOffset={23}
-                        expandOnClick={false}
-                        renderNode={renderTreeNode}
+        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Aggregated Regions</div>}>
+            <div className={styles.optionsItem}>
+                <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
+                <div style={{ width: 100 }}>
+                    <Select
+                        data={[{ value: 'res-0.01', label: '0.01°' }, { value: 'res-0.05', label: '0.05°' }, { value: 'res-0.1', label: '0.1°' }, { value: 'res-0.5', label: '0.5°' }, { value: 'res-1', label: '1°' }]}
+                        defaultValue={config.dataResolution}
+                        onChange={value => handleInputChange('dataResolution', value)}
+                        searchable
                     />
                 </div>
-            </Fieldset>
-        </div>
+            </div>
+            <div className={styles.checkboxTree}>
+                <div className={styles.dataTitle}>
+                    Select Loaded Regions
+                </div>
+                <div className={styles.checkboxTreeActions}>
+                    <Button size="xs" onClick={() => tree.checkAllNodes()}>Select all</Button>
+                    <Button size="xs" onClick={() => tree.uncheckAllNodes()}>Unselect all</Button>
+                </div>
+                <Tree
+                    data={items}
+                    tree={tree}
+                    levelOffset={23}
+                    expandOnClick={false}
+                    renderNode={renderTreeNode}
+                />
+            </div>
+        </Fieldset>
     );
 }
