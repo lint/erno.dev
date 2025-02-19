@@ -2,14 +2,17 @@
 import React, { ReactNode, useState } from 'react';
 import styles from './sidebar.module.css';
 import { Tooltip, UnstyledButton } from '@mantine/core';
+import { getCookie, setCookie } from '../../util/cookies';
 
 export interface SideBarProps {
     items: { label: string, icon: any, content: ReactNode }[];
     activeItem?: string;
+    cookieKey: string;
 }
 
-export default function SideBar({ items, activeItem }: SideBarProps) {
-    const [active, setActive] = useState(activeItem);
+export default function SideBar({ items, activeItem, cookieKey }: SideBarProps) {
+    const cookieName = `sidebar-${cookieKey}-active-item`;
+    const [active, setActive] = useState(activeItem || getCookie(cookieName));
     const [lastActive, setLastActive] = useState(active);
     // console.log("SideBar() called: active=", active);
 
@@ -39,8 +42,10 @@ export default function SideBar({ items, activeItem }: SideBarProps) {
                                 onClick={() => {
                                     if (active !== item.label) {
                                         setActive(item.label);
+                                        setCookie(cookieName, item.label, 365);
                                     } else {
                                         setActive('');
+                                        setCookie(cookieName, '', 365);
                                         setLastActive(item.label);
                                     }
                                 }}

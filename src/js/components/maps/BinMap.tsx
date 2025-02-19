@@ -416,7 +416,7 @@ export function BinMap() {
                     </div>
             </div> */}
 
-            <SideBar items={sidebarItems} />
+            <SideBar items={sidebarItems} activeItem="" cookieKey="binmap" />
             <BinMapView
                 features={features}
                 layerConfigs={layerConfigs}
