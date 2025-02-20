@@ -12,6 +12,12 @@ export interface BinMapLayerControlProps {
     updateCallback?: any;
 };
 
+// TODO: move this
+// creates capatalized CombodivData for list of values
+export function capitalizeValues(values: string[]) {
+    return values.map(value => ({ value: value, label: String(value).charAt(0).toUpperCase() + String(value).slice(1) }))
+}
+
 export default function BinMapLayerControl({ config, binRange, updateCallback }: BinMapLayerControlProps) {
 
     const binConfig = config as BinLayerOptions;
@@ -83,10 +89,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         }
     }
 
-    // creates capatalized CombodivData for list of values
-    function capitalizeValues(values: string[]) {
-        return values.map(value => ({ value: value, label: String(value).charAt(0).toUpperCase() + String(value).slice(1) }))
-    }
+
 
     // creates chips for list of values
     function chipsForValues(values: string[], capitalize: boolean, disabled: boolean = false) {

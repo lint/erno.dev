@@ -505,6 +505,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, rangesCal
 
     useEffect(() => {
         console.log("BinMapView useEffect features changed");
+        console.log('input features length:', features.length);
 
         vectorSourceRef.current = new Vector({ features: features });
         refreshLayers(true);

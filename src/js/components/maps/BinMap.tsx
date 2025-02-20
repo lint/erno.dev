@@ -22,6 +22,7 @@ import BinMapLayerControl from "./BinMapLayerControl";
 import styles from "./BinMap.module.css";
 import { Accordion } from "@mantine/core";
 import {
+    IconChartDotsFilled,
     IconFlame,
     IconHexagons,
     IconHome,
@@ -32,6 +33,7 @@ import {
 import SideBar from "../layout/sidebar";
 import BinMapDataControl from "./BinMapDataControl";
 import stateRegions, { stateList } from "./StateRegions";
+import BinMapChartControl from "./BinMapChartControl";
 
 export function BinMap() {
     // console.log("BinMap function called ...");
@@ -392,6 +394,11 @@ export function BinMap() {
 
         </Accordion>
     );
+    const chartComponents = (
+        <div>
+            <BinMapChartControl features={features} />
+        </div>
+    );
 
     const sidebarItems = [
         {
@@ -404,6 +411,11 @@ export function BinMap() {
             icon: IconTableFilled,
             content: dataComponents,
         },
+        {
+            label: "Charts",
+            icon: IconChartDotsFilled,
+            content: chartComponents,
+        }
     ];
 
     return (
