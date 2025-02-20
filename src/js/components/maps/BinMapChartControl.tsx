@@ -1,7 +1,7 @@
 import { ScatterChart } from '@mantine/charts';
 import React, { useState } from 'react';
 import styles from './BinMap.module.css';
-import { SegmentedControl } from '@mantine/core';
+import { Checkbox, SegmentedControl } from '@mantine/core';
 import { capitalizeValues } from './BinMapLayerControl';
 import Feature from 'ol/Feature';
 import { Geometry } from 'ol/geom';
@@ -14,6 +14,7 @@ export interface BinMapChartControlProps {
 export default function BinMapChartControl({ features }: BinMapChartControlProps) {
 
     const [aggValue, setAggValue] = useState('avg');
+    const [useLog, setUseLog] = useState(true);
 
     function chartDataForFeatures() {
         let data = [];
@@ -24,7 +25,8 @@ export default function BinMapChartControl({ features }: BinMapChartControlProps
             counts[value] += 1;
         }
         for (let num in counts) {
-            data.push({ number: Number(num), count: counts[num] })
+            let count = useLog ? Math.log10(counts[num]) : counts[num];
+            data.push({ number: Number(num), count: count })
         }
 
         return [
@@ -55,6 +57,16 @@ export default function BinMapChartControl({ features }: BinMapChartControlProps
                     onChange={value => setAggValue(value)}
                     color={"blue"}
                 />
+            </div>
+            <div className={styles.optionsItem}>
+                <Checkbox
+                    checked={useLog}
+                    onClick={() => {
+                        setUseLog(!useLog);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                />
+                <div className={`${styles.label}`}>y-axis log scale</div>
             </div>
         </div>
     );
