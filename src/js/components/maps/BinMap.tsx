@@ -40,7 +40,7 @@ export function BinMap() {
 
     const defaultExpandedLayerControls = ["bin_test"];
     const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
-    const [dataConfig, setDataConfig] = useState<DataOptions>({ dataResolution: 'res-0.5', selectedStates: stateList });
+    const [dataConfig, setDataConfig] = useState<DataOptions>({ dataResolution: '0.5', selectedStates: stateList });
     // const legendContainerRef = useRef(null);
 
     const [cachedFeatures, setCachedFeatures] = useState({});

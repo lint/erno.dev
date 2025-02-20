@@ -94,7 +94,7 @@ export default function BinMapDataControl({ items, updateCallback, config }: Bin
                 <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
                 <div style={{ width: 100 }}>
                     <Select
-                        data={[{ value: 'res-0.01', label: '0.01°' }, { value: 'res-0.05', label: '0.05°' }, { value: 'res-0.1', label: '0.1°' }, { value: 'res-0.5', label: '0.5°' }, { value: 'res-1', label: '1°' }]}
+                        data={[{ value: '0.01', label: '0.01°' }, { value: '0.05', label: '0.05°' }, { value: '0.1', label: '0.1°' }, { value: '0.5', label: '0.5°' }, { value: '1', label: '1°' }]}
                         defaultValue={config.dataResolution}
                         onChange={value => handleInputChange('dataResolution', value)}
                         searchable
