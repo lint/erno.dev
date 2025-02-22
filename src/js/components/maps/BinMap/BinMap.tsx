@@ -65,7 +65,7 @@ export function BinMap() {
             colorMode: "gradient",
             binType: "hex",
             binSize: 0,
-            featureSourceUrl: '/data/counties.geojson',
+            featureSourceUrl: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_county_5m.geojson',
             aggFuncName: "max",
             layerClass: "VectorImage",
             numColorSteps: 5,
@@ -396,7 +396,7 @@ export function BinMap() {
                     classNames={{ icon: styles.title }}
                     icon={<IconHome />}
                 >
-                    <div className={styles.title}>Street Address</div>
+                    <div className={styles.title}>Address Numbers</div>
                 </Accordion.Control>
                 <Accordion.Panel>
                     <BinMapDataControl

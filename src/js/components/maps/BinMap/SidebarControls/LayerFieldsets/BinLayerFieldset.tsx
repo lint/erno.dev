@@ -18,6 +18,18 @@ export interface BinLayerFieldsetProps {
 
 export default function BinLayerFieldset({ config, handleInputChange, intervalSliderValues, handleIntervalSliderChange }: BinLayerFieldsetProps) {
 
+    const featureBinSourceUrls = [
+        { label: 'States (2.2mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_state_5m.geojson' },
+        { label: 'Counties (6.2mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_county_5m.geojson' },
+        { label: 'Congressional Districts (14.3mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_500k/cb_2023_us_cd118_500k.geojson' },
+        { label: 'Counties within Congressional Districts (27.7mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_500k/cb_2023_us_county_within_cd118_500k.geojson' },
+        { label: 'County Subdivisions (89.2mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_500k/cb_2023_us_cousub_500k.geojson' },
+        // { label: 'Lower Chamber State Legislative Districts (35.2mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_500k/cb_2023_us_sldl_500k.geojson' },
+        // { label: 'Upper Chamber State Legislative Districts (24.5mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_500k/cb_2023_us_sldu_500k.geojson' },
+        // { label: 'Unified School Districts (51.9mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_500k/cb_2023_us_unsd_500k.geojson' },
+        { label: 'Places (51.9mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_500k/cb_2023_us_place_500k.geojson' },
+    ];
+
     return (<>
         {createFieldset('Bins', (<>
             {createOptionsItem('Bin Size',
@@ -47,7 +59,7 @@ export default function BinLayerFieldset({ config, handleInputChange, intervalSl
             {createSingleSelectOptionsItem(config, 'hexStyle', 'Hex Style', ['pointy', 'flat'], true, config.binType !== 'hex', 'segmented', handleInputChange)}
             {createOptionsItem('Feature Source',
                 <Select
-                    data={[{ label: 'Counties', value: '/data/counties.geojson' }, { label: 'test', value: '/data/cb_2023_us_tract_500k.geojson' }]}
+                    data={featureBinSourceUrls}
                     defaultValue={config.featureSourceUrl}
                     onChange={value => handleInputChange('featureSourceUrl', value)}
                     searchable
