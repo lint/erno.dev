@@ -1,16 +1,17 @@
 import React from 'react';
-import { createFieldset, createOptionsItem } from '../SidebarControls';
-import { Select } from '@mantine/core';
+import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
+import { SegmentedControl, Select } from '@mantine/core';
 import { TileLayerOptions } from '../../BinMapOptions';
+import styles from '../SidebarControls.module.css';
 
 export interface TileLayerFieldsetProps {
     config: TileLayerOptions;
     handleInputChange: (key: string, value: any) => void;
 }
 
-export default function TileLayerFieldset({ config, handleInputChange, }: TileLayerFieldsetProps) {
+export default function TileLayerFieldset({ config, handleInputChange }: TileLayerFieldsetProps) {
 
-    const tileSources = [
+    const baseTileSources = [
         {
             group: 'OSM', items: [
                 { value: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', label: 'Standard' },
@@ -43,6 +44,12 @@ export default function TileLayerFieldset({ config, handleInputChange, }: TileLa
                 { value: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', label: 'Dark Gray Base' },
             ]
         },
+        // { value: 'https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png', label: 'MemoMaps'},
+        // { value: 'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg', label: 'Stamen Watercolor'},
+        // { value: 'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png', label: 'OpenWeatherMap'},
+        // { value: '', label: ''},
+    ];
+    const overlayTileSources = [
         {
             group: 'Esri Overlay', items: [
                 { value: 'https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', label: 'World Boundaries and Places' },
@@ -53,18 +60,27 @@ export default function TileLayerFieldset({ config, handleInputChange, }: TileLa
                 { value: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', label: 'Transportation' },
             ]
         },
-        // { value: 'https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png', label: 'MemoMaps'},
-        // { value: 'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg', label: 'Stamen Watercolor'},
-        // { value: 'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png', label: 'OpenWeatherMap'},
-        // { value: '', label: ''},
     ];
 
     return createFieldset('Tile', <>
+        <div className={styles.optionsItem}>
+            <div className={`${styles.optionsLabel} ${styles.label}`}>Source Type</div>
+            <SegmentedControl
+                data={capitalizeValues(['base', 'overlay'])}
+                value={config.sourceType}
+                onChange={value => {
+                    handleInputChange('sourceType', value);
+                }}
+                color={"blue"}
+            />
+        </div>
         {createOptionsItem('Source',
             <Select
-                data={tileSources}
-                defaultValue={config.tileSourceUrl}
-                onChange={value => handleInputChange('tileSourceUrl', value)}
+                data={config.sourceType === 'base' ? baseTileSources : overlayTileSources}
+                value={config.sourceType === 'base' ? config.baseSourceUrl : config.overlaySourceUrl}
+                onChange={value => {
+                    handleInputChange(config.sourceType === 'base' ? 'baseSourceUrl' : 'overlaySourceUrl', value)
+                }}
                 searchable
             />
         )}

@@ -10,7 +10,9 @@ export interface BaseLayerOptions {
 };
 
 export interface TileLayerOptions extends BaseLayerOptions {
-    tileSourceUrl: string;
+    sourceType: string;
+    baseSourceUrl: string;
+    overlaySourceUrl: string;
 };
 
 export interface HeatmapLayerOptions extends BaseLayerOptions {

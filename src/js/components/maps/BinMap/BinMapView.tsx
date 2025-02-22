@@ -288,7 +288,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         console.log("creating new tile layer", tileLayerConfig);
 
         const tileLayer = new TileLayer({
-            source: new OSM({ url: tileLayerConfig.tileSourceUrl }),
+            source: new OSM({ url: tileLayerConfig.sourceType === 'base' ? tileLayerConfig.baseSourceUrl : tileLayerConfig.overlaySourceUrl }),
             // preload: Infinity 
             preload: 1,
             opacity: Number(tileLayerConfig.opacity) / 100,
@@ -384,7 +384,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
                 let tileLayerConfig = layerConfig as TileLayerOptions;
 
                 let osmSource = layer.getSource() as OSM;
-                osmSource.setUrl(tileLayerConfig.tileSourceUrl);
+                osmSource.setUrl(tileLayerConfig.sourceType === 'base' ? tileLayerConfig.baseSourceUrl : tileLayerConfig.overlaySourceUrl);
 
                 // update heatmap layer properties 
             } else if (layerConfig.layerType === 'heatmap') {
