@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { Button, Checkbox, Fieldset, getTreeExpandedState, Group, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
-import styles from './BinMap.module.css';
+import styles from '../BinMap.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
-import { stateList } from './StateRegions';
-import { DataOptions } from './BinMapOptions';
-import arraysEqual from '../../util/arrays';
+import { stateList } from '../../StateRegions';
+import { DataOptions } from '../BinMapOptions';
+import arraysEqual from '../../../../util/arrays';
 
 export interface BinMapDataControlProps {
     items: any[];

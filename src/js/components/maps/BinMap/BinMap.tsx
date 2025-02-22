@@ -18,7 +18,7 @@ import {
     LayerDisplayInfoSet,
     TileLayerOptions,
 } from "./BinMapOptions";
-import BinMapLayerControl from "./BinMapLayerControl";
+import BinMapLayerControl from "./SidebarControls/BinMapLayerControl";
 import styles from "./BinMap.module.css";
 import { Accordion } from "@mantine/core";
 import {
@@ -29,9 +29,9 @@ import {
     IconStackFront,
     IconTableFilled,
 } from "@tabler/icons-react";
-import SideBar from "../layout/sidebar";
-import BinMapDataControl from "./BinMapDataControl";
-import stateRegions, { stateList } from "./StateRegions";
+import SideBar from "../../layout/sidebar";
+import BinMapDataControl from "./SidebarControls/BinMapDataControl";
+import stateRegions, { stateList } from "../StateRegions";
 
 export function BinMap() {
     // console.log("BinMap function called ...");

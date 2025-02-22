@@ -1,10 +1,10 @@
 
 import React, { ReactNode, useEffect, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from './BinMapOptions';
+import { BaseLayerOptions, BinLayerOptions, getBackgroundColor, HeatmapLayerOptions, TileLayerOptions } from '../BinMapOptions';
 import chroma from 'chroma-js';
 import { ActionIcon, Chip, ColorInput, Fieldset, Group, Input, NumberInput, RangeSlider, SegmentedControl, Select, Slider } from '@mantine/core';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
-import styles from './BinMap.module.css';
+import styles from '../BinMap.module.css';
 
 export interface BinMapLayerControlProps {
     config: BaseLayerOptions;
