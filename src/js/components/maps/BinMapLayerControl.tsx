@@ -176,29 +176,27 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                     onChange={event => handleInputChange('title', event.currentTarget.value)}
                 />
             )}
-            {createOptionsItem('Visibility',
-                <>
-                    <ActionIcon
-                        onClick={() => handleInputChange('visible', !config.visible)}
-                        title={'Enable/Disable Layer'}
-                        variant={config.visible ? 'filled' : 'outline'}
-                    >
-                        {config.visible ? <IconEye /> : <IconEyeClosed />}
-                    </ActionIcon>
+            {createOptionsItem('Visibility', <>
+                <ActionIcon
+                    onClick={() => handleInputChange('visible', !config.visible)}
+                    title={'Enable/Disable Layer'}
+                    variant={config.visible ? 'filled' : 'outline'}
+                >
+                    {config.visible ? <IconEye /> : <IconEyeClosed />}
+                </ActionIcon>
 
-                    <div style={{ width: 42 }}>{config.opacity + '%'}</div>
-                    <Slider
-                        defaultValue={config.opacity}
-                        min={0}
-                        max={100}
-                        step={1}
-                        onChange={value => handleInputChange('opacity', value)}
-                        style={{ flexGrow: 1, maxWidth: "200px" }}
-                        disabled={!config.visible}
-                        label={null}
-                    />
-                </>
-            )}
+                <div style={{ width: 42 }}>{config.opacity + '%'}</div>
+                <Slider
+                    defaultValue={config.opacity}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onChange={value => handleInputChange('opacity', value)}
+                    style={{ flexGrow: 1, maxWidth: "200px" }}
+                    disabled={!config.visible}
+                    label={null}
+                />
+            </>)}
             {createOptionsItem('z-index',
                 <NumberInput
                     defaultValue={`${config.zIndex || 0}`}
@@ -227,34 +225,30 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
     // create heatmap layer fieldset
     function createHeatmapFieldset() {
         return createFieldset('Heatmap', <>
-            {createOptionsItem('Blur',
-                <>
-                    <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
-                    <Slider
-                        defaultValue={heatmapConfig.blur}
-                        min={0}
-                        max={100}
-                        step={1}
-                        onChange={value => handleInputChange('blur', value)}
-                        style={{ flexGrow: 1, maxWidth: "200px" }}
-                        label={null}
-                    />
-                </>
-            )}
-            {createOptionsItem('Radius',
-                <>
-                    <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.radius}</div>
-                    <Slider
-                        defaultValue={heatmapConfig.radius}
-                        min={0}
-                        max={50}
-                        step={0.5}
-                        onChange={value => handleInputChange('radius', value)}
-                        style={{ flexGrow: 1, maxWidth: "200px" }}
-                        label={null}
-                    />
-                </>
-            )}
+            {createOptionsItem('Blur', <>
+                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
+                <Slider
+                    defaultValue={heatmapConfig.blur}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onChange={value => handleInputChange('blur', value)}
+                    style={{ flexGrow: 1, maxWidth: "200px" }}
+                    label={null}
+                />
+            </>)}
+            {createOptionsItem('Radius', <>
+                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.radius}</div>
+                <Slider
+                    defaultValue={heatmapConfig.radius}
+                    min={0}
+                    max={50}
+                    step={0.5}
+                    onChange={value => handleInputChange('radius', value)}
+                    style={{ flexGrow: 1, maxWidth: "200px" }}
+                    label={null}
+                />
+            </>)}
         </>);
     }
 
@@ -286,8 +280,16 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                         color="blue"
                     />
                 )}
-                {/* {createSingleSelectOptionsItem('binType', 'Bin Type', ['hex', 'grid', 'feature'], true, false)} */}
                 {createSingleSelectOptionsItem('hexStyle', 'Hex Style', ['pointy', 'flat'], true, binConfig.binType !== 'hex')}
+                {createOptionsItem('Feature Source',
+                    <Select
+                        data={[{ label: 'Counties', value: '/data/counties.geojson' }, { label: 'test', value: '/data/cb_2023_us_tract_500k.geojson' }]}
+                        defaultValue={binConfig.featureSourceUrl}
+                        onChange={value => handleInputChange('featureSourceUrl', value)}
+                        searchable
+                        disabled={binConfig.binType !== 'feature'}
+                    />
+                )}
                 {createSingleSelectOptionsItem('layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false)}
             </>))}
             {createFieldset('Data', (<>

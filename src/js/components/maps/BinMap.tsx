@@ -3,7 +3,7 @@ import "ol/ol.css";
 import "ol-ext/dist/ol-ext.css";
 import Feature from "ol/Feature.js";
 import { Vector } from "ol/source";
-import VectorSource, { VectorSourceEvent } from "ol/source/Vector";
+import { VectorSourceEvent } from "ol/source/Vector";
 import { Projection } from "ol/proj";
 import chroma from "chroma-js";
 import GeoJSON from "ol/format/GeoJSON";
@@ -37,11 +37,11 @@ export function BinMap() {
     // console.log("BinMap function called ...");
 
     const defaultExpandedLayerControls = ["bin_test"];
-    const [countyFeatureSource, setCountyFeatureSource] = useState<VectorSource>();
     const [dataConfig, setDataConfig] = useState<DataOptions>({ dataResolution: '0.5', selectedStates: stateList });
     // const legendContainerRef = useRef(null);
 
     const [cachedFeatures, setCachedFeatures] = useState({});
+    const [cachedRegions, setCachedRegions] = useState({});
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
     const defaultLayerConfigs = [
         {
@@ -63,6 +63,7 @@ export function BinMap() {
             colorMode: "gradient",
             binType: "hex",
             binSize: 0,
+            featureSourceUrl: '/data/counties.geojson',
             aggFuncName: "max",
             layerClass: "VectorImage",
             numColorSteps: 5,
@@ -122,15 +123,7 @@ export function BinMap() {
         return displaySet;
     }
 
-    // reset any randomly added features
-    // function handleResetFeaturesButton() {
-    //     // if (!dataSourceRef.current) return;
-    //     setFeatures([]);
-    //     addPresetFeatures();
-    // }
-
     // load features from preset data file
-    // function addPresetFeatures(vectorSource: Vector) {
     function addPresetFeatures() {
         let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/{dataset}/us/{state}/data.geojson';
         let urls = dataConfig.selectedStates.map(state => baseUrl.replace('{dataset}', dataConfig.dataResolution).replace('{state}', state.toLowerCase()));
@@ -173,6 +166,36 @@ export function BinMap() {
         Promise.all(promises).then((featureSets) => {
             // setFeatures((oldFeatures) => { return [...oldFeatures, ...featureSets.flat() as Feature[]] });
             setFeatures(featureSets.flat() as Feature[]);
+        });
+    }
+
+    // download region / feature bin sources from a given url
+    function addRegionSourceUrl(url: string) {
+        console.log("addRegionSourceUrl:", url);
+
+        // TODO: ensure this is done async?
+        let proj = new Projection({ code: "EPSG:3857" });
+
+        if (url in cachedRegions) {
+            // console.log("found cached features for: ", url)
+            return;
+        }
+
+        let binSource = new Vector({
+            url: url,
+            format: new GeoJSON(),
+            // loader: () => {
+            // }
+        });
+        // console.log("loading features for url:", url)
+        // force source to load
+        binSource.loadFeatures([0, 0, 0, 0], 0, proj);
+
+
+        binSource.on("featuresloadend", () => {
+            setCachedRegions((oldRegions) => {
+                return { ...oldRegions, [url]: binSource };
+            });
         });
     }
 
@@ -290,23 +313,13 @@ export function BinMap() {
     }
 
     useEffect(() => {
-        // load US county data source
-        let binSource = new Vector({
-            url: "/data/counties.geojson",
-            format: new GeoJSON(),
-            // loader: () => {
-            // }
-        });
-        setCountyFeatureSource(binSource);
 
-        // force source to load
-        binSource.loadFeatures(
-            [0, 0, 0, 0],
-            0,
-            new Projection({ code: "EPSG:3857" })
-        );
-        // console.log(binSource.getFeatures())
-    }, []);
+        // check if new feature source url should be downloaded
+        for (let layerConfig of layerConfigs) {
+            if (layerConfig.layerType !== 'bin') continue;
+            addRegionSourceUrl((layerConfig as BinLayerOptions).featureSourceUrl);
+        }
+    }, [layerConfigs])
 
     useEffect(() => {
         // setFeatures([]);
@@ -430,7 +443,7 @@ export function BinMap() {
             <BinMapView
                 features={features}
                 layerConfigs={layerConfigs}
-                featureBinSource={countyFeatureSource}
+                regionSources={cachedRegions}
                 rangesCallback={handleRangesCallback}
             />
         </div>

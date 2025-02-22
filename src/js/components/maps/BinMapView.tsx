@@ -28,7 +28,7 @@ import styles from './BinMap.module.css';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
-    featureBinSource?: VectorSource;
+    regionSources: { [key: string]: VectorSource };
     layerConfigs: BaseLayerOptions[];
     rangesCallback: (binLayerRanges: LayerDisplayInfoSet) => void;
 };
@@ -41,7 +41,7 @@ export interface BinValues {
     len: number;
 };
 
-export function BinMapView({ features, layerConfigs, featureBinSource, rangesCallback }: BinMapViewProps) {
+export function BinMapView({ features, layerConfigs, regionSources, rangesCallback }: BinMapViewProps) {
 
     // console.log("BinMapView called ...");
 
@@ -51,7 +51,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, rangesCal
     const minRadius = 1; // minimum radius used for 'point' hex style
     const layersRef = useRef({} as any); // maps id => layer object
     const prevLayerConfigs = useRef(layerConfigs); // stores previous version of layerConfigs for later comparision
-    const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval'];
+    const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval', 'featureSourceUrl'];
     const binMaxesRef = useRef<LayerDisplayInfoSet>({});
 
     // handle selection of a feature
@@ -244,7 +244,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, rangesCal
             case "feature": {
                 bins = new FeatureBin({
                     source: vectorSourceRef.current,
-                    binSource: featureBinSource,
+                    binSource: regionSources[binLayerConfig.featureSourceUrl],
                     listenChange: false,
                 } as any);
                 break;
@@ -510,7 +510,7 @@ export function BinMapView({ features, layerConfigs, featureBinSource, rangesCal
         vectorSourceRef.current = new Vector({ features: features });
         refreshLayers(true);
 
-    }, [features]);
+    }, [features, regionSources]);
 
     return (
         <div ref={mapContainerRef} className={styles.map} />
