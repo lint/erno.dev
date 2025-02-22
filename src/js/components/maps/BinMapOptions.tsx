@@ -16,7 +16,9 @@ export interface TileLayerOptions extends BaseLayerOptions {
 export interface HeatmapLayerOptions extends BaseLayerOptions {
     blur: number;
     radius: number;
-    followsBinLayerId: string;
+    aggFuncName: string;
+    numColorSteps: number;
+    colorScaleName: string;
 };
 
 export interface BinLayerOptions extends BaseLayerOptions {

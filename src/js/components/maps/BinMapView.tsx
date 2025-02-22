@@ -68,7 +68,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     }
 
     // find the minimum and maximum values in a given feature set
-    function findValueBounds(features: Feature<Geometry>[], binLayerConfig: BinLayerOptions) {
+    function findValueBounds(features: Feature<Geometry>[], aggFuncName: string, layerId: string) {
         if (!features || features.length == 0) return;
 
         console.log("BinMapView findValueBounds ...");
@@ -79,11 +79,12 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         // calculate the value for every feature
         for (let f of features) {
             let fs = f.get('features');
+            if (!fs) fs = [f];
 
             // get list of values for the bins
             let numbers = fs.map((ff: Feature<Geometry>) => {
 
-                let aggNum = ff.get(binLayerConfig.aggFuncName);
+                let aggNum = ff.get(aggFuncName);
                 let numNum = ff.get('number');
                 if (!aggNum && Number.isFinite(numNum)) {
                     ff.set('min', numNum, true);
@@ -102,7 +103,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             let value = -1;
 
             // find value for bins with aggregated value features
-            switch (binLayerConfig.aggFuncName) {
+            switch (aggFuncName) {
                 case 'len':
                     value = numbers.reduce((a: number, b: number) => a + b, 0);
                     break;
@@ -150,7 +151,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             iqr_min: minFence,
             iqr_max: maxFence
         };
-        binMaxesRef.current[binLayerConfig.id] = { binRanges: ranges };
+        binMaxesRef.current[layerId] = { binRanges: ranges };
         rangesCallback({ ...binMaxesRef.current });
     }
 
@@ -260,7 +261,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             }
         }
 
-        findValueBounds(bins.getFeatures(), binLayerConfig);
+        findValueBounds(bins.getFeatures(), binLayerConfig.aggFuncName, binLayerConfig.id);
 
         return bins;
     }
@@ -301,39 +302,23 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
         console.log("creating new heatmap layer", heatmapLayerConfig);
 
-        // TODO: there are some issues with getting the heatmap layer to update alongside bin layer
-        // find a better way to link the layers, or to have a way to reset the weight function
-        // issue is that weight function gets stale values
-
         const heatmapLayer = new HeatmapLayer({
             source: vectorSourceRef.current,
             blur: heatmapLayerConfig.blur,
             radius: heatmapLayerConfig.radius,
             opacity: Number(heatmapLayerConfig.opacity) / 100,
             weight: (feature) => {
-                let binLayerConfig = configForId(heatmapLayerConfig.followsBinLayerId) as BinLayerOptions;
                 let value = 1;
-                if (binLayerConfig && binLayerConfig.layerType === 'bin') {
-                    let min = getRangeValue(binLayerConfig, false);
-                    let max = getRangeValue(binLayerConfig, true);
-                    value = (feature.get(binLayerConfig.aggFuncName) - min) / (max - min);
-                }
+                let binRange = binMaxesRef.current[heatmapLayerConfig.id].binRanges
+                let min = binRange ? binRange.full_min : 0;
+                let max = binRange ? binRange.full_max : 0;
+                value = (feature.get(heatmapLayerConfig.aggFuncName) - min) / (max - min);
                 return value;
             },
-            // gradient: binLayerConfig ? chroma.scale(binLayerConfig.colorScaleName).colors(binLayerConfig.numColorSteps) : undefined
+            gradient: chroma.scale(heatmapLayerConfig.colorScaleName).colors(heatmapLayerConfig.numColorSteps)
         });
 
         return heatmapLayer;
-    }
-
-    // get the layer config associated with a given id
-    function configForId(layerId: string) {
-
-        for (let layerConfig of layerConfigs) {
-            if (layerConfig.id === layerId) return layerConfig;
-        }
-
-        return undefined;
     }
 
     // get the layer associated witht the given layer config
@@ -404,14 +389,15 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
                 // update heatmap layer properties 
             } else if (layerConfig.layerType === 'heatmap') {
                 let heatmapLayerConfig = layerConfig as HeatmapLayerOptions;
-                let binLayerConfig = configForId(heatmapLayerConfig.followsBinLayerId) as BinLayerOptions;
 
                 layer.setRadius(heatmapLayerConfig.radius);
                 layer.setBlur(heatmapLayerConfig.blur);
                 // layer.setSource(vectorSourceRef.current);
 
-                if (binLayerConfig) {
-                    layer.setGradient(chroma.scale(binLayerConfig.colorScaleName).colors(Math.max(2, binLayerConfig.numColorSteps)));
+                layer.setGradient(chroma.scale(heatmapLayerConfig.colorScaleName).colors(Math.max(2, heatmapLayerConfig.numColorSteps)));
+
+                if (resetBinLayers) {
+                    findValueBounds(features, heatmapLayerConfig.aggFuncName, heatmapLayerConfig.id);
                 }
 
                 // layer.changed();
@@ -431,7 +417,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
                     // recalculate bins if layout style changed
                     if (hexBin.getLayout() as any !== binLayerConfig.hexStyle) {
                         hexBin.setLayout(binLayerConfig.hexStyle as any, false);
-                        findValueBounds(hexBin.getFeatures(), binLayerConfig);
+                        findValueBounds(hexBin.getFeatures(), binLayerConfig.aggFuncName, binLayerConfig.id);
                     }
                 }
             }

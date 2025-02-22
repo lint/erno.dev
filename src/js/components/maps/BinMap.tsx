@@ -84,7 +84,9 @@ export function BinMap() {
             zIndex: 3,
             blur: 10,
             radius: 10,
-            followsBinLayerId: "bin_test",
+            aggFuncName: 'max',
+            numColorSteps: 5,
+            colorScaleName: "Viridis",
         } as HeatmapLayerOptions,
         // {
         //     id: "bin_test2",

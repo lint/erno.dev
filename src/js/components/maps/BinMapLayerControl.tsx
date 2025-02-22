@@ -89,8 +89,6 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
         }
     }
 
-
-
     // creates chips for list of values
     function chipsForValues(values: string[], capitalize: boolean, disabled: boolean = false) {
         if (capitalize) {
@@ -224,31 +222,55 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
 
     // create heatmap layer fieldset
     function createHeatmapFieldset() {
-        return createFieldset('Heatmap', <>
-            {createOptionsItem('Blur', <>
-                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
-                <Slider
-                    defaultValue={heatmapConfig.blur}
-                    min={0}
-                    max={100}
-                    step={1}
-                    onChange={value => handleInputChange('blur', value)}
-                    style={{ flexGrow: 1, maxWidth: "200px" }}
-                    label={null}
-                />
+        return (<>
+            {createFieldset('Heatmap', <>
+                {createOptionsItem('Blur', <>
+                    <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.blur}</div>
+                    <Slider
+                        defaultValue={heatmapConfig.blur}
+                        min={0}
+                        max={100}
+                        step={1}
+                        onChange={value => handleInputChange('blur', value)}
+                        style={{ flexGrow: 1, maxWidth: "200px" }}
+                        label={null}
+                    />
+                </>)}
+                {createOptionsItem('Radius', <>
+                    <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.radius}</div>
+                    <Slider
+                        defaultValue={heatmapConfig.radius}
+                        min={0}
+                        max={50}
+                        step={0.5}
+                        onChange={value => handleInputChange('radius', value)}
+                        style={{ flexGrow: 1, maxWidth: "200px" }}
+                        label={null}
+                    />
+                </>)}
+                {createSingleSelectOptionsItem('aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false)}
             </>)}
-            {createOptionsItem('Radius', <>
-                <div className={styles.label} style={{ width: 30 }} >{heatmapConfig.radius}</div>
-                <Slider
-                    defaultValue={heatmapConfig.radius}
-                    min={0}
-                    max={50}
-                    step={0.5}
-                    onChange={value => handleInputChange('radius', value)}
-                    style={{ flexGrow: 1, maxWidth: "200px" }}
-                    label={null}
-                />
-            </>)}
+            {createFieldset('Colors', (<>
+                {createOptionsItem('Color Scale',
+                    <Select
+                        data={Object.keys(chroma.brewer)}
+                        defaultValue={binConfig.colorScaleName}
+                        onChange={value => handleInputChange('colorScaleName', value)}
+                        searchable
+                    />
+                )}
+                {createOptionsItem('Steps',
+                    <NumberInput
+                        min={0}
+                        max={16}
+                        step={1}
+                        defaultValue={binConfig.numColorSteps}
+                        allowDecimal={false}
+                        onChange={value => handleInputChange('numColorSteps', value)}
+                        inputSize='4'
+                    />
+                )}
+            </>))}
         </>);
     }
 
