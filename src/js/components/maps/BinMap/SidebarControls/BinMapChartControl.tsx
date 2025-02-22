@@ -1,15 +1,14 @@
 import { ScatterChart } from '@mantine/charts';
 import React, { useState } from 'react';
-import styles from './BinMap.module.css';
+import styles from './SidebarControls.module.css';
 import { Checkbox, SegmentedControl } from '@mantine/core';
-import { capitalizeValues } from './BinMapLayerControl';
+import { capitalizeValues } from './SidebarControls';
 import Feature from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 
-
 export interface BinMapChartControlProps {
     features: Feature<Geometry>[];
-}
+};
 
 export default function BinMapChartControl({ features }: BinMapChartControlProps) {
 
@@ -37,7 +36,6 @@ export default function BinMapChartControl({ features }: BinMapChartControlProps
             },
         ];
     }
-
 
     return (
         <div>
