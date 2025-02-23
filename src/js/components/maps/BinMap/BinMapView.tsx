@@ -66,11 +66,11 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     });
 
     function updateSelectedFeature(feature: any, pixel: any) {
-        selectStyle.getFill()?.setColor(feature.get('color') || '#eeeeee');
-        (feature as Feature).setStyle(selectStyle);
 
         if (!selectedFeatureInfoRef.current) return;
         if (feature) {
+            selectStyle.getFill()?.setColor(feature.get('color') || '#eeeeee');
+            (feature as Feature).setStyle(selectStyle);
             selectedFeatureInfoRef.current.style.left = pixel[0] + 10 + 'px';
             selectedFeatureInfoRef.current.style.top = pixel[1] + 'px';
             selectedFeatureInfoRef.current.innerText = feature.get('value');
@@ -486,11 +486,19 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
         map.on('pointermove', function (e) {
 
-            if (selectedFeatureRef.current || e.dragging) {
-                (selectedFeatureRef.current as Feature).setStyle(undefined);
+            function resetSelected() {
+                if (selectedFeatureInfoRef.current) selectedFeatureInfoRef.current.style.visibility = 'hidden';
+                if (selectedFeatureRef.current) (selectedFeatureRef.current as Feature).setStyle(undefined);
                 selectedFeatureRef.current = undefined;
-                if (selectedFeatureInfoRef.current)
-                    selectedFeatureInfoRef.current.style.visibility = 'hidden';
+            }
+
+            if (e.dragging) {
+                resetSelected();
+                return;
+            }
+
+            if (selectedFeatureRef.current) {
+                resetSelected();
             }
 
             map.forEachFeatureAtPixel(e.pixel, function (f: FeatureLike) {
