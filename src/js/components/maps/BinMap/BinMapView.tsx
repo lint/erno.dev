@@ -8,8 +8,6 @@ import HexBin from 'ol-ext/source/HexBin';
 import Feature, { FeatureLike } from 'ol/Feature.js';
 import Geometry from 'ol/geom/Geometry';
 import Point from 'ol/geom/Point.js';
-import { Select } from 'ol/interaction';
-import { SelectEvent } from 'ol/interaction/Select';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector.js';
 import VectorImageLayer from 'ol/layer/VectorImage';
@@ -25,6 +23,7 @@ import HeatmapLayer from 'ol/layer/Heatmap.js';
 import React, { useEffect, useRef } from 'react';
 import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import styles from './BinMap.module.css';
+import Stroke from 'ol/style/Stroke';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
@@ -54,18 +53,46 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval', 'featureSourceUrl'];
     const binMaxesRef = useRef<LayerDisplayInfoSet>({});
 
-    // handle selection of a feature
-    function handleFeatureSelect(event: SelectEvent) {
-        if (event.selected.length) {
-            let f = event.selected[0];
-            console.log("BinMap selected: ", f);
-            // console.log(`min=${f.get('min')} max=${f.get('max')} avg=${f.get('avg')} sum=${f.get('sum')} len=${f.get('len')}`);
-            console.log("value:", f.get('value'));
+    const selectedFeatureInfoRef = useRef<HTMLDivElement>(null);
+    const selectedFeatureRef = useRef<FeatureLike>();
+    const selectStyle = new Style({
+        fill: new Fill({
+            color: '#eeeeee',
+        }),
+        stroke: new Stroke({
+            color: 'rgba(255, 255, 255, 1.0)',
+            width: 2,
+        }),
+    });
+
+    function updateSelectedFeature(feature: any, pixel: any) {
+        selectStyle.getFill()?.setColor(feature.get('color') || '#eeeeee');
+        (feature as Feature).setStyle(selectStyle);
+
+        if (!selectedFeatureInfoRef.current) return;
+        if (feature) {
+            selectedFeatureInfoRef.current.style.left = pixel[0] + 10 + 'px';
+            selectedFeatureInfoRef.current.style.top = pixel[1] + 'px';
+            selectedFeatureInfoRef.current.innerText = feature.get('value');
+            selectedFeatureInfoRef.current.style.visibility = 'visible';
         } else {
-            // did not select a feature
-            console.log("BinMap did not select feature");
+            selectedFeatureInfoRef.current.style.visibility = 'hidden';
         }
-    }
+        selectedFeatureRef.current = feature;
+    };
+
+    // // handle selection of a feature
+    // function handleFeatureSelect(event: SelectEvent) {
+    //     if (event.selected.length) {
+    //         let f = event.selected[0];
+    //         console.log("BinMap selected: ", f);
+    //         // console.log(`min=${f.get('min')} max=${f.get('max')} avg=${f.get('avg')} sum=${f.get('sum')} len=${f.get('len')}`);
+    //         console.log("value:", f.get('value'));
+    //     } else {
+    //         // did not select a feature
+    //         console.log("BinMap did not select feature");
+    //     }
+    // }
 
     // find the minimum and maximum values in a given feature set
     function findValueBounds(features: Feature<Geometry>[], aggFuncName: string, layerId: string) {
@@ -217,6 +244,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             case 'step': {
                 let index = Math.floor(normal * (binLayerConfig.numColorSteps - 1));
                 let color = steppedColors[index];
+                (f as Feature).set('color', color);
                 return [new Style({ fill: new Fill({ color: color }) })];
             }
 
@@ -225,7 +253,13 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             default: {
                 let scaledColor = scale(normal);
                 let color = scaledColor ? scaledColor : [0, 0, 255, normal] as any;
-                return [new Style({ fill: new Fill({ color: color }) })];
+                (f as Feature).set('color', color);
+                return [new Style({
+                    fill: new Fill({ color: color }),
+                    // stroke: new Stroke({
+                    //     width: 0,
+                    // }),
+                })];
             }
         }
     }
@@ -446,9 +480,24 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         mapRef.current = map;
 
         // add selection handler to the map
-        let select = new Select();
-        map.addInteraction(select);
-        select.on('select', handleFeatureSelect);
+        // let select = new Select();
+        // map.addInteraction(select);
+        // select.on('select', handleFeatureSelect);
+
+        map.on('pointermove', function (e) {
+
+            if (selectedFeatureRef.current || e.dragging) {
+                (selectedFeatureRef.current as Feature).setStyle(undefined);
+                selectedFeatureRef.current = undefined;
+                if (selectedFeatureInfoRef.current)
+                    selectedFeatureInfoRef.current.style.visibility = 'hidden';
+            }
+
+            map.forEachFeatureAtPixel(e.pixel, function (f: FeatureLike) {
+                updateSelectedFeature(f, e.pixel);
+                return true;
+            });
+        });
 
         // return () => map.setTarget('');
     }, []);
@@ -498,7 +547,10 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
     }, [features, regionSources]);
 
-    return (
-        <div ref={mapContainerRef} className={styles.map} />
+    return (<>
+        <div ref={mapContainerRef} className={styles.map}>
+            <div ref={selectedFeatureInfoRef} className={styles.selectedFeatureInfo}></div>
+        </div>
+    </>
     );
 }
