@@ -65,6 +65,7 @@ export function BinMap() {
             colorMode: "gradient",
             binType: "hex",
             binSize: 0,
+            binSizeStep: 0,
             featureSourceUrl: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_county_5m.geojson',
             aggFuncName: "max",
             layerClass: "VectorImage",

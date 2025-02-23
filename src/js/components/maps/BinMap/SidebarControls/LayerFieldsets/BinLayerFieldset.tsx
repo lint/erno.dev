@@ -32,19 +32,31 @@ export default function BinLayerFieldset({ config, handleInputChange, intervalSl
 
     return (<>
         {createFieldset('Bins', (<>
-            {createOptionsItem('Bin Size',
-                <NumberInput
-                    min={0}
-                    max={config.binType === 'hex' ? 1000000 : 10}
-                    step={config.binType === 'hex' ? 1000 : 0.1}
-                    // TODO: weird behavior when switching tabs
-                    value={config.binSize ? config.binSize : (config.binType === 'hex' ? 80000 : 1)}
-                    // allowDecimal={false}
-                    onChange={value => handleInputChange('binSize', value)}
-                    disabled={config.binType === 'feature'}
-                    inputSize='10'
-                />
-            )}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4 }}>
+                <div style={{ marginBottom: 0 }} className={styles.optionsItem}>
+                    <div className={`${styles.optionsLabel} ${styles.label}`}>Bin Size</div>
+                    <NumberInput
+                        min={0}
+                        max={config.binType === 'hex' ? 1000000 : 10}
+                        step={config.binSizeStep}
+                        value={config.binSize ? config.binSize : (config.binType === 'hex' ? 80000 : 1)}
+                        onChange={value => handleInputChange('binSize', value)}
+                        disabled={config.binType === 'feature'}
+                        inputSize='8'
+                    />
+                </div>
+                <div className={styles.optionsVertItem}>
+                    <div className={`${styles.optionsVertLabel} ${styles.label}`}>Step</div>
+                    <NumberInput
+                        min={0}
+                        step={config.binType === 'hex' ? 100 : 0.01}
+                        value={config.binSizeStep ? config.binSizeStep : (config.binType === 'hex' ? 1000 : 0.1)}
+                        onChange={value => handleInputChange('binSizeStep', value)}
+                        disabled={config.binType === 'feature'}
+                        inputSize='4'
+                    />
+                </div>
+            </div>
             {createOptionsItem('Bin Type',
                 <SegmentedControl
                     data={capitalizeValues(['hex', 'grid', 'feature'])}
@@ -52,6 +64,7 @@ export default function BinLayerFieldset({ config, handleInputChange, intervalSl
                     onChange={value => {
                         handleInputChange('binType', value);
                         handleInputChange('binSize', 0); // reset bin size when bin type changes
+                        handleInputChange('binSizeStep', 0);
                     }}
                     color="blue"
                 />

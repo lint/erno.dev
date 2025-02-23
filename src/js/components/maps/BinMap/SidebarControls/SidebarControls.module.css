@@ -9,6 +9,17 @@
     margin: var(--mantine-spacing-xs) 0;
 }
 
+.optionsVertItem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+
+.optionsVertLabel {
+    padding-left: 2px;
+}
+
 .optionsLabel {
     width: 80px;
     text-align: right;

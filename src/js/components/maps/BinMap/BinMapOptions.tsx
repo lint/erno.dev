@@ -29,6 +29,7 @@ export interface BinLayerOptions extends BaseLayerOptions {
     binType: string;
     layerClass: string;
     binSize: number;
+    binSizeStep: number;
     featureSourceUrl: string;
     aggFuncName: string;
     numColorSteps: number;
