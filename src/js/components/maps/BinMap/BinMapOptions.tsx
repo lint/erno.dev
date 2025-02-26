@@ -1,5 +1,17 @@
 import chroma from "chroma-js";
 
+export interface DataOptions {
+    dataResolution: string;
+    selectedStates: string[];
+    expandedItems?: string[];
+};
+
+export interface NewLayerOptions {
+    title: string;
+    placeholder: string;
+    layerType: string;
+};
+
 export interface BaseLayerOptions {
     title: string;
     visible: boolean;
@@ -72,8 +84,58 @@ export function getBackgroundColor(binLayerConfig: BinLayerOptions) {
     }
 }
 
-export interface DataOptions {
-    dataResolution: string;
-    selectedStates: string[];
-    expandedItems?: string[];
-};
+export function createTileOptions(title?: string, id?: string, zIndex?: number, visible?: boolean) {
+    return {
+        id: id ? id : crypto.randomUUID(),
+        title: title ? title : "Tile Layer",
+        layerType: "tile",
+        visible: visible !== undefined ? visible : true,
+        opacity: 100,
+        baseSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        overlaySourceUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+        sourceType: 'base',
+        zIndex: zIndex ? zIndex : 1,
+    } as TileLayerOptions;
+}
+
+export function createBinOptions(title?: string, id?: string, zIndex?: number, visible?: boolean) {
+    return {
+        id: id ? id : crypto.randomUUID(),
+        title: title ? title : "Bin Layer",
+        layerType: "bin",
+        visible: visible !== undefined ? visible : true,
+        opacity: 100,
+        hexStyle: "pointy",
+        colorMode: "gradient",
+        binType: "hex",
+        binSize: 0,
+        binSizeStep: 1000,
+        featureSourceUrl: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_county_5m.geojson',
+        aggFuncName: "max",
+        layerClass: "VectorImage",
+        numColorSteps: 5,
+        colorScaleName: "Viridis",
+        customMin: 0,
+        customMax: 1,
+        zIndex: zIndex ? zIndex : 1,
+        intervalMode: "full",
+        backgroundColorMode: "none",
+        customBackgroundColor: chroma.scale("Viridis")(0).darken().hex(),
+    } as BinLayerOptions;
+}
+
+export function createHeatmapOptions(title?: string, id?: string, zIndex?: number, visible?: boolean) {
+    return {
+        id: id ? id : crypto.randomUUID(),
+        title: title ? title : "Heatmap Layer",
+        layerType: "heatmap",
+        visible: visible !== undefined ? visible : true,
+        opacity: 100,
+        zIndex: zIndex ? zIndex : 1,
+        blur: 10,
+        radius: 10,
+        aggFuncName: 'max',
+        numColorSteps: 5,
+        colorScaleName: "Viridis",
+    } as HeatmapLayerOptions;
+}

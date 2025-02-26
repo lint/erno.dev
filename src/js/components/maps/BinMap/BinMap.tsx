@@ -5,18 +5,19 @@ import Feature from "ol/Feature.js";
 import { Vector } from "ol/source";
 import { VectorSourceEvent } from "ol/source/Vector";
 import { Projection } from "ol/proj";
-import chroma from "chroma-js";
 import GeoJSON from "ol/format/GeoJSON";
 import { BinMapView } from "./BinMapView";
 import Geometry from "ol/geom/Geometry";
 import {
     BaseLayerOptions,
     BinLayerOptions,
+    createBinOptions,
+    createHeatmapOptions,
+    createTileOptions,
     DataOptions,
-    HeatmapLayerOptions,
     LayerDisplayInfo,
     LayerDisplayInfoSet,
-    TileLayerOptions,
+    NewLayerOptions,
 } from "./BinMapOptions";
 import BinMapLayerControl from "./SidebarControls/BinMapLayerControl";
 import styles from "./BinMap.module.css";
@@ -26,12 +27,14 @@ import {
     IconHexagons,
     IconHome,
     IconMap,
+    IconPlus,
     IconStackFront,
     IconTableFilled,
 } from "@tabler/icons-react";
 import SideBar from "../../layout/sidebar";
 import BinMapDataControl from "./SidebarControls/BinMapDataControl";
 import stateRegions, { stateList } from "../StateRegions";
+import NewLayerFieldset from "./SidebarControls/LayerFieldsets/NewLayerFieldset";
 
 export function BinMap() {
     // console.log("BinMap function called ...");
@@ -44,78 +47,18 @@ export function BinMap() {
     const [cachedRegions, setCachedRegions] = useState({});
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
     const defaultLayerConfigs = [
-        {
-            id: "tile_test",
-            title: "Tile Layer",
-            layerType: "tile",
-            visible: true,
-            opacity: 100,
-            baseSourceUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-            overlaySourceUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
-            sourceType: 'base',
-            zIndex: 1,
-        } as TileLayerOptions,
-        {
-            id: "bin_test",
-            title: "Bin Layer",
-            layerType: "bin",
-            visible: true,
-            opacity: 100,
-            hexStyle: "pointy",
-            colorMode: "gradient",
-            binType: "hex",
-            binSize: 0,
-            binSizeStep: 1000,
-            featureSourceUrl: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_county_5m.geojson',
-            aggFuncName: "max",
-            layerClass: "VectorImage",
-            numColorSteps: 5,
-            colorScaleName: "Viridis",
-            customMin: 0,
-            customMax: 1,
-            zIndex: 2,
-            intervalMode: "full",
-            backgroundColorMode: "none",
-            customBackgroundColor: chroma.scale("Viridis")(0).darken().hex(),
-        } as BinLayerOptions,
-        {
-            id: "heatmap_test",
-            title: "Heatmap Layer",
-            layerType: "heatmap",
-            visible: false,
-            opacity: 100,
-            zIndex: 3,
-            blur: 10,
-            radius: 10,
-            aggFuncName: 'max',
-            numColorSteps: 5,
-            colorScaleName: "Viridis",
-        } as HeatmapLayerOptions,
-        // {
-        //     id: "bin_test2",
-        //     layerType: "bin",
-        //     visible: true,
-        //     opacity: 50,
-        //     hexStyle: "pointy",
-        //     binStyle: "grid",
-        //     binType: "gradient",
-        //     binSize: 0.1,
-        //     aggFuncName: "max",
-        //     isVectorImage: true,
-        //     numColorSteps: 5,
-        //     colorScaleName: "viridis",
-        //     intervalMin: 0,
-        //     intervalMax: 30000,
-        // } as BinLayerOptions,
+        createTileOptions('Tile Layer', 'tile_test', 1),
+        createBinOptions('Bin Layer', 'bin_test', 2),
+        createHeatmapOptions('Heatmap Layer', 'heatmap_test', 3, false),
     ];
+    const [newLayerConfig, setNewLayerConfig] = useState<NewLayerOptions>({
+        title: '',
+        placeholder: 'New Layer',
+        layerType: 'tile'
+    });
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
-    const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(
-        createLayerDisplaySet()
-    );
-
-    function createLayerDisplaySet() {
+    const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(() => {
         let displaySet: LayerDisplayInfoSet = {};
-
         for (let config of layerConfigs) {
             let displayInfo: LayerDisplayInfo = {
                 controlExpanded:
@@ -124,9 +67,8 @@ export function BinMap() {
             };
             displaySet[config.id] = displayInfo;
         }
-
         return displaySet;
-    }
+    });
 
     // load features from preset data file
     function addPresetFeatures() {
@@ -305,6 +247,13 @@ export function BinMap() {
         }));
     }
 
+    function handleNewLayerChange(key: string, value: any) {
+        setNewLayerConfig(oldConfig => ({
+            ...oldConfig,
+            [key]: value
+        }));
+    }
+
     // get the icon for a given layer type
     function iconForLayerType(layerType: string) {
         switch (layerType) {
@@ -314,7 +263,42 @@ export function BinMap() {
                 return <IconFlame title="Heatmap Layer" />;
             case "tile":
                 return <IconMap title="Tile Layer" />;
+            case "new":
+                return <IconPlus title="New Layer" />;
         }
+    }
+
+    function handleAddNewLayer() {
+        console.log("creating new layer", newLayerConfig);
+        let config;
+
+        let title = newLayerConfig.title ? newLayerConfig.title : 'New Layer';
+        let maxZIndex = 1;
+        for (let layerConfig of layerConfigs) {
+            if (layerConfig.zIndex > maxZIndex) maxZIndex = layerConfig.zIndex;
+        }
+
+        switch (newLayerConfig.layerType) {
+            case 'bin':
+                config = createBinOptions(title, undefined, maxZIndex + 1, true);
+                break;
+            case 'tile':
+                config = createTileOptions(title, undefined, maxZIndex + 1, true);
+                break;
+            case 'heatmap':
+                config = createHeatmapOptions(title, undefined, maxZIndex + 1, true);
+                break;
+        }
+
+        if (!config) return;
+
+        setLayerConfigs(oldConfigs => [...oldConfigs, config]);
+        setLayerInfos(oldDisplaySet => ({
+            ...oldDisplaySet, [config.id]: {
+                controlExpanded: true,
+                binRanges: undefined,
+            }
+        }));
     }
 
     useEffect(() => {
@@ -335,7 +319,7 @@ export function BinMap() {
     //     refreshLegend();
     // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
 
-    const layerConfigComponents = (
+    const layerConfigComponents = (<>
         <Accordion
             multiple
             defaultValue={getExpandedLayers()}
@@ -351,20 +335,10 @@ export function BinMap() {
             {layerConfigs.map((layerConfig) => (
                 <Accordion.Item value={layerConfig.id} key={layerConfig.id}>
                     <Accordion.Control
-                        classNames={{
-                            icon: layerConfig.visible
-                                ? styles.title
-                                : styles.titleDisabled,
-                        }}
+                        classNames={{ icon: layerConfig.visible ? styles.title : styles.titleDisabled }}
                         icon={iconForLayerType(layerConfig.layerType)}
                     >
-                        <div
-                            className={
-                                layerConfig.visible
-                                    ? styles.title
-                                    : styles.titleDisabled
-                            }
-                        >
+                        <div className={layerConfig.visible ? styles.title : styles.titleDisabled} >
                             {layerConfig.title}
                         </div>
                     </Accordion.Control>
@@ -378,8 +352,21 @@ export function BinMap() {
                     </Accordion.Panel>
                 </Accordion.Item>
             ))}
+            <Accordion.Item value="new" >
+                <Accordion.Control
+                    classNames={{ icon: styles.title }}
+                    icon={iconForLayerType("new")}
+                >
+                    <div className={styles.title} >
+                        Add
+                    </div>
+                </Accordion.Control>
+                <Accordion.Panel>
+                    <NewLayerFieldset config={newLayerConfig} handleInputChange={handleNewLayerChange} handleCreateCallback={handleAddNewLayer} />
+                </Accordion.Panel>
+            </Accordion.Item>
         </Accordion>
-    );
+    </>);
     const dataComponents = (
         <Accordion
             multiple
