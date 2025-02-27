@@ -42,7 +42,7 @@ export interface BinValues {
 
 export function BinMapView({ features, layerConfigs, regionSources, rangesCallback }: BinMapViewProps) {
 
-    // console.log("BinMapView called ...");
+
 
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
@@ -64,6 +64,12 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             width: 2,
         }),
     });
+
+    console.log("BinMapView called ...");
+    let currIds = layerConfigs.map(config => config.id);
+    let prevIds = prevLayerConfigs.current ? prevLayerConfigs.current.map(config => config.id) : [];
+
+    console.log('AAAcurr:', currIds, 'prev:', prevIds)
 
     function updateSelectedFeature(feature: any, pixel: any) {
 
@@ -457,7 +463,17 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             }
         });
 
-        // TODO: delete layers from mapRef that no longer exist in layerConfigs
+        let currIds = layerConfigs.map(config => config.id);
+        let prevIds = prevLayerConfigs.current ? prevLayerConfigs.current.map(config => config.id) : [];
+
+        for (let prevId of prevIds) {
+            if (currIds.indexOf(prevId) > -1) continue;
+            let layer = layersRef.current[prevId];
+            layersRef.current[prevId] = undefined;
+
+            console.log(`removing layer id: ${prevId} ...`);
+            mapRef.current?.removeLayer(layer);
+        }
     }
 
     // called when component has mounted
@@ -541,8 +557,8 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             }
         }
 
-        prevLayerConfigs.current = layerConfigs;
         refreshLayers(shouldRecreateLayers);
+        prevLayerConfigs.current = layerConfigs;
 
     }, [layerConfigs]);
 

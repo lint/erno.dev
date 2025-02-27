@@ -11,9 +11,10 @@ export interface BinMapLayerControlProps {
     config: BaseLayerOptions;
     binRange?: any;
     updateCallback?: any;
+    deleteLayerCallback: any;
 };
 
-export default function BinMapLayerControl({ config, binRange, updateCallback }: BinMapLayerControlProps) {
+export default function BinMapLayerControl({ config, binRange, updateCallback, deleteLayerCallback }: BinMapLayerControlProps) {
 
     const binConfig = config as BinLayerOptions;
     const tileConfig = config as TileLayerOptions;
@@ -60,6 +61,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback }:
                 return <GeneralLayerFieldset
                     config={config}
                     handleInputChange={handleInputChange}
+                    deleteLayerCallback={deleteLayerCallback}
                 />;
             case 'tile':
                 return <TileLayerFieldset

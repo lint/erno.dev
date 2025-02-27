@@ -301,6 +301,22 @@ export function BinMap() {
         }));
     }
 
+    function handleDeleteLayer(id: string) {
+
+        let index = -1;
+        for (let i = 0; i < layerConfigs.length; i++) {
+            let config = layerConfigs[i];
+            if (config.id === id) {
+                index = i;
+                break;
+            }
+        }
+        if (index === -1) return;
+        let newLayerConfigs = [...layerConfigs];
+        newLayerConfigs.splice(index, 1);
+        setLayerConfigs(newLayerConfigs);
+    }
+
     useEffect(() => {
 
         // check if new feature source url should be downloaded
@@ -348,6 +364,7 @@ export function BinMap() {
                             updateCallback={handleLayerControlChange}
                             binRange={layerInfos[layerConfig.id].binRanges}
                             key={layerConfig.id}
+                            deleteLayerCallback={handleDeleteLayer}
                         />
                     </Accordion.Panel>
                 </Accordion.Item>

@@ -1,15 +1,16 @@
 import React from 'react';
 import { createFieldset, createOptionsItem } from '../SidebarControls';
-import { ActionIcon, Input, NumberInput, Slider } from '@mantine/core';
+import { ActionIcon, Button, Input, NumberInput, Slider } from '@mantine/core';
 import { BaseLayerOptions } from '../../BinMapOptions';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 
 export interface GeneralLayerFieldsetProps {
     config: BaseLayerOptions;
     handleInputChange: (key: string, value: any) => void;
+    deleteLayerCallback: any;
 }
 
-export default function GeneralLayerFieldset({ config, handleInputChange }: GeneralLayerFieldsetProps) {
+export default function GeneralLayerFieldset({ config, handleInputChange, deleteLayerCallback }: GeneralLayerFieldsetProps) {
 
     return createFieldset('General', <>
         {createOptionsItem('Name',
@@ -46,6 +47,9 @@ export default function GeneralLayerFieldset({ config, handleInputChange }: Gene
                 onChange={value => handleInputChange('zIndex', value)}
                 inputSize='2'
             />
+        )}
+        {createOptionsItem('',
+            <Button onClick={() => { deleteLayerCallback(config.id) }} size='xs' variant="outline" color='red.9'>Delete</Button>
         )}
     </>);
 }
