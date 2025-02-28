@@ -85,9 +85,40 @@
     padding-bottom: 5px;
 }
 
-.intervalSlider {
+.intervalControl {
+    /* border-radius: 5px;
+    border: solid 1px var(--color-highlight); */
+    padding-left: var(--mantine-spacing-xs);
+}
+
+.intervalControlsContainer {
     display: flex;
-    gap: var(--mantine-spacing-sm);
-    /* vertical-align: middle; */
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.intervalSlider {
+    height: 100%;
+    width: 150px;
+    flex-grow: 1;
+    padding: 4px;
+}
+
+.intervalContainer {
+    background-color: var(--color-control-background);
+    display: flex;
     align-items: center;
+    /* gap: var(--mantine-spacing-xs); */
+    border-radius: 5px;
+    /* border: solid 1px var(--color-highlight); */
+    padding: 4px 0;
+}
+
+.intervalLabel {
+    display: flex;
+    gap: var(--mantine-spacing-xs);
+}
+
+.intervalText {
+    font-weight: 500;
 }

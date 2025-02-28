@@ -7,6 +7,7 @@
     --color-text-highlight: white;
     --color-text-disabled: var(--mantine-color-gray-6);
     --color-highlight: var(--mantine-color-gray-7);
+    --color-control-background: var(--mantine-color-dark-8);
 }
 
 :root[data-mantine-color-scheme="light"] {
@@ -18,7 +19,7 @@
     --color-text-primary: var(--mantine-color-gray-9);
     --color-text-highlight: #111;
     --color-text-disabled: var(--mantine-color-gray-6);
-
+    --color-control-background: var(--mantine-color-gray-1);
 }
 
 body,

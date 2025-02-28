@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, HeatmapLayerOptions, TileLayerOptions } from '../BinMapOptions';
+import { BaseLayerOptions, BinLayerOptions, getRangeValue, HeatmapLayerOptions, TileLayerOptions } from '../BinMapOptions';
 import styles from './SidebarControls.module.css';
 import BinLayerFieldset from './LayerFieldsets/BinLayerFieldset';
 import HeatmapLayerFieldset from './LayerFieldsets/HeatmapLayerFieldset';
@@ -34,24 +34,6 @@ export default function BinMapLayerControl({ config, binRange, updateCallback, d
         } catch {
             console.log(`failed to update key=${key} value=${value}`);
         }
-    }
-
-    // TODO: this is duplicated in binMapView, you should refactor so this is not the case
-    function getRangeValue(binLayerConfig: BinLayerOptions, isMax: boolean, modeOverride?: string) {
-
-        let value = 0;
-        switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
-            case 'manual':
-                value = isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
-                break;
-            case 'IQR':
-                value = isMax ? binRange.iqr_max : binRange.iqr_min;
-                break
-            case 'full':
-            default:
-                value = isMax ? binRange.full_max : binRange.full_min;
-        }
-        return value;
     }
 
     // create controls for a given layer type
@@ -93,16 +75,15 @@ export default function BinMapLayerControl({ config, binRange, updateCallback, d
         if (binConfig.intervalMode === 'full') {
             interval = [0, 1];
         } else if (binConfig.intervalMode === 'IQR') {
-            let fullMin = getRangeValue(binConfig, false, 'full');
-            let fullMax = getRangeValue(binConfig, true, 'full');
-            let iqrMin = getRangeValue(binConfig, false, 'IQR');
-            let iqrMax = getRangeValue(binConfig, true, 'IQR');
+            let fullMin = getRangeValue(binConfig, binRange, false, 'full');
+            let fullMax = getRangeValue(binConfig, binRange, true, 'full');
+            let iqrMin = getRangeValue(binConfig, binRange, false, 'IQR');
+            let iqrMax = getRangeValue(binConfig, binRange, true, 'IQR');
             interval = [(iqrMin - fullMin) / (fullMax - fullMin), (iqrMax - fullMin) / (fullMax - fullMin)];
         } else {
             interval = [binConfig.customMin, binConfig.customMax];
-            // TODO: increase custom range values for more control
-            // min = -1;
-            // max = 2;
+            min = binConfig.customMinBound;
+            max = binConfig.customMaxBound;
         }
 
         setIntervalSliderValues({
@@ -110,7 +91,7 @@ export default function BinMapLayerControl({ config, binRange, updateCallback, d
             max: max,
             values: interval
         });
-    }, [binConfig.aggFuncName, binConfig.binType, binConfig.intervalMode, binRange]);
+    }, [binConfig.aggFuncName, binConfig.binType, binConfig.intervalMode, binRange, binConfig.customMaxBound, binConfig.customMinBound]);
 
     return (
         <div className={styles.optionsGroup}>

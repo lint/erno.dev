@@ -1,6 +1,6 @@
 import React from 'react';
 import { capitalizeValues, createFieldset, createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
-import { ColorInput, NumberInput, RangeSlider, SegmentedControl, Select } from '@mantine/core';
+import { ColorInput, Divider, NumberInput, RangeSlider, SegmentedControl, Select } from '@mantine/core';
 import { BinLayerOptions, getBackgroundColor } from '../../BinMapOptions';
 import chroma from 'chroma-js';
 import styles from '../SidebarControls.module.css';
@@ -83,31 +83,79 @@ export default function BinLayerFieldset({ config, handleInputChange, intervalSl
         </>))}
         {createFieldset('Data', (<>
             {createSingleSelectOptionsItem(config, 'aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false, 'segmented', handleInputChange)}
-            {createSingleSelectOptionsItem(config, 'intervalMode', 'Interval', ['full', 'IQR', 'custom'], true, false, 'segmented', handleInputChange)}
-            {createOptionsItem('',
-                <div className={styles.intervalSlider}>
-                    {intervalSliderValues.min}
-                    <RangeSlider
-                        min={intervalSliderValues.min}
-                        max={intervalSliderValues.max}
-                        step={0.001}
-                        minRange={0}
-                        value={intervalSliderValues.values as [number, number]}
-                        onChange={value => { handleIntervalSliderChange((old: any) => ({ ...old, values: value })) }}
-                        onChangeEnd={value => {
-                            // config.customMin = value[0];
-                            // config.customMax = value[1];
-                            // updateCallback({ ...config, customMin: value[0], customMax: value[1] });
-                            handleInputChange('customMin', value[0]);
-                            handleInputChange('customMax', value[1]);
-                        }}
-                        disabled={config.intervalMode !== 'custom'}
-                        style={{ width: '200px' }}
-                    />
-                    {intervalSliderValues.max}
+            {createSingleSelectOptionsItem(config, 'intervalMode', 'Interval Mode', ['full', 'IQR', 'custom'], true, false, 'segmented', handleInputChange)}
+            {createOptionsItem('Interval', <>
+                <div className={styles.intervalLabel}>
+                    <span className={styles.intervalText}>
+                        {intervalSliderValues.values[0].toFixed(3)}
+                    </span>
+                    <span>-</span>
+                    <span className={styles.intervalText}>
+                        {intervalSliderValues.values[1].toFixed(3)}
+                    </span>
                 </div>
-            )}
-            {/* {`min: ${intervalSliderValues.min} max: ${intervalSliderValues.max} values: ${intervalSliderValues.values}`} */}
+            </>)}
+            {createOptionsItem('', <>
+                <div className={styles.intervalContainer}>
+                    <NumberInput
+                        value={intervalSliderValues.min}
+                        onChange={value => {
+                            if (Number(value) < intervalSliderValues.max) {
+                                handleInputChange('customMinBound', value)
+                            }
+                        }}
+                        allowDecimal={false}
+                        inputSize={`${intervalSliderValues.min.toString().length}`}
+                        variant="unstyled"
+                        styles={{
+                            input: { pointerEvents: 'none' },
+                            controls: { pointerEvents: config.intervalMode === 'custom' ? 'auto' : 'none' }
+                        }}
+                        classNames={{ root: styles.intervalControl }}
+                        size='xs'
+                    />
+                    <Divider size="xs" orientation="vertical" />
+                    <div className={styles.intervalSlider}>
+                        <RangeSlider
+                            showLabelOnHover={false}
+                            min={intervalSliderValues.min}
+                            max={intervalSliderValues.max}
+                            step={0.001}
+                            minRange={0}
+                            value={intervalSliderValues.values as [number, number]}
+                            onChange={value => { handleIntervalSliderChange((old: any) => ({ ...old, values: value })) }}
+                            onChangeEnd={value => {
+                                handleInputChange('customMin', value[0]);
+                                handleInputChange('customMax', value[1]);
+                            }}
+                            disabled={config.intervalMode !== 'custom'}
+                            styles={{
+                                label: { display: 'none' },
+                            }}
+                            size='lg'
+                        />
+                    </div>
+                    <Divider size="xs" orientation="vertical" />
+                    <NumberInput
+                        value={intervalSliderValues.max}
+                        onChange={value => {
+                            if (Number(value) > intervalSliderValues.min) {
+                                handleInputChange('customMaxBound', value)
+                            }
+                        }}
+                        isAllowed={() => false}
+                        allowDecimal={false}
+                        inputSize={`${intervalSliderValues.max.toString().length}`}
+                        variant="unstyled"
+                        styles={{
+                            input: { pointerEvents: 'none' },
+                            controls: { pointerEvents: config.intervalMode === 'custom' ? 'auto' : 'none' }
+                        }}
+                        classNames={{ root: styles.intervalControl }}
+                        size='xs'
+                    />
+                </div>
+            </>)}
         </>))}
         {createFieldset('Colors', (<>
             {createSingleSelectOptionsItem(config, 'colorMode', 'Color Mode', ['gradient', 'step'], true, false, 'segmented', handleInputChange)}

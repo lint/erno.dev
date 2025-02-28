@@ -21,7 +21,7 @@ import RegularShape from 'ol/style/RegularShape.js';
 import Style from 'ol/style/Style';
 import HeatmapLayer from 'ol/layer/Heatmap.js';
 import React, { useEffect, useRef } from 'react';
-import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
+import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import styles from './BinMap.module.css';
 import Stroke from 'ol/style/Stroke';
 
@@ -188,24 +188,6 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         rangesCallback({ ...binMaxesRef.current });
     }
 
-    function getRangeValue(binLayerConfig: BinLayerOptions, isMax: boolean, modeOverride?: string) {
-        if (!binLayerConfig || !Object.hasOwn(binMaxesRef.current, binLayerConfig.id)) {
-            return -1;
-        }
-
-        let ranges = binMaxesRef.current[binLayerConfig.id].binRanges;
-        if (!ranges) return -1;
-        switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
-            case 'custom':
-                let normal = isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
-                return normal * (ranges.full_max - ranges.full_min) + ranges.full_min;
-            case 'IQR':
-                return isMax ? ranges.iqr_max : ranges.iqr_min;
-            case 'full':
-            default:
-                return isMax ? ranges.full_max : ranges.full_min;
-        }
-    }
 
     // determine style for the given bin (f=feature, res=resolutuion)
     function styleForBin(f: FeatureLike, res: number, binLayerConfig: BinLayerOptions) {
@@ -215,10 +197,10 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
         // when you switch to custom for the first time everything is one color, this is because you have not set a value. when you switch agg fun you should also set the custom amount to the full amount? hmm or do you want to set it b
         // make the interval slider a scale of 0 to 1 and then calc the normal from values from that
-
+        let ranges = binMaxesRef.current[binLayerConfig.id].binRanges;
         let value = f.get('value');
-        let min = getRangeValue(binLayerConfig, false);
-        let max = getRangeValue(binLayerConfig, true);
+        let min = getRangeValue(binLayerConfig, ranges!, false);
+        let max = getRangeValue(binLayerConfig, ranges!, true);
         let normal = 0;
         if (value !== min && max !== min) normal = (value - min) / (max - min);
         normal = Math.min(1, Math.max(0, normal));

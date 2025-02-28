@@ -48,6 +48,8 @@ export interface BinLayerOptions extends BaseLayerOptions {
     colorScaleName: string;
     customMin: number;
     customMax: number;
+    customMinBound: number;
+    customMaxBound: number;
     intervalMode: string;
     backgroundColorMode: string;
     customBackgroundColor: string;
@@ -117,6 +119,8 @@ export function createBinOptions(title?: string, id?: string, zIndex?: number, v
         colorScaleName: "Viridis",
         customMin: 0,
         customMax: 1,
+        customMinBound: 0,
+        customMaxBound: 1,
         zIndex: zIndex ? zIndex : 1,
         intervalMode: "full",
         backgroundColorMode: "none",
@@ -139,3 +143,20 @@ export function createHeatmapOptions(title?: string, id?: string, zIndex?: numbe
         colorScaleName: "Viridis",
     } as HeatmapLayerOptions;
 }
+
+export function getRangeValue(binLayerConfig: BinLayerOptions, binRange: BinRange, isMax: boolean, modeOverride?: string) {
+
+    switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
+        // case 'manual':
+        //     return isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
+        case 'custom':
+            let normal = isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
+            return normal * (binRange.full_max - binRange.full_min) + binRange.full_min;
+        case 'IQR':
+            return isMax ? binRange.iqr_max : binRange.iqr_min;
+        case 'full':
+        default:
+            return isMax ? binRange.full_max : binRange.full_min;
+    }
+}
+
