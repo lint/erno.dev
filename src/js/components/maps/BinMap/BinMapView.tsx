@@ -20,25 +20,18 @@ import Fill from 'ol/style/Fill';
 import RegularShape from 'ol/style/RegularShape.js';
 import Style from 'ol/style/Style';
 import HeatmapLayer from 'ol/layer/Heatmap.js';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import styles from './BinMap.module.css';
 import Stroke from 'ol/style/Stroke';
-import BinMapLegend from './BinMapLegend';
+import BinMapLegend, { ToggleLegendControl } from './BinMapLegend';
+import { defaults as defaultControls } from 'ol/control/defaults.js';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
     regionSources: { [key: string]: VectorSource };
     layerConfigs: BaseLayerOptions[];
     rangesCallback: (binLayerRanges: LayerDisplayInfoSet) => void;
-};
-
-export interface BinValues {
-    min: number;
-    max: number;
-    sum: number;
-    avg: number;
-    len: number;
 };
 
 export function BinMapView({ features, layerConfigs, regionSources, rangesCallback }: BinMapViewProps) {
@@ -53,6 +46,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     const prevLayerConfigs = useRef(layerConfigs); // stores previous version of layerConfigs for later comparision
     const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval', 'featureSourceUrl'];
     const binMaxesRef = useRef<LayerDisplayInfoSet>({});
+    const [legendVisible, setLegendVisible] = useState(false);
 
     const selectedFeatureInfoRef = useRef<HTMLDivElement>(null);
     const selectedFeatureRef = useRef<FeatureLike>();
@@ -468,7 +462,12 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
                 zoom: 4.5,
             }),
             layers: [],
-            target: mapContainerRef.current
+            target: mapContainerRef.current,
+            controls: defaultControls().extend([
+                new ToggleLegendControl(() => {
+                    setLegendVisible(oldVisible => !oldVisible);
+                }, {}),
+            ]),
         });
         mapRef.current = map;
 
@@ -551,7 +550,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     return (<>
         <div ref={mapContainerRef} className={styles.map}>
             <div ref={selectedFeatureInfoRef} className={styles.selectedFeatureInfo}></div>
-            <BinMapLegend layerConfigs={layerConfigs} layerDisplayInfo={binMaxesRef.current} visible={true} />
+            <BinMapLegend layerConfigs={layerConfigs} layerDisplayInfo={binMaxesRef.current} visible={legendVisible} />
         </div>
     </>
     );

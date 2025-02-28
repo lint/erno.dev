@@ -3,6 +3,8 @@ import styles from './BinMap.module.css';
 import { Divider } from '@mantine/core';
 import { BaseLayerOptions, BinLayerOptions, getRangeValue, LayerDisplayInfoSet } from './BinMapOptions';
 import chroma from 'chroma-js';
+import Control from 'ol/control/Control';
+import { Text } from '@mantine/core';
 
 export interface BinMapLegendProps {
     layerConfigs: BaseLayerOptions[];
@@ -17,8 +19,8 @@ export default function BinMapLegend({ layerConfigs, layerDisplayInfo, visible }
             <div className={styles.legendTitle}>
                 Legend
             </div>
-            <Divider color={'var(--color-highlight)'} />
-            <div style={{ paddingTop: '5px' }}>
+            <Divider style={{ paddingBottom: 5 }} color={'var(--color-highlight)'} />
+            <div style={{ paddingTop: '5px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {layerConfigs.filter(config => config.layerType === 'bin').map(config => {
                     let binConfig = config as BinLayerOptions;
                     let layerInfo = layerDisplayInfo[config.id];
@@ -41,18 +43,21 @@ export default function BinMapLegend({ layerConfigs, layerDisplayInfo, visible }
 
                     return (
                         <div key={config.id}>
+                            <Text size='sm' style={{ paddingBottom: 5 }}>
+                                {binConfig.title}
+                            </Text>
                             <div>
                                 {colorSteps.map(color => {
                                     return <span key={color} className={styles.gradStep} style={{ backgroundColor: color }} />;
                                 })}
                             </div>
                             <div className={styles.legendMarks}>
-                                <div>
+                                <Text size='sm'>
                                     {min.toFixed(0)}
-                                </div>
-                                <div>
+                                </Text>
+                                <Text size='sm'>
                                     {max.toFixed(0)}
-                                </div>
+                                </Text>
                             </div>
                         </div>
                     );
@@ -64,4 +69,29 @@ export default function BinMapLegend({ layerConfigs, layerDisplayInfo, visible }
     return (<>
         {visible ? legend : <></>}
     </>);
+}
+
+export class ToggleLegendControl extends Control {
+    constructor(callback: () => void, opt_options: any) {
+        const options = opt_options || {};
+
+        const button = document.createElement('button');
+
+        const icon = document.createElement('span');
+        icon.className = 'material-icons';
+        icon.innerHTML = 'legend_toggle';
+        icon.style.fontSize = '20px';
+        button.appendChild(icon);
+
+        const element = document.createElement('div');
+        element.className = `${styles.legendToggleButton} ol-unselectable ol-control`;
+        element.appendChild(button);
+
+        super({
+            element: element,
+            target: options.target,
+        });
+
+        button.addEventListener('click', callback, false);
+    }
 }

@@ -27,32 +27,11 @@
     color: var(--color-text-disabled);
 }
 
-.gradient .domainMin {
-    position: absolute;
-    left: 0;
-    font-size: 11px;
-    bottom: 3px;
-}
-
-.gradient .domainMed {
-    position: absolute;
-    right: 25%;
-    left: 25%;
-    text-align: center;
-    font-size: 11px;
-    bottom: 3px;
-}
-
-.gradient .domainMax {
-    position: absolute;
-    right: 0;
-    font-size: 11px;
-    bottom: 3px;
-}
-
 .gradStep {
+    padding-top: 2px;
     display: inline-block;
     height: 20px;
+    /* height: 100%; */
     width: 1%;
 }
 
@@ -98,9 +77,11 @@
     bottom: var(--mantine-spacing-xs);
     left: var(--mantine-spacing-xs);
     background-color: var(--color-secondary);
+    color: var(--color-text-primary);
     z-index: 100;
     border-radius: 5px;
     padding: var(--mantine-spacing-xs);
+    padding-top: 5px;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -108,9 +89,15 @@
 
 .legendTitle {
     font-weight: 700;
+    color: var(--color-text-highlight);
 }
 
 .legendMarks {
     display: flex;
     justify-content: space-between;
+}
+
+.legendToggleButton {
+    top: 65px;
+    left: .5em;
 }

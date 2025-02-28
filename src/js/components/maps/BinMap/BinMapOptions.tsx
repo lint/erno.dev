@@ -1,5 +1,13 @@
 import chroma from "chroma-js";
 
+export interface BinValues {
+    min: number;
+    max: number;
+    sum: number;
+    avg: number;
+    len: number;
+};
+
 export interface DataOptions {
     dataResolution: string;
     selectedStates: string[];
