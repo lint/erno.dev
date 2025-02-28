@@ -24,6 +24,7 @@ import React, { useEffect, useRef } from 'react';
 import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import styles from './BinMap.module.css';
 import Stroke from 'ol/style/Stroke';
+import BinMapLegend from './BinMapLegend';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
@@ -42,7 +43,7 @@ export interface BinValues {
 
 export function BinMapView({ features, layerConfigs, regionSources, rangesCallback }: BinMapViewProps) {
 
-
+    // console.log("BinMapView called ...");
 
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
@@ -64,12 +65,6 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             width: 2,
         }),
     });
-
-    console.log("BinMapView called ...");
-    let currIds = layerConfigs.map(config => config.id);
-    let prevIds = prevLayerConfigs.current ? prevLayerConfigs.current.map(config => config.id) : [];
-
-    console.log('AAAcurr:', currIds, 'prev:', prevIds)
 
     function updateSelectedFeature(feature: any, pixel: any) {
 
@@ -556,6 +551,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     return (<>
         <div ref={mapContainerRef} className={styles.map}>
             <div ref={selectedFeatureInfoRef} className={styles.selectedFeatureInfo}></div>
+            <BinMapLegend layerConfigs={layerConfigs} layerDisplayInfo={binMaxesRef.current} visible={true} />
         </div>
     </>
     );

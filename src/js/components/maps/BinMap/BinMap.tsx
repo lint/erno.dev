@@ -41,7 +41,6 @@ export function BinMap() {
 
     const defaultExpandedLayerControls = ["bin_test"];
     const [dataConfig, setDataConfig] = useState<DataOptions>({ dataResolution: '0.5', selectedStates: stateList });
-    // const legendContainerRef = useRef(null);
 
     const [cachedFeatures, setCachedFeatures] = useState({});
     const [cachedRegions, setCachedRegions] = useState({});
@@ -145,51 +144,6 @@ export function BinMap() {
             });
         });
     }
-
-    // returns the chroma js color scale for the currently selected input
-    // function getColorScale() {
-    //     // let scaleName = optionsRef.current.colorScaleName;
-    //     // TODO: better legend system now that you can have multiple bin layers
-    //     let scaleName = 'viridis';
-    //     let scale = chroma.scale(scaleName);
-    //     return scale
-    // }
-
-    // update legend colors
-    // function refreshLegend() {
-    //     if (!legendContainerRef.current) return;
-
-    //     let gradient = (legendContainerRef.current as HTMLElement).querySelector(".gradient");
-    //     if (!gradient) return;
-
-    //     let numColorSteps = 5;
-    //     let binStyle = 'gradient';
-
-    //     let scale = getColorScale();
-    //     let steppedColors = scale.colors(numColorSteps);
-
-    //     gradient.innerHTML = "";
-
-    //     // add grad-step span with the given color
-    //     function addColor(color: string) {
-    //         if (!gradient) return;
-    //         let e = document.createElement('span');
-    //         e.className="grad-step";
-    //         e.style.backgroundColor = color;
-    //         gradient.append(e);
-    //     }
-
-    //     // created stepped color legend
-    //     if (binStyle == 'color') {
-    //         for (let i = 0; i < 100; i++) {
-    //             addColor(steppedColors[Math.floor(i / 100 * (numColorSteps))]);
-    //         }
-
-    //     // create smooth gradient legend
-    //     } else {
-    //         scale.colors(100).forEach((color) => addColor(color));
-    //     }
-    // }
 
     function handleRangesCallback(displaySet: LayerDisplayInfoSet) {
         for (let id in displaySet) {
@@ -331,10 +285,6 @@ export function BinMap() {
         addPresetFeatures();
     }, [dataConfig.dataResolution, dataConfig.selectedStates]);
 
-    // useEffect(() => {
-    //     refreshLegend();
-    // }, [options.colorScaleName, options.binStyle, options.numColorSteps]);
-
     const layerConfigComponents = (<>
         <Accordion
             multiple
@@ -440,14 +390,6 @@ export function BinMap() {
 
     return (
         <div className={styles.page}>
-            {/* <div ref={legendContainerRef} className="legend-container">
-                    <div className="gradient">
-                        {getColorScale().colors(100).map((color, index) => (
-                            <span className="grad-step" key={index} style={{ backgroundColor: color }}></span>
-                        ))}
-                    </div>
-            </div> */}
-
             <SideBar items={sidebarItems} activeItem="" cookieKey="binmap" />
             <BinMapView
                 features={features}
