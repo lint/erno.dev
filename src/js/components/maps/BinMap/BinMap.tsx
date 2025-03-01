@@ -71,7 +71,7 @@ export function BinMap() {
 
     // load features from preset data file
     function addPresetFeatures() {
-        let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/{dataset}/us/{state}/data.geojson';
+        let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/aggregate/{dataset}/us/{state}/data.geojson';
         let urls = dataConfig.selectedStates.map(state => baseUrl.replace('{dataset}', dataConfig.dataResolution).replace('{state}', state.toLowerCase()));
         let proj = new Projection({ code: "EPSG:3857" });
 
