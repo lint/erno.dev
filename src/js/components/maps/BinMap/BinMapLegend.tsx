@@ -3,19 +3,19 @@ import styles from './BinMap.module.css';
 import { Divider } from '@mantine/core';
 import { BaseLayerOptions, BinLayerOptions, getRangeValue, LayerDisplayInfoSet } from './BinMapOptions';
 import chroma from 'chroma-js';
-import Control from 'ol/control/Control';
 import { Text } from '@mantine/core';
 
 export interface BinMapLegendProps {
     layerConfigs: BaseLayerOptions[];
     layerDisplayInfo: LayerDisplayInfoSet;
     visible: boolean;
+    scaleVisible: boolean;
 };
 
-export default function BinMapLegend({ layerConfigs, layerDisplayInfo, visible }: BinMapLegendProps) {
+export default function BinMapLegend({ layerConfigs, layerDisplayInfo, visible, scaleVisible }: BinMapLegendProps) {
 
     const legend = (
-        <div className={styles.legend}>
+        <div className={styles.legend} style={{ bottom: scaleVisible ? 40 : 'var(--mantine-spacing-xs' }}>
             <div className={styles.legendTitle}>
                 Legend
             </div>
@@ -71,28 +71,3 @@ export default function BinMapLegend({ layerConfigs, layerDisplayInfo, visible }
     </>);
 }
 
-export class ToggleLegendControl extends Control {
-    constructor(callback: () => void, opt_options: any) {
-        const options = opt_options || {};
-
-        const button = document.createElement('button');
-        button.title = 'Toggle Legend';
-
-        const icon = document.createElement('span');
-        icon.className = 'material-icons';
-        icon.innerHTML = 'legend_toggle';
-        icon.style.fontSize = '20px';
-        button.appendChild(icon);
-
-        const element = document.createElement('div');
-        element.className = `${styles.legendToggleButton} ol-unselectable ol-control`;
-        element.appendChild(button);
-
-        super({
-            element: element,
-            target: options.target,
-        });
-
-        button.addEventListener('click', callback, false);
-    }
-}

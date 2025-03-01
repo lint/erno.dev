@@ -24,8 +24,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import styles from './BinMap.module.css';
 import Stroke from 'ol/style/Stroke';
-import BinMapLegend, { ToggleLegendControl } from './BinMapLegend';
+import BinMapLegend from './BinMapLegend';
 import { defaults as defaultControls } from 'ol/control/defaults.js';
+import FullScreen from 'ol/control/FullScreen.js';
+import ScaleLine from 'ol/control/ScaleLine.js';
+import { ToggleLegendControl, ToggleScaleLineControl } from './BinMapViewControls';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
@@ -47,6 +50,8 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval', 'featureSourceUrl'];
     const binMaxesRef = useRef<LayerDisplayInfoSet>({});
     const [legendVisible, setLegendVisible] = useState(false);
+    const [scaleLineVisible, setScaleLineVisible] = useState(true);
+    let scaleLineRef = useRef<ScaleLine>();
 
     const selectedFeatureInfoRef = useRef<HTMLDivElement>(null);
     const selectedFeatureRef = useRef<FeatureLike>();
@@ -467,6 +472,10 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
                 new ToggleLegendControl(() => {
                     setLegendVisible(oldVisible => !oldVisible);
                 }, {}),
+                new ToggleScaleLineControl(() => {
+                    setScaleLineVisible(oldVisible => !oldVisible);
+                }, {}),
+                new FullScreen()
             ]),
         });
         mapRef.current = map;
@@ -501,6 +510,20 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
         // return () => map.setTarget('');
     }, []);
+
+    useEffect(() => {
+        if (!mapRef.current) return;
+
+        if (!scaleLineRef.current) {
+            const scaleLine = new ScaleLine({ minWidth: 125, className: `${styles.scale} ol-scale-line` });
+            scaleLineRef.current = scaleLine;
+        }
+        if (scaleLineVisible) {
+            mapRef.current.addControl(scaleLineRef.current);
+        } else {
+            mapRef.current.removeControl(scaleLineRef.current);
+        }
+    }, [scaleLineVisible])
 
     useEffect(() => {
         console.log("BinMapView useEffect layerConfigs changed");
@@ -550,7 +573,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     return (<>
         <div ref={mapContainerRef} className={styles.map}>
             <div ref={selectedFeatureInfoRef} className={styles.selectedFeatureInfo}></div>
-            <BinMapLegend layerConfigs={layerConfigs} layerDisplayInfo={binMaxesRef.current} visible={legendVisible} />
+            <BinMapLegend layerConfigs={layerConfigs} layerDisplayInfo={binMaxesRef.current} visible={legendVisible} scaleVisible={scaleLineVisible} />
         </div>
     </>
     );

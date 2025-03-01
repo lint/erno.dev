@@ -74,8 +74,8 @@
     /* height: 200px; */
     width: 300px;
     position: absolute;
-    bottom: var(--mantine-spacing-xs);
-    left: var(--mantine-spacing-xs);
+    bottom: 8px;
+    left: 8px;
     background-color: var(--color-secondary);
     color: var(--color-text-primary);
     z-index: 100;
@@ -85,6 +85,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    opacity: 0.9;
 }
 
 .legendTitle {
@@ -100,4 +101,22 @@
 .legendToggleButton {
     top: 65px;
     left: .5em;
+}
+
+.scaleLineToggleButton {
+    left: .5em;
+    top: 95px;
+}
+
+.scale {
+    color: var(--color-text-highlight);
+    background-color: var(--color-secondary);
+    padding: 5px;
+    opacity: 0.9;
+
+    .scale {
+        border: solid 1px var(--color-text-highlight);
+        border-top: none;
+        padding: 0;
+    }
 }
