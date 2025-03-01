@@ -37,6 +37,7 @@
     "chroma-js": "^3.1.2",
     "ol": "^10.3.1",
     "ol-ext": "^4.0.24",
+    "ol-geocoder": "^4.3.3",
     "react": "^19.0.0-rc.1",
     "react-dom": "^19.0.0-rc.1",
     "react-router-dom": "^6.27.0",
