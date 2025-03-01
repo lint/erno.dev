@@ -30,6 +30,8 @@ import FullScreen from 'ol/control/FullScreen.js';
 import ScaleLine from 'ol/control/ScaleLine.js';
 import { ExportMapControl, ToggleLegendControl, ToggleScaleLineControl } from './BinMapViewControls';
 import downloadFileFromURL from '../../../util/download';
+import Geocoder from 'ol-geocoder';
+import './BinMapViewControls.css';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
@@ -519,6 +521,13 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
                 new ExportMapControl(() => {
                     exportMapToPNG();
                 }, {}),
+                new Geocoder('nominatim', {
+                    provider: 'osm',
+                    lang: 'en-US',
+                    placeholder: 'Search for ...',
+                    limit: 5,
+                    keepOpen: false,
+                }) as any,
                 new FullScreen()
             ]),
         });
@@ -567,7 +576,14 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         } else {
             mapRef.current.removeControl(scaleLineRef.current);
         }
-    }, [scaleLineVisible])
+    }, [scaleLineVisible]);
+
+    useEffect(() => {
+        let searchControl = document.getElementById('gcd-button-control');
+        if (searchControl) {
+            searchControl.title = 'Search for Location';
+        }
+    });
 
     useEffect(() => {
         console.log("BinMapView useEffect layerConfigs changed");

@@ -1,3 +1,4 @@
+import Geocoder from 'ol-geocoder';
 import styles from './BinMap.module.css';
 import Control from 'ol/control/Control';
 
@@ -76,5 +77,12 @@ export class ExportMapControl extends Control {
         });
 
         button.addEventListener('click', callback, false);
+    }
+}
+
+
+export class GeocoderControl extends Geocoder {
+    constructor(options: any) {
+        super("nominatim", options)
     }
 }

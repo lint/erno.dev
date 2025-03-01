@@ -1,0 +1,29 @@
+#gcd-container {
+    position: absolute;
+    top: 155px;
+    left: 0.5em;
+}
+
+.gcd-gl-control {
+    display: flex;
+    gap: 10px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.gcd-gl-input {
+    display: none;
+    height: 24px;
+}
+
+.gcd-gl-expanded .gcd-gl-input {
+    display: block;
+}
+
+.gcd-gl-btn::before {
+    font-family: "Material Icons";
+    font-size: 22px;
+    content: "search";
+    position: absolute;
+    top: 9px;
+    left: 1px;
+}
