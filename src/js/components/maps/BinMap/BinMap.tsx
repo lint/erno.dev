@@ -153,9 +153,11 @@ export function BinMap() {
         setLayerInfos((oldLayerInfos) => ({ ...oldLayerInfos }));
     }
 
-    function handleLayerExpandedChanged(ids: string[]) {
+    // function handleLayerExpandedChanged(ids: string[]) {
+    function handleLayerExpandedChanged(updatedId: string | null) {
         for (let id in layerInfos) {
-            layerInfos[id].controlExpanded = ids.indexOf(id) > -1;
+            // layerInfos[id].controlExpanded = ids.indexOf(id) > -1;
+            layerInfos[id].controlExpanded = updatedId === id;
         }
         setLayerInfos((oldLayerInfos) => ({ ...oldLayerInfos }));
     }
@@ -287,8 +289,9 @@ export function BinMap() {
 
     const layerConfigComponents = (<>
         <Accordion
-            multiple
-            defaultValue={getExpandedLayers()}
+            // multiple
+            // defaultValue={getExpandedLayers()}
+            defaultValue={getExpandedLayers()[0]}
             className={styles.layerConfigs}
             classNames={{
                 label: styles.label,

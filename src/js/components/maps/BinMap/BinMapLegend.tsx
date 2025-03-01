@@ -76,6 +76,7 @@ export class ToggleLegendControl extends Control {
         const options = opt_options || {};
 
         const button = document.createElement('button');
+        button.title = 'Toggle Legend';
 
         const icon = document.createElement('span');
         icon.className = 'material-icons';
