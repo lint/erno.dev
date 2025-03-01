@@ -52,3 +52,29 @@ export class ToggleScaleLineControl extends Control {
         button.addEventListener('click', callback, false);
     }
 }
+
+export class ExportMapControl extends Control {
+    constructor(callback: () => void, opt_options: any) {
+        const options = opt_options || {};
+
+        const button = document.createElement('button');
+        button.title = 'Export Map as PNG';
+
+        const icon = document.createElement('span');
+        icon.className = 'material-icons';
+        icon.innerHTML = 'print';
+        icon.style.fontSize = '20px';
+        button.appendChild(icon);
+
+        const element = document.createElement('div');
+        element.className = `${styles.exportMapControl} ol-unselectable ol-control`;
+        element.appendChild(button);
+
+        super({
+            element: element,
+            target: options.target,
+        });
+
+        button.addEventListener('click', callback, false);
+    }
+}

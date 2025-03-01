@@ -108,6 +108,11 @@
     top: 95px;
 }
 
+.exportMapControl {
+    left: .5em;
+    top: 125px;
+}
+
 .scale {
     color: var(--color-text-highlight);
     background-color: var(--color-secondary);
