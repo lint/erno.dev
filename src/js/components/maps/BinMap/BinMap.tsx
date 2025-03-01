@@ -19,7 +19,7 @@ import {
     LayerDisplayInfoSet,
     NewLayerOptions,
 } from "./BinMapOptions";
-import BinMapLayerControl from "./SidebarControls/BinMapLayerControl";
+import LayerControl from "./SidebarControls/LayerControl";
 import styles from "./BinMap.module.css";
 import { Accordion } from "@mantine/core";
 import {
@@ -32,7 +32,7 @@ import {
     IconTableFilled,
 } from "@tabler/icons-react";
 import SideBar from "../../layout/sidebar";
-import BinMapDataControl from "./SidebarControls/BinMapDataControl";
+import DataControl from "./SidebarControls/DataControl";
 import stateRegions, { stateList } from "../StateRegions";
 import NewLayerFieldset from "./SidebarControls/LayerFieldsets/NewLayerFieldset";
 
@@ -312,7 +312,7 @@ export function BinMap() {
                         </div>
                     </Accordion.Control>
                     <Accordion.Panel>
-                        <BinMapLayerControl
+                        <LayerControl
                             config={layerConfig}
                             updateCallback={handleLayerControlChange}
                             binRange={layerInfos[layerConfig.id].binRanges}
@@ -357,7 +357,7 @@ export function BinMap() {
                     <div className={styles.title}>Address Numbers</div>
                 </Accordion.Control>
                 <Accordion.Panel>
-                    <BinMapDataControl
+                    <DataControl
                         items={stateRegions}
                         updateCallback={handleDataControlChange}
                         config={dataConfig}

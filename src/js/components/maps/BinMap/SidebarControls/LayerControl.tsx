@@ -7,14 +7,14 @@ import HeatmapLayerFieldset from './LayerFieldsets/HeatmapLayerFieldset';
 import TileLayerFieldset from './LayerFieldsets/TileLayerFieldset';
 import GeneralLayerFieldset from './LayerFieldsets/GeneralLayerFieldset';
 
-export interface BinMapLayerControlProps {
+export interface LayerControlProps {
     config: BaseLayerOptions;
     binRange?: any;
     updateCallback?: any;
     deleteLayerCallback: any;
 };
 
-export default function BinMapLayerControl({ config, binRange, updateCallback, deleteLayerCallback }: BinMapLayerControlProps) {
+export default function LayerControl({ config, binRange, updateCallback, deleteLayerCallback }: LayerControlProps) {
 
     const binConfig = config as BinLayerOptions;
     const tileConfig = config as TileLayerOptions;

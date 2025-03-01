@@ -24,14 +24,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import styles from './BinMap.module.css';
 import Stroke from 'ol/style/Stroke';
-import BinMapLegend from './BinMapLegend';
+import Legend from './ViewControls/Legend';
 import { defaults as defaultControls } from 'ol/control/defaults.js';
 import FullScreen from 'ol/control/FullScreen.js';
 import ScaleLine from 'ol/control/ScaleLine.js';
-import { ExportMapControl, ToggleLegendControl, ToggleScaleLineControl } from './BinMapViewControls';
+import { ExportMapControl, ToggleLegendControl, ToggleScaleLineControl } from './ViewControls/ViewControls';
 import downloadFileFromURL from '../../../util/download';
 import Geocoder from 'ol-geocoder';
-import './BinMapViewControls.css';
+import './ViewControls/ViewControls.css';
 
 export interface BinMapViewProps {
     features: Feature<Geometry>[];
@@ -633,7 +633,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
     return (<>
         <div ref={mapContainerRef} className={styles.map}>
             <div ref={selectedFeatureInfoRef} className={styles.selectedFeatureInfo}></div>
-            <BinMapLegend layerConfigs={layerConfigs} layerDisplayInfo={binMaxesRef.current} visible={legendVisible} scaleVisible={scaleLineVisible} />
+            <Legend layerConfigs={layerConfigs} layerDisplayInfo={binMaxesRef.current} visible={legendVisible} scaleVisible={scaleLineVisible} />
         </div>
     </>
     );

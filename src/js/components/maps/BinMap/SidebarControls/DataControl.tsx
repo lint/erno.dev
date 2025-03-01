@@ -6,13 +6,13 @@ import { stateList } from '../../StateRegions';
 import { DataOptions } from '../BinMapOptions';
 import arraysEqual from '../../../../util/arrays';
 
-export interface BinMapDataControlProps {
+export interface DataControlProps {
     items: any[];
     updateCallback?: any;
     config: DataOptions;
 };
 
-export default function BinMapDataControl({ items, updateCallback, config }: BinMapDataControlProps) {
+export default function DataControl({ items, updateCallback, config }: DataControlProps) {
 
     const tree = useTree({
         initialExpandedState: getTreeExpandedState(items, getInitialExpandedValues(items, 1, 0)),

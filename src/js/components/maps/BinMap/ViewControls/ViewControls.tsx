@@ -1,5 +1,5 @@
 import Geocoder from 'ol-geocoder';
-import styles from './BinMap.module.css';
+import styles from '../BinMap.module.css';
 import Control from 'ol/control/Control';
 
 export class ToggleLegendControl extends Control {
