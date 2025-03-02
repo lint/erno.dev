@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { Button, Checkbox, Fieldset, getTreeExpandedState, Group, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
+import { Button, Checkbox, Fieldset, getTreeExpandedState, Group, MultiSelect, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
 import styles from './SidebarControls.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
 import { stateList } from '../../StateRegions';
 import { DataOptions } from '../BinMapOptions';
 import arraysEqual from '../../../../util/arrays';
+import topCities from '../../TopCities';
 
 export interface DataControlProps {
     items: any[];
@@ -69,34 +70,23 @@ export default function DataControl({ items, updateCallback, config }: DataContr
         return result;
     }
 
-    // general input change handler
-    function handleInputChange(key: string, value: any) {
-        console.log(`input change key=${key} value=${value}`)
-
-        try {
-            if (updateCallback) updateCallback(key, value);
-        } catch {
-            console.log(`failed to update key=${key} value=${value}`);
-        }
-    }
-
     useEffect(() => {
         let newSelectedStates = stateList.filter(value => tree.checkedState.indexOf(value) > -1);
         if (!arraysEqual(newSelectedStates, config.selectedStates)) {
             console.log("new selected states:", newSelectedStates)
-            handleInputChange('selectedStates', newSelectedStates);
+            updateCallback('selectedStates', newSelectedStates);
         }
     }, [tree.checkedState]);
 
-    return (
-        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>Aggregated Regions</div>}>
+    return (<>
+        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>US Aggregated Regions</div>}>
             <div className={styles.optionsItem}>
                 <div className={`${styles.optionsLabel} ${styles.label}`}>Resolution</div>
                 <div style={{ width: 100 }}>
                     <Select
                         data={[{ value: '0.01', label: '0.01°' }, { value: '0.05', label: '0.05°' }, { value: '0.1', label: '0.1°' }, { value: '0.5', label: '0.5°' }, { value: '1', label: '1°' }]}
                         defaultValue={config.dataResolution}
-                        onChange={value => handleInputChange('dataResolution', value)}
+                        onChange={value => updateCallback('dataResolution', value)}
                         searchable
                     />
                 </div>
@@ -118,5 +108,24 @@ export default function DataControl({ items, updateCallback, config }: DataContr
                 />
             </div>
         </Fieldset>
-    );
+        <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>US Cities</div>}>
+            <div style={{ padding: 5 }}>
+
+                <div className={styles.dataTitle} style={{ paddingLeft: 2 }}>
+                    Select Loaded Cities
+                </div>
+                <MultiSelect
+                    checkIconPosition="right"
+                    data={topCities.map(cityInfo => cityInfo.value)}
+                    dropdownOpened
+                    pb={200}
+                    maxDropdownHeight={150}
+                    placeholder="Search ..."
+                    // defaultValue={["React"]}
+                    searchable
+                    comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false } }}
+                />
+            </div>
+        </Fieldset>
+    </>);
 }

@@ -9,8 +9,11 @@ export interface BinValues {
 };
 
 export interface DataOptions {
+    id: string;
+    title: string;
     dataResolution: string;
     selectedStates: string[];
+    selectedCities: string[];
     expandedItems?: string[];
 };
 

@@ -40,7 +40,17 @@ export function BinMap() {
     // console.log("BinMap function called ...");
 
     const defaultExpandedLayerControls = ["bin_test"];
-    const [dataConfig, setDataConfig] = useState<DataOptions>({ dataResolution: '0.5', selectedStates: stateList });
+    const [dataConfigs, setDataConfigs] = useState<DataOptions[]>([
+        {
+            id: 'default',
+            title: 'default',
+            dataResolution: '0.5',
+            selectedStates: stateList,
+            selectedCities: []
+        }
+    ]);
+    const [selectedDataConfigId, _] = useState('default');
+    const dataConfig = dataConfigs[0];
 
     const [cachedFeatures, setCachedFeatures] = useState({});
     const [cachedRegions, setCachedRegions] = useState({});
@@ -172,35 +182,44 @@ export function BinMap() {
         return expandedLayers;
     }
 
-    function handleLayerControlChange(
-        layerId: string,
-        key: string,
-        value: any
-    ) {
-        setLayerConfigs((oldLayerConfigs) => {
-            for (let i = 0; i < oldLayerConfigs.length; i++) {
-                let layerConfig = oldLayerConfigs[i];
-                if (layerConfig.id === layerId) {
-                    let newLayerConfig = {
+    function handleLayerControlChange(id: string, key: string, value: any) {
+        setLayerConfigs(oldConfigs => {
+            for (let i = 0; i < oldConfigs.length; i++) {
+                let layerConfig = oldConfigs[i];
+                if (layerConfig.id === id) {
+                    let newConfig = {
                         ...layerConfig,
                         [key]: value,
                     };
 
-                    let newLayerConfigs = [...oldLayerConfigs];
-                    newLayerConfigs[i] = newLayerConfig;
-                    return newLayerConfigs;
+                    let newConfigs = [...oldConfigs];
+                    newConfigs[i] = newConfig;
+                    return newConfigs;
                 }
             }
 
-            return oldLayerConfigs;
+            return oldConfigs;
         });
     }
 
     function handleDataControlChange(key: string, value: any) {
-        setDataConfig(oldConfig => ({
-            ...oldConfig,
-            [key]: value
-        }));
+        setDataConfigs(oldConfigs => {
+            for (let i = 0; i < oldConfigs.length; i++) {
+                let layerConfig = oldConfigs[i];
+                if (layerConfig.id === selectedDataConfigId) {
+                    let newConfig = {
+                        ...layerConfig,
+                        [key]: value,
+                    };
+
+                    let newConfigs = [...oldConfigs];
+                    newConfigs[i] = newConfig;
+                    return newConfigs;
+                }
+            }
+
+            return oldConfigs;
+        });
     }
 
     function handleNewLayerChange(key: string, value: any) {
@@ -337,7 +356,7 @@ export function BinMap() {
             </Accordion.Item>
         </Accordion>
     </>);
-    const dataComponents = (
+    const dataComponents = (<>
         <Accordion
             multiple
             defaultValue={['addresses']}
@@ -366,7 +385,7 @@ export function BinMap() {
             </Accordion.Item>
 
         </Accordion>
-    );
+    </>);
     // const chartComponents = (
     //     <div>
     //         <BinMapChartControl features={features} />
