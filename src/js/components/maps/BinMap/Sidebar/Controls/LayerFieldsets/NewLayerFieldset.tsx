@@ -1,7 +1,7 @@
 import React from 'react';
 import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
 import { Button, Input, SegmentedControl } from '@mantine/core';
-import { NewLayerOptions } from '../../BinMapOptions';
+import { NewLayerOptions } from '../../../BinMapOptions';
 
 export interface NewLayerFieldsetProps {
     config: NewLayerOptions;

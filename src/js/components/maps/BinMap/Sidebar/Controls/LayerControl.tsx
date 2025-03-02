@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, getRangeValue, HeatmapLayerOptions, TileLayerOptions } from '../BinMapOptions';
+import { BaseLayerOptions, BinLayerOptions, getRangeValue, HeatmapLayerOptions, TileLayerOptions } from '../../BinMapOptions';
 import styles from './SidebarControls.module.css';
 import BinLayerFieldset from './LayerFieldsets/BinLayerFieldset';
 import HeatmapLayerFieldset from './LayerFieldsets/HeatmapLayerFieldset';
@@ -67,7 +67,7 @@ export default function LayerControl({ config, binRange, updateCallback, deleteL
 
     // update interval slider values when props change
     useEffect(() => {
-        if (!binRange) return;
+        if (!binRange || config.layerType !== 'bin') return;
         let interval;
         let min = 0;
         let max = 1;

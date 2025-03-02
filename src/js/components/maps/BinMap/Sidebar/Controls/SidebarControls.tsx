@@ -1,7 +1,7 @@
 import { Chip, Fieldset, Group, SegmentedControl } from "@mantine/core";
 import styles from './SidebarControls.module.css';
 import React, { ReactNode } from "react";
-import { BaseLayerOptions } from "../BinMapOptions";
+import { BaseLayerOptions } from "../../BinMapOptions";
 
 // creates capatalized CombodivData for list of values
 export function capitalizeValues(values: string[]) {

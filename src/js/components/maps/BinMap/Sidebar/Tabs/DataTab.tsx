@@ -1,19 +1,19 @@
 import React, { useEffect } from 'react';
 import { Button, Checkbox, Fieldset, getTreeExpandedState, Group, MultiSelect, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
-import styles from './SidebarControls.module.css';
+import styles from '../Controls/SidebarControls.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
-import { stateList } from '../../StateRegions';
-import { DataOptions } from '../BinMapOptions';
-import arraysEqual from '../../../../util/arrays';
-import topCities from '../../TopCities';
+import { stateList } from '../../../StateRegions';
+import { DataOptions } from '../../BinMapOptions';
+import arraysEqual from '../../../../../util/arrays';
+import topCities from '../../../TopCities';
 
-export interface DataControlProps {
+export interface DataTabProps {
     items: any[];
     updateCallback?: any;
     config: DataOptions;
 };
 
-export default function DataControl({ items, updateCallback, config }: DataControlProps) {
+export default function DataTab({ items, updateCallback, config }: DataTabProps) {
 
     const tree = useTree({
         initialExpandedState: getTreeExpandedState(items, getInitialExpandedValues(items, 1, 0)),

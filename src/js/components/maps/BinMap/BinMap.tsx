@@ -19,7 +19,7 @@ import {
     LayerDisplayInfoSet,
     NewLayerOptions,
 } from "./BinMapOptions";
-import LayerControl from "./SidebarControls/LayerControl";
+import LayerControl from "./Sidebar/Controls/LayerControl";
 import styles from "./BinMap.module.css";
 import { Accordion } from "@mantine/core";
 import {
@@ -32,9 +32,9 @@ import {
     IconTableFilled,
 } from "@tabler/icons-react";
 import SideBar from "../../layout/sidebar";
-import DataControl from "./SidebarControls/DataControl";
+import DataControl from "./Sidebar/Tabs/DataTab";
 import stateRegions, { stateList } from "../StateRegions";
-import NewLayerFieldset from "./SidebarControls/LayerFieldsets/NewLayerFieldset";
+import NewLayerFieldset from "./Sidebar/Controls/LayerFieldsets/NewLayerFieldset";
 
 export function BinMap() {
     // console.log("BinMap function called ...");
@@ -85,38 +85,37 @@ export function BinMap() {
         let urls = dataConfig.selectedStates.map(state => baseUrl.replace('{dataset}', dataConfig.dataResolution).replace('{state}', state.toLowerCase()));
         let proj = new Projection({ code: "EPSG:3857" });
 
-        let promises = urls.map(
-            (url) =>
-                new Promise((resolve, reject) => {
-                    if (url in cachedFeatures) {
-                        // console.log("found cached features for: ", url)
-                        resolve(
-                            cachedFeatures[url as keyof typeof cachedFeatures]
-                        );
-                        return;
+        let promises = urls.map((url) =>
+            new Promise((resolve, reject) => {
+                if (url in cachedFeatures) {
+                    // console.log("found cached features for: ", url)
+                    resolve(
+                        cachedFeatures[url as keyof typeof cachedFeatures]
+                    );
+                    return;
+                }
+
+                let binSource = new Vector({
+                    url: url,
+                    format: new GeoJSON(),
+                    // loader: () => {
+                    // }
+                });
+                // console.log("loading features for url:", url)
+                // force source to load
+                binSource.loadFeatures([0, 0, 0, 0], 0, proj);
+
+                binSource.on("featuresloadend", (e: VectorSourceEvent) => {
+                    if (e.features) {
+                        setCachedFeatures((oldFeatures) => {
+                            return { ...oldFeatures, [url]: e.features };
+                        });
+                        resolve(e.features);
+                    } else {
+                        reject(`No features loaded for url: ${url}`);
                     }
-
-                    let binSource = new Vector({
-                        url: url,
-                        format: new GeoJSON(),
-                        // loader: () => {
-                        // }
-                    });
-                    // console.log("loading features for url:", url)
-                    // force source to load
-                    binSource.loadFeatures([0, 0, 0, 0], 0, proj);
-
-                    binSource.on("featuresloadend", (e: VectorSourceEvent) => {
-                        if (e.features) {
-                            setCachedFeatures((oldFeatures) => {
-                                return { ...oldFeatures, [url]: e.features };
-                            });
-                            resolve(e.features);
-                        } else {
-                            reject(`No features loaded for url: ${url}`);
-                        }
-                    });
-                })
+                });
+            })
         );
 
         Promise.all(promises).then((featureSets) => {
@@ -146,7 +145,6 @@ export function BinMap() {
         // console.log("loading features for url:", url)
         // force source to load
         binSource.loadFeatures([0, 0, 0, 0], 0, proj);
-
 
         binSource.on("featuresloadend", () => {
             setCachedRegions((oldRegions) => {

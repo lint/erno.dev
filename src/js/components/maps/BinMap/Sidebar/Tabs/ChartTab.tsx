@@ -1,16 +1,16 @@
 import { ScatterChart } from '@mantine/charts';
 import React, { useState } from 'react';
-import styles from './SidebarControls.module.css';
+import styles from '../Controls/SidebarControls.module.css';
 import { Checkbox, SegmentedControl } from '@mantine/core';
-import { capitalizeValues } from './SidebarControls';
+import { capitalizeValues } from '../Controls/SidebarControls';
 import Feature from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 
-export interface BinMapChartControlProps {
+export interface BinMapChartTabProps {
     features: Feature<Geometry>[];
 };
 
-export default function BinMapChartControl({ features }: BinMapChartControlProps) {
+export default function BinMapChartTab({ features }: BinMapChartTabProps) {
 
     const [aggValue, setAggValue] = useState('avg');
     const [useLog, setUseLog] = useState(true);

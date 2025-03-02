@@ -1,7 +1,7 @@
 import React from 'react';
 import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
 import { SegmentedControl, Select } from '@mantine/core';
-import { TileLayerOptions } from '../../BinMapOptions';
+import { TileLayerOptions } from '../../../BinMapOptions';
 import styles from '../SidebarControls.module.css';
 
 export interface TileLayerFieldsetProps {

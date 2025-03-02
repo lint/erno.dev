@@ -1,7 +1,7 @@
 import React from 'react';
 import { createFieldset, createOptionsItem } from '../SidebarControls';
 import { ActionIcon, Button, Input, NumberInput, Slider } from '@mantine/core';
-import { BaseLayerOptions } from '../../BinMapOptions';
+import { BaseLayerOptions } from '../../../BinMapOptions';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 
 export interface GeneralLayerFieldsetProps {
