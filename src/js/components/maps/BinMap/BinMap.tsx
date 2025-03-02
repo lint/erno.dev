@@ -1,13 +1,19 @@
-import React, { useEffect, useState } from "react";
-import "ol/ol.css";
+import {
+    IconStackFront,
+    IconTableFilled
+} from "@tabler/icons-react";
 import "ol-ext/dist/ol-ext.css";
 import Feature from "ol/Feature.js";
+import GeoJSON from "ol/format/GeoJSON";
+import Geometry from "ol/geom/Geometry";
+import "ol/ol.css";
+import { Projection } from "ol/proj";
 import { Vector } from "ol/source";
 import { VectorSourceEvent } from "ol/source/Vector";
-import { Projection } from "ol/proj";
-import GeoJSON from "ol/format/GeoJSON";
-import { BinMapView } from "./BinMapView";
-import Geometry from "ol/geom/Geometry";
+import React, { useEffect, useState } from "react";
+import SideBar from "../../layout/sidebar";
+import stateRegions, { stateList } from "../StateRegions";
+import styles from "./BinMap.module.css";
 import {
     BaseLayerOptions,
     BinLayerOptions,
@@ -16,25 +22,11 @@ import {
     createTileOptions,
     DataOptions,
     LayerDisplayInfo,
-    LayerDisplayInfoSet,
-    NewLayerOptions,
+    LayerDisplayInfoSet
 } from "./BinMapOptions";
-import LayerControl from "./Sidebar/Controls/LayerControl";
-import styles from "./BinMap.module.css";
-import { Accordion } from "@mantine/core";
-import {
-    IconFlame,
-    IconHexagons,
-    IconHome,
-    IconMap,
-    IconPlus,
-    IconStackFront,
-    IconTableFilled,
-} from "@tabler/icons-react";
-import SideBar from "../../layout/sidebar";
-import DataControl from "./Sidebar/Tabs/DataTab";
-import stateRegions, { stateList } from "../StateRegions";
-import NewLayerFieldset from "./Sidebar/Controls/LayerFieldsets/NewLayerFieldset";
+import { BinMapView } from "./BinMapView";
+import DataTab from "./Sidebar/Tabs/DataTab";
+import LayersTab from "./Sidebar/Tabs/LayersTab";
 
 export function BinMap() {
     // console.log("BinMap function called ...");
@@ -60,10 +52,13 @@ export function BinMap() {
         createBinOptions('Bin Layer', 'bin_test', 2),
         createHeatmapOptions('Heatmap Layer', 'heatmap_test', 3, false),
     ];
-    const [newLayerConfig, setNewLayerConfig] = useState<NewLayerOptions>({
+    const [newLayerConfig, setNewLayerConfig] = useState<BaseLayerOptions>({
         title: '',
-        placeholder: 'New Layer',
-        layerType: 'tile'
+        layerType: 'tile',
+        id: 'add_new_layer',
+        visible: true,
+        opacity: 100,
+        zIndex: 1
     });
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
     const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(() => {
@@ -170,34 +165,31 @@ export function BinMap() {
         setLayerInfos((oldLayerInfos) => ({ ...oldLayerInfos }));
     }
 
-    function getExpandedLayers() {
-        let expandedLayers = [];
-
-        for (let id in layerInfos) {
-            if (layerInfos[id].controlExpanded) expandedLayers.push(id);
-        }
-
-        return expandedLayers;
-    }
-
     function handleLayerControlChange(id: string, key: string, value: any) {
-        setLayerConfigs(oldConfigs => {
-            for (let i = 0; i < oldConfigs.length; i++) {
-                let layerConfig = oldConfigs[i];
-                if (layerConfig.id === id) {
-                    let newConfig = {
-                        ...layerConfig,
-                        [key]: value,
-                    };
+        if (id === newLayerConfig.id) {
+            setNewLayerConfig(oldConfig => ({
+                ...oldConfig,
+                [key]: value
+            }));
+        } else {
+            setLayerConfigs(oldConfigs => {
+                for (let i = 0; i < oldConfigs.length; i++) {
+                    let layerConfig = oldConfigs[i];
+                    if (layerConfig.id === id) {
+                        let newConfig = {
+                            ...layerConfig,
+                            [key]: value,
+                        };
 
-                    let newConfigs = [...oldConfigs];
-                    newConfigs[i] = newConfig;
-                    return newConfigs;
+                        let newConfigs = [...oldConfigs];
+                        newConfigs[i] = newConfig;
+                        return newConfigs;
+                    }
                 }
-            }
 
-            return oldConfigs;
-        });
+                return oldConfigs;
+            });
+        }
     }
 
     function handleDataControlChange(key: string, value: any) {
@@ -218,27 +210,6 @@ export function BinMap() {
 
             return oldConfigs;
         });
-    }
-
-    function handleNewLayerChange(key: string, value: any) {
-        setNewLayerConfig(oldConfig => ({
-            ...oldConfig,
-            [key]: value
-        }));
-    }
-
-    // get the icon for a given layer type
-    function iconForLayerType(layerType: string) {
-        switch (layerType) {
-            case "bin":
-                return <IconHexagons title="Bin Layer" />;
-            case "heatmap":
-                return <IconFlame title="Heatmap Layer" />;
-            case "tile":
-                return <IconMap title="Tile Layer" />;
-            case "new":
-                return <IconPlus title="New Layer" />;
-        }
     }
 
     function handleAddNewLayer() {
@@ -304,107 +275,33 @@ export function BinMap() {
         addPresetFeatures();
     }, [dataConfig.dataResolution, dataConfig.selectedStates]);
 
-    const layerConfigComponents = (<>
-        <Accordion
-            // multiple
-            // defaultValue={getExpandedLayers()}
-            defaultValue={getExpandedLayers()[0]}
-            className={styles.layerConfigs}
-            classNames={{
-                label: styles.label,
-                chevron: styles.chevron,
-                control: styles.control,
-                item: styles.item,
-            }}
-            onChange={handleLayerExpandedChanged}
-        >
-            {layerConfigs.map((layerConfig) => (
-                <Accordion.Item value={layerConfig.id} key={layerConfig.id}>
-                    <Accordion.Control
-                        classNames={{ icon: layerConfig.visible ? styles.title : styles.titleDisabled }}
-                        icon={iconForLayerType(layerConfig.layerType)}
-                    >
-                        <div className={layerConfig.visible ? styles.title : styles.titleDisabled} >
-                            {layerConfig.title}
-                        </div>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                        <LayerControl
-                            config={layerConfig}
-                            updateCallback={handleLayerControlChange}
-                            binRange={layerInfos[layerConfig.id].binRanges}
-                            key={layerConfig.id}
-                            deleteLayerCallback={handleDeleteLayer}
-                        />
-                    </Accordion.Panel>
-                </Accordion.Item>
-            ))}
-            <Accordion.Item value="new" >
-                <Accordion.Control
-                    classNames={{ icon: styles.title }}
-                    icon={iconForLayerType("new")}
-                >
-                    <div className={styles.title} >
-                        Add
-                    </div>
-                </Accordion.Control>
-                <Accordion.Panel>
-                    <NewLayerFieldset config={newLayerConfig} handleInputChange={handleNewLayerChange} handleCreateCallback={handleAddNewLayer} />
-                </Accordion.Panel>
-            </Accordion.Item>
-        </Accordion>
-    </>);
-    const dataComponents = (<>
-        <Accordion
-            multiple
-            defaultValue={['addresses']}
-            className={styles.layerConfigs}
-            classNames={{
-                label: styles.label,
-                chevron: styles.chevron,
-                control: styles.control,
-                item: styles.item,
-            }}
-        >
-            <Accordion.Item value='addresses'>
-                <Accordion.Control
-                    classNames={{ icon: styles.title }}
-                    icon={<IconHome />}
-                >
-                    <div className={styles.title}>Address Numbers</div>
-                </Accordion.Control>
-                <Accordion.Panel>
-                    <DataControl
-                        items={stateRegions}
-                        updateCallback={handleDataControlChange}
-                        config={dataConfig}
-                    />
-                </Accordion.Panel>
-            </Accordion.Item>
-
-        </Accordion>
-    </>);
-    // const chartComponents = (
-    //     <div>
-    //         <BinMapChartControl features={features} />
-    //     </div>
-    // );
-
     const sidebarItems = [
         {
             label: "Layers",
             icon: IconStackFront,
-            content: layerConfigComponents,
+            content: <LayersTab
+                layerConfigs={layerConfigs}
+                layerDisplayInfoSet={layerInfos}
+                newLayerConfig={newLayerConfig}
+                handleLayerExpandedChanged={handleLayerExpandedChanged}
+                handleLayerControlChange={handleLayerControlChange}
+                handleDeleteLayer={handleDeleteLayer}
+                handleCreateLayer={handleAddNewLayer}
+            />,
         },
         {
             label: "Data",
             icon: IconTableFilled,
-            content: dataComponents,
+            content: <DataTab
+                items={stateRegions}
+                updateCallback={handleDataControlChange}
+                config={dataConfig}
+            />,
         },
         // {
         //     label: "Charts",
         //     icon: IconChartDotsFilled,
-        //     content: chartComponents,
+        //     content: <ChartTab features={features} />,
         // }
     ];
 

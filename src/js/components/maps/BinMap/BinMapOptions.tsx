@@ -17,12 +17,6 @@ export interface DataOptions {
     expandedItems?: string[];
 };
 
-export interface NewLayerOptions {
-    title: string;
-    placeholder: string;
-    layerType: string;
-};
-
 export interface BaseLayerOptions {
     title: string;
     visible: boolean;

@@ -6,11 +6,11 @@ import { capitalizeValues } from '../Controls/SidebarControls';
 import Feature from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 
-export interface BinMapChartTabProps {
+export interface ChartTabProps {
     features: Feature<Geometry>[];
 };
 
-export default function BinMapChartTab({ features }: BinMapChartTabProps) {
+export default function ChartTab({ features }: ChartTabProps) {
 
     const [aggValue, setAggValue] = useState('avg');
     const [useLog, setUseLog] = useState(true);

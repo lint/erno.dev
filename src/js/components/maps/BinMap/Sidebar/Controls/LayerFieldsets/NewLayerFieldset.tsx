@@ -1,10 +1,10 @@
-import React from 'react';
-import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
 import { Button, Input, SegmentedControl } from '@mantine/core';
-import { NewLayerOptions } from '../../../BinMapOptions';
+import React from 'react';
+import { BaseLayerOptions } from '../../../BinMapOptions';
+import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
 
 export interface NewLayerFieldsetProps {
-    config: NewLayerOptions;
+    config: BaseLayerOptions;
     handleInputChange?: (key: string, value: any) => void;
     handleCreateCallback?: () => void;
 }
@@ -15,7 +15,7 @@ export default function NewLayerFieldset({ config, handleInputChange, handleCrea
         {createOptionsItem('Name',
             <Input
                 value={config.title}
-                placeholder={config.placeholder}
+                placeholder='New Layer'
                 onChange={event => handleInputChange!('title', event.currentTarget.value)}
             />
         )}
