@@ -10,23 +10,14 @@ export interface LayersTabProps {
     layerConfigs: BaseLayerOptions[];
     layerDisplayInfoSet: LayerDisplayInfoSet;
     newLayerConfig: BaseLayerOptions;
-    handleLayerExpandedChanged?: (updatedId: string | null) => void;
+    expandedLayerConfigId: string | undefined;
     handleLayerControlChange?: (id: string, key: string, value: any) => void;
     handleDeleteLayer?: (id: string) => void;
     handleCreateLayer?: () => void;
+    handleSetExpandedLayerConfigId?: () => void;
 };
 
-export default function LayersTab({ layerConfigs, layerDisplayInfoSet, newLayerConfig, handleLayerExpandedChanged, handleLayerControlChange, handleDeleteLayer, handleCreateLayer }: LayersTabProps) {
-
-    function getExpandedLayers() {
-        let expandedLayers = [];
-
-        for (let id in layerDisplayInfoSet) {
-            if (layerDisplayInfoSet[id].controlExpanded) expandedLayers.push(id);
-        }
-
-        return expandedLayers;
-    }
+export default function LayersTab({ layerConfigs, expandedLayerConfigId, layerDisplayInfoSet, newLayerConfig, handleLayerControlChange, handleDeleteLayer, handleCreateLayer, handleSetExpandedLayerConfigId }: LayersTabProps) {
 
     // get the icon for a given layer type
     function iconForLayerType(layerType: string) {
@@ -49,8 +40,7 @@ export default function LayersTab({ layerConfigs, layerDisplayInfoSet, newLayerC
     return (<>
         <Accordion
             // multiple
-            // defaultValue={getExpandedLayers()}
-            defaultValue={getExpandedLayers()[0]}
+            value={expandedLayerConfigId}
             className={styles.layerConfigs}
             classNames={{
                 label: styles.label,
@@ -58,7 +48,7 @@ export default function LayersTab({ layerConfigs, layerDisplayInfoSet, newLayerC
                 control: styles.control,
                 item: styles.item,
             }}
-            onChange={handleLayerExpandedChanged}
+            onChange={handleSetExpandedLayerConfigId}
         >
             {layerConfigs.map((layerConfig) => (
                 <Accordion.Item value={layerConfig.id} key={layerConfig.id}>

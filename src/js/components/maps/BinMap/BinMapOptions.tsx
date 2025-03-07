@@ -68,7 +68,6 @@ export interface BinRange {
 };
 
 export interface LayerDisplayInfo {
-    controlExpanded?: boolean;
     binRanges?: BinRange;
 };
 

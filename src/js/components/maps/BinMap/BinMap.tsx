@@ -57,20 +57,20 @@ export function BinMap() {
         id: 'add_new_layer',
         visible: true,
         opacity: 100,
-        zIndex: 1
+        zIndex: 1,
     });
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
     const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(() => {
         let displaySet: LayerDisplayInfoSet = {};
         for (let config of layerConfigs) {
             let displayInfo: LayerDisplayInfo = {
-                controlExpanded: false,
                 binRanges: undefined,
             };
             displaySet[config.id] = displayInfo;
         }
         return displaySet;
     });
+    const [expandedLayerConfigId, setExpandedLayerConfigId] = useState<string>();
 
     function findSelectedDataConfig() {
         for (let i = 0; i < dataConfigs.length; i++) {
@@ -178,15 +178,6 @@ export function BinMap() {
         for (let id in displaySet) {
             if (!(id in layerInfos)) continue;
             layerInfos[id].binRanges = displaySet[id].binRanges;
-        }
-        setLayerInfos((oldLayerInfos) => ({ ...oldLayerInfos }));
-    }
-
-    // function handleLayerExpandedChanged(ids: string[]) {
-    function handleLayerExpandedChanged(updatedId: string | null) {
-        for (let id in layerInfos) {
-            // layerInfos[id].controlExpanded = ids.indexOf(id) > -1;
-            layerInfos[id].controlExpanded = updatedId === id;
         }
         setLayerInfos((oldLayerInfos) => ({ ...oldLayerInfos }));
     }
@@ -357,10 +348,11 @@ export function BinMap() {
                 layerConfigs={layerConfigs}
                 layerDisplayInfoSet={layerInfos}
                 newLayerConfig={newLayerConfig}
-                handleLayerExpandedChanged={handleLayerExpandedChanged}
                 handleLayerControlChange={handleLayerControlChange}
                 handleDeleteLayer={handleDeleteLayer}
                 handleCreateLayer={handleAddNewLayer}
+                handleSetExpandedLayerConfigId={setExpandedLayerConfigId as any}
+                expandedLayerConfigId={expandedLayerConfigId}
             />,
         },
         {
