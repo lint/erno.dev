@@ -12,13 +12,15 @@ import { Vector } from "ol/source";
 import { VectorSourceEvent } from "ol/source/Vector";
 import React, { useEffect, useState } from "react";
 import SideBar from "../../layout/sidebar";
-import stateRegions, { stateList } from "../StateRegions";
+import { stateList } from "../StateRegions";
+import { cityDataForValue } from "../TopCities";
 import styles from "./BinMap.module.css";
 import {
     BaseLayerOptions,
     BinLayerOptions,
     createBinOptions,
     createHeatmapOptions,
+    createNewDataOptions,
     createTileOptions,
     DataOptions,
     LayerDisplayInfo,
@@ -31,7 +33,6 @@ import LayersTab from "./Sidebar/Tabs/LayersTab";
 export function BinMap() {
     // console.log("BinMap function called ...");
 
-    const defaultExpandedLayerControls = ["bin_test"];
     const [dataConfigs, setDataConfigs] = useState<DataOptions[]>([
         {
             id: 'default',
@@ -41,9 +42,7 @@ export function BinMap() {
             selectedCities: []
         }
     ]);
-    const [selectedDataConfigId, _] = useState('default');
-    const dataConfig = dataConfigs[0];
-
+    const [selectedDataConfigId, setSelectedDataConfigId] = useState(dataConfigs.length > 0 ? dataConfigs[0].id : '');
     const [cachedFeatures, setCachedFeatures] = useState({});
     const [cachedRegions, setCachedRegions] = useState({});
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
@@ -65,8 +64,7 @@ export function BinMap() {
         let displaySet: LayerDisplayInfoSet = {};
         for (let config of layerConfigs) {
             let displayInfo: LayerDisplayInfo = {
-                controlExpanded:
-                    defaultExpandedLayerControls.indexOf(config.id) > -1,
+                controlExpanded: false,
                 binRanges: undefined,
             };
             displaySet[config.id] = displayInfo;
@@ -74,10 +72,38 @@ export function BinMap() {
         return displaySet;
     });
 
+    function findSelectedDataConfig() {
+        for (let i = 0; i < dataConfigs.length; i++) {
+            if (dataConfigs[i].id === selectedDataConfigId) {
+                return dataConfigs[i];
+            }
+        }
+
+        return undefined;
+    }
+
     // load features from preset data file
     function addPresetFeatures() {
-        let baseUrl = 'https://lint.github.io/AggregatedAddresses/data/aggregate/{dataset}/us/{state}/data.geojson';
-        let urls = dataConfig.selectedStates.map(state => baseUrl.replace('{dataset}', dataConfig.dataResolution).replace('{state}', state.toLowerCase()));
+
+        let selectedDataConfig = findSelectedDataConfig();
+        if (!selectedDataConfig) return;
+
+        let stateBaseUrl = 'https://lint.github.io/AggregatedAddresses/data/aggregate/{dataset}/us/{state}/data.geojson';
+        let stateUrls = selectedDataConfig.selectedStates.map(state => stateBaseUrl.replace('{dataset}', selectedDataConfig.dataResolution).replace('{state}', state.toLowerCase()));
+
+        let cityBaseUrl = 'https://lint.github.io/AggregatedAddresses/data/us_50_cities/{state}/{city}.geojson';
+        let cityUrls = [];
+
+        for (let city of selectedDataConfig.selectedCities) {
+            let cityData = cityDataForValue(city);
+            if (!cityData) continue;
+
+            for (let i = 1; i <= cityData.file_parts; i++) {
+                cityUrls.push(cityBaseUrl.replace('{state}', cityData.state).replace('{city}', cityData.city));
+            }
+        }
+
+        let urls = [...stateUrls, ...cityUrls];
         let proj = new Projection({ code: "EPSG:3857" });
 
         let promises = urls.map((url) =>
@@ -193,12 +219,13 @@ export function BinMap() {
     }
 
     function handleDataControlChange(key: string, value: any) {
+        console.log("handleDataControlChange", key, value)
         setDataConfigs(oldConfigs => {
             for (let i = 0; i < oldConfigs.length; i++) {
-                let layerConfig = oldConfigs[i];
-                if (layerConfig.id === selectedDataConfigId) {
+                let config = oldConfigs[i];
+                if (config.id === selectedDataConfigId) {
                     let newConfig = {
-                        ...layerConfig,
+                        ...config,
                         [key]: value,
                     };
 
@@ -209,6 +236,52 @@ export function BinMap() {
             }
 
             return oldConfigs;
+        });
+    }
+
+    function handleCopyDataConfig(configId: string) {
+        console.log("handleCopyDataConfig", configId);
+        setDataConfigs(oldConfigs => {
+            let newConfig;
+            for (let i = 0; i < oldConfigs.length; i++) {
+                let config = oldConfigs[i];
+                if (config.id === configId) {
+                    newConfig = {
+                        ...config,
+                        id: crypto.randomUUID(),
+                    };
+                    break;
+                }
+            }
+            if (!newConfig) {
+                newConfig = createNewDataOptions(`config ${oldConfigs.length + 1}`);
+            }
+            newConfig.title += '*';
+            return [...oldConfigs, newConfig];
+        });
+    }
+
+    function handleRemoveDataConfig(configId: string) {
+        console.log("handleRemoveDataConfig", configId);
+        setDataConfigs(oldConfigs => {
+            for (let i = 0; i < oldConfigs.length; i++) {
+                let config = oldConfigs[i];
+                if (config.id === configId) {
+
+                    let newConfigs = [...oldConfigs];
+                    newConfigs.splice(i, 1)
+                    return newConfigs;
+                }
+            }
+            return oldConfigs;
+        });
+    }
+
+    function handleCreateDataConfig() {
+        console.log("handleCreateDataConfig");
+        setDataConfigs(oldConfigs => {
+            let newConfig = createNewDataOptions(`config ${oldConfigs.length + 1}`);
+            return [...oldConfigs, newConfig];
         });
     }
 
@@ -273,7 +346,8 @@ export function BinMap() {
     useEffect(() => {
         // setFeatures([]);
         addPresetFeatures();
-    }, [dataConfig.dataResolution, dataConfig.selectedStates]);
+    }, [dataConfigs, selectedDataConfigId]);
+    // }, [dataConfig.dataResolution, dataConfig.selectedStates]);
 
     const sidebarItems = [
         {
@@ -293,9 +367,13 @@ export function BinMap() {
             label: "Data",
             icon: IconTableFilled,
             content: <DataTab
-                items={stateRegions}
-                updateCallback={handleDataControlChange}
-                config={dataConfig}
+                configs={dataConfigs}
+                selectedConfigId={selectedDataConfigId}
+                handleSelectConfig={setSelectedDataConfigId}
+                handleUpdateConfig={handleDataControlChange}
+                handleCopyConfig={handleCopyDataConfig}
+                handleRemoveConfig={handleRemoveDataConfig}
+                handleCreateConfig={handleCreateDataConfig}
             />,
         },
         // {

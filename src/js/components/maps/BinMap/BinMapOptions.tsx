@@ -152,8 +152,6 @@ export function createHeatmapOptions(title?: string, id?: string, zIndex?: numbe
 export function getRangeValue(binLayerConfig: BinLayerOptions, binRange: BinRange, isMax: boolean, modeOverride?: string) {
 
     switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
-        // case 'manual':
-        //     return isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
         case 'custom':
             let normal = isMax ? binLayerConfig.customMax : binLayerConfig.customMin;
             return normal * (binRange.full_max - binRange.full_min) + binRange.full_min;
@@ -165,3 +163,13 @@ export function getRangeValue(binLayerConfig: BinLayerOptions, binRange: BinRang
     }
 }
 
+export function createNewDataOptions(title?: string) {
+    return {
+        id: crypto.randomUUID(),
+        title: title ? title : 'config',
+        dataResolution: '0.5',
+        selectedStates: [],
+        selectedCities: [],
+        expandedItems: [],
+    };
+}

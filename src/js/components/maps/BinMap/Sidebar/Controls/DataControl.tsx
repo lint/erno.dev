@@ -1,23 +1,22 @@
-import React, { useEffect } from 'react';
 import { Button, Checkbox, Fieldset, getTreeExpandedState, Group, MultiSelect, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
-import styles from '../Controls/SidebarControls.module.css';
 import { IconChevronDown } from '@tabler/icons-react';
-import { stateList } from '../../../StateRegions';
-import { DataOptions } from '../../BinMapOptions';
+import React, { useEffect } from 'react';
 import arraysEqual from '../../../../../util/arrays';
+import stateRegions, { stateList } from '../../../StateRegions';
 import topCities from '../../../TopCities';
+import { DataOptions } from '../../BinMapOptions';
+import styles from '../Controls/SidebarControls.module.css';
 
 export interface DataControlProps {
-    items: any[];
-    updateCallback?: any;
     config: DataOptions;
+    updateCallback?: any;
 };
 
-export default function DataControl({ items, updateCallback, config }: DataControlProps) {
+export default function DataControl({ config, updateCallback }: DataControlProps) {
 
-    const tree = useTree({
-        initialExpandedState: getTreeExpandedState(items, getInitialExpandedValues(items, 1, 0)),
-        initialCheckedState: config.selectedStates,
+    const stateRegionTree = useTree({
+        initialExpandedState: getTreeExpandedState(stateRegions, getInitialExpandedValues(stateRegions, 1, 0)),
+        // initialCheckedState: config.selectedStates,
     });
 
     const renderTreeNode = ({
@@ -71,12 +70,16 @@ export default function DataControl({ items, updateCallback, config }: DataContr
     }
 
     useEffect(() => {
-        let newSelectedStates = stateList.filter(value => tree.checkedState.indexOf(value) > -1);
+        let newSelectedStates = stateList.filter(value => stateRegionTree.isNodeChecked(value));
         if (!arraysEqual(newSelectedStates, config.selectedStates)) {
             console.log("new selected states:", newSelectedStates)
             updateCallback('selectedStates', newSelectedStates);
         }
-    }, [tree.checkedState]);
+    }, [stateRegionTree.checkedState]);
+
+    useEffect(() => {
+        stateRegionTree.setCheckedState(config.selectedStates);
+    }, [config.id]);
 
     return (<>
         <Fieldset unstyled classNames={{ root: styles.fieldsetRoot }} legend={<div className={styles.title}>US Aggregated Regions</div>}>
@@ -85,7 +88,7 @@ export default function DataControl({ items, updateCallback, config }: DataContr
                 <div style={{ width: 100 }}>
                     <Select
                         data={[{ value: '0.01', label: '0.01°' }, { value: '0.05', label: '0.05°' }, { value: '0.1', label: '0.1°' }, { value: '0.5', label: '0.5°' }, { value: '1', label: '1°' }]}
-                        defaultValue={config.dataResolution}
+                        value={config.dataResolution}
                         onChange={value => updateCallback('dataResolution', value)}
                         searchable
                     />
@@ -96,12 +99,12 @@ export default function DataControl({ items, updateCallback, config }: DataContr
                     Select Loaded Regions
                 </div>
                 <div className={styles.checkboxTreeActions}>
-                    <Button size="xs" onClick={() => tree.checkAllNodes()}>Select all</Button>
-                    <Button size="xs" onClick={() => tree.uncheckAllNodes()}>Unselect all</Button>
+                    <Button size="xs" onClick={() => stateRegionTree.checkAllNodes()}>Select all</Button>
+                    <Button size="xs" onClick={() => stateRegionTree.uncheckAllNodes()}>Unselect all</Button>
                 </div>
                 <Tree
-                    data={items}
-                    tree={tree}
+                    data={stateRegions}
+                    tree={stateRegionTree}
                     levelOffset={23}
                     expandOnClick={false}
                     renderNode={renderTreeNode}
@@ -119,9 +122,10 @@ export default function DataControl({ items, updateCallback, config }: DataContr
                     data={topCities.map(cityInfo => cityInfo.value)}
                     dropdownOpened
                     pb={200}
-                    maxDropdownHeight={150}
+                    maxDropdownHeight={180}
                     placeholder="Search ..."
-                    // defaultValue={["React"]}
+                    value={config.selectedCities}
+                    onChange={value => updateCallback('selectedCities', value)}
                     searchable
                     comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false } }}
                 />

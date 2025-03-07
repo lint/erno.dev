@@ -5,9 +5,14 @@ import BinBase from 'ol-ext/source/BinBase';
 import FeatureBin from 'ol-ext/source/FeatureBin';
 import GridBin from 'ol-ext/source/GridBin';
 import HexBin from 'ol-ext/source/HexBin';
+import Geocoder from 'ol-geocoder';
+import { defaults as defaultControls } from 'ol/control/defaults.js';
+import FullScreen from 'ol/control/FullScreen.js';
+import ScaleLine from 'ol/control/ScaleLine.js';
 import Feature, { FeatureLike } from 'ol/Feature.js';
 import Geometry from 'ol/geom/Geometry';
 import Point from 'ol/geom/Point.js';
+import HeatmapLayer from 'ol/layer/Heatmap.js';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector.js';
 import VectorImageLayer from 'ol/layer/VectorImage';
@@ -18,19 +23,14 @@ import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import Fill from 'ol/style/Fill';
 import RegularShape from 'ol/style/RegularShape.js';
-import Style from 'ol/style/Style';
-import HeatmapLayer from 'ol/layer/Heatmap.js';
-import React, { useEffect, useRef, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
-import styles from './BinMap.module.css';
 import Stroke from 'ol/style/Stroke';
-import Legend from './ViewControls/Legend';
-import { defaults as defaultControls } from 'ol/control/defaults.js';
-import FullScreen from 'ol/control/FullScreen.js';
-import ScaleLine from 'ol/control/ScaleLine.js';
-import { ExportMapControl, ToggleLegendControl, ToggleScaleLineControl } from './ViewControls/ViewControls';
+import Style from 'ol/style/Style';
+import React, { useEffect, useRef, useState } from 'react';
 import downloadFileFromURL from '../../../util/download';
-import Geocoder from 'ol-geocoder';
+import styles from './BinMap.module.css';
+import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
+import Legend from './ViewControls/Legend';
+import { ExportMapControl, ToggleLegendControl, ToggleScaleLineControl } from './ViewControls/ViewControls';
 import './ViewControls/ViewControls.css';
 
 export interface BinMapViewProps {
@@ -184,7 +184,6 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         binMaxesRef.current[layerId] = { binRanges: ranges };
         rangesCallback({ ...binMaxesRef.current });
     }
-
 
     // determine style for the given bin (f=feature, res=resolutuion)
     function styleForBin(f: FeatureLike, res: number, binLayerConfig: BinLayerOptions) {
@@ -583,7 +582,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         if (searchControl) {
             searchControl.title = 'Search for Location';
         }
-    });
+    }, []);
 
     useEffect(() => {
         console.log("BinMapView useEffect layerConfigs changed");
