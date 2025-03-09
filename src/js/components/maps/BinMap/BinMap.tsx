@@ -88,10 +88,10 @@ export function BinMap() {
         let selectedDataConfig = findSelectedDataConfig();
         if (!selectedDataConfig) return;
 
-        let stateBaseUrl = 'https://lint.github.io/AggregatedAddresses/data/aggregate/{dataset}/us/{state}/data.geojson';
+        let stateBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/aggregate/{dataset}/us/{state}/data.geojson';
         let stateUrls = selectedDataConfig.selectedStates.map(state => stateBaseUrl.replace('{dataset}', selectedDataConfig.dataResolution).replace('{state}', state.toLowerCase()));
 
-        let cityBaseUrl = 'https://lint.github.io/AggregatedAddresses/data/us_50_cities/{state}/{city}.geojson';
+        let cityBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/us_50_cities/{state}/{city}.geojson';
         let cityUrls = [];
 
         for (let city of selectedDataConfig.selectedCities) {
@@ -373,7 +373,12 @@ export function BinMap() {
         //     label: "Charts",
         //     icon: IconChartDotsFilled,
         //     content: <ChartTab features={features} />,
-        // }
+        // },
+        // {
+        //     label: 'Settings',
+        //     icon: IconSettings,
+        //     content: <div></div>
+        // },
     ];
 
     return (
