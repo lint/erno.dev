@@ -34,7 +34,7 @@ import { ExportMapControl, ToggleLegendControl, ToggleScaleLineControl } from '.
 import './ViewControls/ViewControls.css';
 
 export interface BinMapViewProps {
-    features: Feature<Geometry>[];
+    features: { [key: string]: VectorSource };
     regionSources: { [key: string]: VectorSource };
     layerConfigs: BaseLayerOptions[];
     rangesCallback: (binLayerRanges: LayerDisplayInfoSet) => void;
@@ -46,11 +46,10 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
     const mapRef = useRef<Map>();
     const mapContainerRef = useRef(null);
-    const vectorSourceRef = useRef(new Vector()); // stores input features (data points) as vector source
     const minRadius = 1; // minimum radius used for 'point' hex style
     const layersRef = useRef({} as any); // maps id => layer object
     const prevLayerConfigs = useRef(layerConfigs); // stores previous version of layerConfigs for later comparision
-    const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval', 'featureSourceUrl'];
+    const optionsTriggeringReload = ['layerClass', 'binSize', 'binType', 'hexStyle', 'aggFuncName', 'useIQRInterval', 'featureSourceUrl', 'dataTag'];
     const binMaxesRef = useRef<LayerDisplayInfoSet>({});
     const [legendVisible, setLegendVisible] = useState(false);
     const [scaleLineVisible, setScaleLineVisible] = useState(true);
@@ -83,6 +82,13 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         }
         selectedFeatureRef.current = feature;
     };
+
+    function sourceForDataTag(dataTag: string) {
+        if (dataTag in features) {
+            return features[dataTag];
+        }
+        return new Vector();
+    }
 
     // // handle selection of a feature
     // function handleFeatureSelect(event: SelectEvent) {
@@ -250,11 +256,12 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
     // creates a new bin object
     function createBins(binLayerConfig: BinLayerOptions) {
+        let source = sourceForDataTag(binLayerConfig.dataTag);
         let bins: BinBase;
         switch (binLayerConfig.binType) {
             case "grid": {
                 bins = new GridBin({
-                    source: vectorSourceRef.current,
+                    source: source,
                     size: Number(binLayerConfig.binSize),
                     listenChange: false,
                 } as any);
@@ -262,7 +269,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             }
             case "feature": {
                 bins = new FeatureBin({
-                    source: vectorSourceRef.current,
+                    source: source,
                     binSource: regionSources[binLayerConfig.featureSourceUrl],
                     listenChange: false,
                 } as any);
@@ -271,7 +278,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
             case "hex":
             default: {
                 bins = new HexBin({
-                    source: vectorSourceRef.current,
+                    source: source,
                     size: Number(binLayerConfig.binSize),
                     layout: binLayerConfig.hexStyle as any,
                     listenChange: false,
@@ -321,7 +328,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
         console.log("creating new heatmap layer", heatmapLayerConfig);
 
         const heatmapLayer = new HeatmapLayer({
-            source: vectorSourceRef.current,
+            source: sourceForDataTag(heatmapLayerConfig.dataTag),
             blur: heatmapLayerConfig.blur,
             radius: heatmapLayerConfig.radius,
             opacity: Number(heatmapLayerConfig.opacity) / 100,
@@ -415,7 +422,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
                 layer.setGradient(chroma.scale(heatmapLayerConfig.colorScaleName).colors(Math.max(2, heatmapLayerConfig.numColorSteps)));
 
                 if (resetBinLayers) {
-                    findValueBounds(features, heatmapLayerConfig.aggFuncName, heatmapLayerConfig.id);
+                    findValueBounds(sourceForDataTag(heatmapLayerConfig.dataTag).getFeatures(), heatmapLayerConfig.aggFuncName, heatmapLayerConfig.id);
                 }
 
                 // layer.changed();
@@ -622,11 +629,7 @@ export function BinMapView({ features, layerConfigs, regionSources, rangesCallba
 
     useEffect(() => {
         console.log("BinMapView useEffect features changed");
-        console.log('input features length:', features.length);
-
-        vectorSourceRef.current = new Vector({ features: features });
         refreshLayers(true);
-
     }, [features, regionSources]);
 
     return (<>

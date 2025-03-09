@@ -117,7 +117,7 @@ export function createBinOptions(title?: string, id?: string, zIndex?: number, v
         binType: "hex",
         binSize: 0,
         binSizeStep: 1000,
-        featureSourceUrl: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_county_5m.geojson',
+        featureSourceUrl: 'https://raw.githubusercontent.com/lint/CartoBoundaryGeoFiles/master/data/cb_2023_us_all_5m/cb_2023_us_county_5m.geojson',
         aggFuncName: "max",
         layerClass: "VectorImage",
         numColorSteps: 5,

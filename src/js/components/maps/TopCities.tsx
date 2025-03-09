@@ -307,5 +307,10 @@ export function cityDataForValue(value: string) {
     for (let city of topCities) {
         if (city.value === value) return city;
     }
-    return undefined;
+    return {
+        state: '',
+        city: '',
+        value: '',
+        file_parts: 0,
+    };
 }

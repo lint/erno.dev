@@ -3,21 +3,14 @@ import {
     IconTableFilled
 } from "@tabler/icons-react";
 import "ol-ext/dist/ol-ext.css";
-import Feature from "ol/Feature.js";
-import GeoJSON from "ol/format/GeoJSON";
-import Geometry from "ol/geom/Geometry";
 import "ol/ol.css";
-import { Projection } from "ol/proj";
 import { Vector } from "ol/source";
-import { VectorSourceEvent } from "ol/source/Vector";
 import React, { useEffect, useState } from "react";
 import SideBar from "../../layout/sidebar";
 import { stateList } from "../StateRegions";
-import { cityDataForValue } from "../TopCities";
 import styles from "./BinMap.module.css";
 import {
     BaseLayerOptions,
-    BinLayerOptions,
     createBinOptions,
     createHeatmapOptions,
     createNewDataOptions,
@@ -27,11 +20,14 @@ import {
     LayerDisplayInfoSet
 } from "./BinMapOptions";
 import { BinMapView } from "./BinMapView";
+import { dataManager } from "./DataManager";
 import DataTab from "./Sidebar/Tabs/DataTab";
 import LayersTab from "./Sidebar/Tabs/LayersTab";
 
 export function BinMap() {
     // console.log("BinMap function called ...");
+    const [cachedRegionSources, setCachedRegionSources] = useState<{ [key: string]: Vector }>({});
+    const [features, setFeatures] = useState<{ [key: string]: Vector }>({});
 
     const [dataConfigs, setDataConfigs] = useState<DataOptions[]>([
         {
@@ -43,9 +39,6 @@ export function BinMap() {
         }
     ]);
     const [selectedDataConfigId, setSelectedDataConfigId] = useState(dataConfigs.length > 0 ? dataConfigs[0].id : '');
-    const [cachedFeatures, setCachedFeatures] = useState({});
-    const [cachedRegions, setCachedRegions] = useState({});
-    const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
     const defaultLayerConfigs = [
         createTileOptions('Tile Layer', 'tile_test', 1),
         createBinOptions('Bin Layer', 'bin_test', 2),
@@ -71,108 +64,6 @@ export function BinMap() {
         return displaySet;
     });
     const [expandedLayerConfigId, setExpandedLayerConfigId] = useState<string>();
-
-    function findSelectedDataConfig() {
-        for (let i = 0; i < dataConfigs.length; i++) {
-            if (dataConfigs[i].id === selectedDataConfigId) {
-                return dataConfigs[i];
-            }
-        }
-
-        return undefined;
-    }
-
-    // load features from preset data file
-    function addPresetFeatures() {
-
-        let selectedDataConfig = findSelectedDataConfig();
-        if (!selectedDataConfig) return;
-
-        let stateBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/aggregate/{dataset}/us/{state}/data.geojson';
-        let stateUrls = selectedDataConfig.selectedStates.map(state => stateBaseUrl.replace('{dataset}', selectedDataConfig.dataResolution).replace('{state}', state.toLowerCase()));
-
-        let cityBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/us_50_cities/{state}/{city}.geojson';
-        let cityUrls = [];
-
-        for (let city of selectedDataConfig.selectedCities) {
-            let cityData = cityDataForValue(city);
-            if (!cityData) continue;
-
-            for (let i = 1; i <= cityData.file_parts; i++) {
-                cityUrls.push(cityBaseUrl.replace('{state}', cityData.state).replace('{city}', cityData.city));
-            }
-        }
-
-        let urls = [...stateUrls, ...cityUrls];
-        let proj = new Projection({ code: "EPSG:3857" });
-
-        let promises = urls.map((url) =>
-            new Promise((resolve, reject) => {
-                if (url in cachedFeatures) {
-                    // console.log("found cached features for: ", url)
-                    resolve(
-                        cachedFeatures[url as keyof typeof cachedFeatures]
-                    );
-                    return;
-                }
-
-                let binSource = new Vector({
-                    url: url,
-                    format: new GeoJSON(),
-                    // loader: () => {
-                    // }
-                });
-                // console.log("loading features for url:", url)
-                // force source to load
-                binSource.loadFeatures([0, 0, 0, 0], 0, proj);
-
-                binSource.on("featuresloadend", (e: VectorSourceEvent) => {
-                    if (e.features) {
-                        setCachedFeatures((oldFeatures) => {
-                            return { ...oldFeatures, [url]: e.features };
-                        });
-                        resolve(e.features);
-                    } else {
-                        reject(`No features loaded for url: ${url}`);
-                    }
-                });
-            })
-        );
-
-        Promise.all(promises).then((featureSets) => {
-            // setFeatures((oldFeatures) => { return [...oldFeatures, ...featureSets.flat() as Feature[]] });
-            setFeatures(featureSets.flat() as Feature[]);
-        });
-    }
-
-    // download region / feature bin sources from a given url
-    function addRegionSourceUrl(url: string) {
-        console.log("addRegionSourceUrl:", url);
-
-        // TODO: ensure this is done async?
-        let proj = new Projection({ code: "EPSG:3857" });
-
-        if (url in cachedRegions) {
-            // console.log("found cached features for: ", url)
-            return;
-        }
-
-        let binSource = new Vector({
-            url: url,
-            format: new GeoJSON(),
-            // loader: () => {
-            // }
-        });
-        // console.log("loading features for url:", url)
-        // force source to load
-        binSource.loadFeatures([0, 0, 0, 0], 0, proj);
-
-        binSource.on("featuresloadend", () => {
-            setCachedRegions((oldRegions) => {
-                return { ...oldRegions, [url]: binSource };
-            });
-        });
-    }
 
     function handleRangesCallback(displaySet: LayerDisplayInfoSet) {
         for (let id in displaySet) {
@@ -326,19 +217,12 @@ export function BinMap() {
     }
 
     useEffect(() => {
-
-        // check if new feature source url should be downloaded
-        for (let layerConfig of layerConfigs) {
-            if (layerConfig.layerType !== 'bin') continue;
-            addRegionSourceUrl((layerConfig as BinLayerOptions).featureSourceUrl);
-        }
+        dataManager.loadRegions(layerConfigs, setCachedRegionSources);
     }, [layerConfigs])
 
     useEffect(() => {
-        // setFeatures([]);
-        addPresetFeatures();
-    }, [dataConfigs, selectedDataConfigId]);
-    // }, [dataConfig.dataResolution, dataConfig.selectedStates]);
+        dataManager.loadFeatures(dataConfigs, setFeatures);
+    }, [dataConfigs]);
 
     const sidebarItems = [
         {
@@ -387,7 +271,7 @@ export function BinMap() {
             <BinMapView
                 features={features}
                 layerConfigs={layerConfigs}
-                regionSources={cachedRegions}
+                regionSources={cachedRegionSources}
                 rangesCallback={handleRangesCallback}
             />
         </div>
