@@ -1,16 +1,17 @@
-import React from 'react';
-import { createFieldset, createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
 import { NumberInput, Select, Slider } from '@mantine/core';
-import { HeatmapLayerOptions } from '../../../BinMapOptions';
 import chroma from 'chroma-js';
+import React from 'react';
+import { HeatmapLayerOptions } from '../../../BinMapOptions';
+import { createFieldset, createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
 import styles from '../SidebarControls.module.css';
 
 export interface HeatmapLayerFieldsetProps {
     config: HeatmapLayerOptions;
+    dataTags?: any[];
     handleInputChange: (key: string, value: any) => void;
 }
 
-export default function HeatmapLayerFieldset({ config, handleInputChange }: HeatmapLayerFieldsetProps) {
+export default function HeatmapLayerFieldset({ config, dataTags, handleInputChange }: HeatmapLayerFieldsetProps) {
 
     return (<>
         {createFieldset('Heatmap', <>
@@ -38,8 +39,21 @@ export default function HeatmapLayerFieldset({ config, handleInputChange }: Heat
                     label={null}
                 />
             </>)}
-            {createSingleSelectOptionsItem(config, 'aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false, 'segmented', handleInputChange)}
         </>)}
+        {createFieldset('Data', (<>
+            {createOptionsItem('Source', <>
+                <Select
+                    searchable
+                    value={config.dataTag}
+                    error={!(dataTags?.some(dataTag => dataTag.value === config.dataTag))}
+                    data={dataTags}
+                    onChange={value => handleInputChange('dataTag', value)}
+                    comboboxProps={{ position: 'top' }}
+                // allowDeselect={false}
+                />
+            </>)}
+            {createSingleSelectOptionsItem(config, 'aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false, 'segmented', handleInputChange)}
+        </>))}
         {createFieldset('Colors', (<>
             {createOptionsItem('Color Scale',
                 <Select

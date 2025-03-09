@@ -1,8 +1,8 @@
-import React from 'react';
-import { capitalizeValues, createFieldset, createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
 import { ColorInput, Divider, NumberInput, RangeSlider, SegmentedControl, Select } from '@mantine/core';
-import { BinLayerOptions, getBackgroundColor } from '../../../BinMapOptions';
 import chroma from 'chroma-js';
+import React from 'react';
+import { BinLayerOptions, getBackgroundColor } from '../../../BinMapOptions';
+import { capitalizeValues, createFieldset, createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
 import styles from '../SidebarControls.module.css';
 
 export interface BinLayerFieldsetProps {
@@ -12,11 +12,12 @@ export interface BinLayerFieldsetProps {
         max: number;
         values: number[];
     };
+    dataTags?: any[];
     handleInputChange: (key: string, value: any) => void;
     handleIntervalSliderChange: (old: any) => void;
 }
 
-export default function BinLayerFieldset({ config, handleInputChange, intervalSliderValues, handleIntervalSliderChange }: BinLayerFieldsetProps) {
+export default function BinLayerFieldset({ config, dataTags, handleInputChange, intervalSliderValues, handleIntervalSliderChange }: BinLayerFieldsetProps) {
 
     const featureBinSourceUrls = [
         { label: 'States (2.2mb)', value: 'https://lint.github.io/CartoBoundaryGeoFiles/data/cb_2023_us_all_5m/cb_2023_us_state_5m.geojson' },
@@ -82,6 +83,17 @@ export default function BinLayerFieldset({ config, handleInputChange, intervalSl
             {createSingleSelectOptionsItem(config, 'layerClass', 'Layer Class', ['VectorImage', 'Vector'], false, false, 'segmented', handleInputChange)}
         </>))}
         {createFieldset('Data', (<>
+            {createOptionsItem('Source', <>
+                <Select
+                    searchable
+                    value={config.dataTag}
+                    error={!(dataTags?.some(dataTag => dataTag.value === config.dataTag))}
+                    data={dataTags}
+                    onChange={value => handleInputChange('dataTag', value)}
+                    comboboxProps={{ position: 'top' }}
+                // allowDeselect={false}
+                />
+            </>)}
             {createSingleSelectOptionsItem(config, 'aggFuncName', 'Agg Func', ['max', 'min', 'sum', 'len', 'avg'], true, false, 'segmented', handleInputChange)}
             {createSingleSelectOptionsItem(config, 'intervalMode', 'Interval Mode', ['full', 'IQR', 'custom'], true, false, 'segmented', handleInputChange)}
             {createOptionsItem('Interval', <>
@@ -101,7 +113,7 @@ export default function BinLayerFieldset({ config, handleInputChange, intervalSl
                         value={intervalSliderValues.min}
                         onChange={value => {
                             if (Number(value) < intervalSliderValues.max) {
-                                handleInputChange('customMinBound', value)
+                                handleInputChange('customMinBound', value);
                             }
                         }}
                         allowDecimal={false}

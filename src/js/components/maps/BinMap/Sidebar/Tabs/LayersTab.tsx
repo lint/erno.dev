@@ -11,13 +11,14 @@ export interface LayersTabProps {
     layerDisplayInfoSet: LayerDisplayInfoSet;
     newLayerConfig: BaseLayerOptions;
     expandedLayerConfigId: string | undefined;
+    dataTags: any[];
     handleLayerControlChange?: (id: string, key: string, value: any) => void;
     handleDeleteLayer?: (id: string) => void;
     handleCreateLayer?: () => void;
     handleSetExpandedLayerConfigId?: () => void;
 };
 
-export default function LayersTab({ layerConfigs, expandedLayerConfigId, layerDisplayInfoSet, newLayerConfig, handleLayerControlChange, handleDeleteLayer, handleCreateLayer, handleSetExpandedLayerConfigId }: LayersTabProps) {
+export default function LayersTab({ layerConfigs, expandedLayerConfigId, layerDisplayInfoSet, newLayerConfig, dataTags, handleLayerControlChange, handleDeleteLayer, handleCreateLayer, handleSetExpandedLayerConfigId }: LayersTabProps) {
 
     // get the icon for a given layer type
     function iconForLayerType(layerType: string) {
@@ -65,6 +66,7 @@ export default function LayersTab({ layerConfigs, expandedLayerConfigId, layerDi
                             config={layerConfig}
                             updateCallback={handleLayerControlChange}
                             binRange={layerDisplayInfoSet[layerConfig.id].binRanges}
+                            dataTags={dataTags}
                             key={layerConfig.id}
                             deleteLayerCallback={handleDeleteLayer}
                         />

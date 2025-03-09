@@ -1,20 +1,21 @@
 
 import React, { useEffect, useState } from 'react';
 import { BaseLayerOptions, BinLayerOptions, getRangeValue, HeatmapLayerOptions, TileLayerOptions } from '../../BinMapOptions';
-import styles from './SidebarControls.module.css';
 import BinLayerFieldset from './LayerFieldsets/BinLayerFieldset';
+import GeneralLayerFieldset from './LayerFieldsets/GeneralLayerFieldset';
 import HeatmapLayerFieldset from './LayerFieldsets/HeatmapLayerFieldset';
 import TileLayerFieldset from './LayerFieldsets/TileLayerFieldset';
-import GeneralLayerFieldset from './LayerFieldsets/GeneralLayerFieldset';
+import styles from './SidebarControls.module.css';
 
 export interface LayerControlProps {
     config: BaseLayerOptions;
     binRange?: any;
     updateCallback?: any;
     deleteLayerCallback: any;
+    dataTags?: any[];
 };
 
-export default function LayerControl({ config, binRange, updateCallback, deleteLayerCallback }: LayerControlProps) {
+export default function LayerControl({ config, binRange, updateCallback, deleteLayerCallback, dataTags }: LayerControlProps) {
 
     const binConfig = config as BinLayerOptions;
     const tileConfig = config as TileLayerOptions;
@@ -54,6 +55,7 @@ export default function LayerControl({ config, binRange, updateCallback, deleteL
                 return <HeatmapLayerFieldset
                     config={heatmapConfig}
                     handleInputChange={handleInputChange}
+                    dataTags={dataTags}
                 />;
             case 'bin':
                 return <BinLayerFieldset
@@ -61,6 +63,7 @@ export default function LayerControl({ config, binRange, updateCallback, deleteL
                     intervalSliderValues={intervalSliderValues}
                     handleInputChange={handleInputChange}
                     handleIntervalSliderChange={setIntervalSliderValues}
+                    dataTags={dataTags}
                 />;
         }
     }

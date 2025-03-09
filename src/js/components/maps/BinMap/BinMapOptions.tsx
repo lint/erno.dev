@@ -32,15 +32,19 @@ export interface TileLayerOptions extends BaseLayerOptions {
     overlaySourceUrl: string;
 };
 
-export interface HeatmapLayerOptions extends BaseLayerOptions {
-    blur: number;
-    radius: number;
+export interface SourceLayerOptions extends BaseLayerOptions {
     aggFuncName: string;
     numColorSteps: number;
     colorScaleName: string;
+    dataTag: string;
 };
 
-export interface BinLayerOptions extends BaseLayerOptions {
+export interface HeatmapLayerOptions extends SourceLayerOptions {
+    blur: number;
+    radius: number;
+};
+
+export interface BinLayerOptions extends SourceLayerOptions {
     hexStyle: string;
     colorMode: string;
     binType: string;
@@ -48,9 +52,6 @@ export interface BinLayerOptions extends BaseLayerOptions {
     binSize: number;
     binSizeStep: number;
     featureSourceUrl: string;
-    aggFuncName: string;
-    numColorSteps: number;
-    colorScaleName: string;
     customMin: number;
     customMax: number;
     customMinBound: number;
@@ -129,6 +130,7 @@ export function createBinOptions(title?: string, id?: string, zIndex?: number, v
         intervalMode: "full",
         backgroundColorMode: "none",
         customBackgroundColor: chroma.scale("Viridis")(0).darken().hex(),
+        dataTag: 'default',
     } as BinLayerOptions;
 }
 
@@ -145,6 +147,7 @@ export function createHeatmapOptions(title?: string, id?: string, zIndex?: numbe
         aggFuncName: 'max',
         numColorSteps: 5,
         colorScaleName: "Viridis",
+        dataTag: 'default',
     } as HeatmapLayerOptions;
 }
 

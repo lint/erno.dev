@@ -353,6 +353,7 @@ export function BinMap() {
                 handleCreateLayer={handleAddNewLayer}
                 handleSetExpandedLayerConfigId={setExpandedLayerConfigId as any}
                 expandedLayerConfigId={expandedLayerConfigId}
+                dataTags={dataConfigs.map(config => ({ label: config.title, value: config.id })).sort()}
             />,
         },
         {
