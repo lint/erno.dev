@@ -7,7 +7,6 @@ import "ol/ol.css";
 import { Vector } from "ol/source";
 import React, { useEffect, useState } from "react";
 import SideBar from "../../layout/sidebar";
-import { stateList } from "../StateRegions";
 import styles from "./BinMap.module.css";
 import {
     BaseLayerOptions,
@@ -20,6 +19,7 @@ import {
     LayerDisplayInfoSet
 } from "./BinMapOptions";
 import { BinMapView } from "./BinMapView";
+import { stateList } from "./Data/StateRegions";
 import { dataManager } from "./DataManager";
 import DataTab from "./Sidebar/Tabs/DataTab";
 import LayersTab from "./Sidebar/Tabs/LayersTab";
@@ -30,13 +30,7 @@ export function BinMap() {
     const [features, setFeatures] = useState<{ [key: string]: Vector }>({});
 
     const [dataConfigs, setDataConfigs] = useState<DataOptions[]>([
-        {
-            id: 'default',
-            title: 'default',
-            dataResolution: '0.5',
-            selectedStates: stateList,
-            selectedCities: []
-        }
+        createNewDataOptions('default', 'default', [...stateList])
     ]);
     const [selectedDataConfigId, setSelectedDataConfigId] = useState(dataConfigs.length > 0 ? dataConfigs[0].id : '');
     const defaultLayerConfigs = [
@@ -106,10 +100,26 @@ export function BinMap() {
             for (let i = 0; i < oldConfigs.length; i++) {
                 let config = oldConfigs[i];
                 if (config.id === selectedDataConfigId) {
-                    let newConfig = {
-                        ...config,
-                        [key]: value,
-                    };
+                    let newConfig;
+                    if (key.indexOf('.') === -1) {
+                        newConfig = {
+                            ...config,
+                            [key]: value,
+                        };
+                    } else {
+                        let keyParts = key.split('.');
+                        let mainKey = keyParts[0] as keyof typeof config;
+                        let newSubConfig = config[keyParts[0] as keyof typeof config];
+                        let subKey = keyParts[1] as keyof typeof newSubConfig;
+                        newSubConfig = {
+                            ...newSubConfig as any,
+                            [subKey]: value,
+                        };
+                        newConfig = {
+                            ...config,
+                            [mainKey]: newSubConfig
+                        }
+                    }
 
                     let newConfigs = [...oldConfigs];
                     newConfigs[i] = newConfig;

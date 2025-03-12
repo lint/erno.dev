@@ -11,10 +11,20 @@ export interface BinValues {
 export interface DataOptions {
     id: string;
     title: string;
-    dataResolution: string;
-    selectedStates: string[];
-    selectedCities: string[];
-    expandedItems?: string[];
+    address: {
+        dataResolution: string;
+        selectedStates: string[];
+        selectedCities: string[];
+        expandedItems?: string[];
+    };
+    wca: {
+        enabled: boolean;
+        selectedEvents: string[];
+        includeCancelled: string;
+        featureValueMode: string;
+        filteredEvents: string[];
+        eventFilterMethod: string;
+    };
 };
 
 export interface BaseLayerOptions {
@@ -165,13 +175,23 @@ export function getRangeValue(binLayerConfig: BinLayerOptions, binRange: BinRang
     }
 }
 
-export function createNewDataOptions(title?: string) {
+export function createNewDataOptions(title?: string, id?: string, selectedStates?: string[]): DataOptions {
     return {
-        id: crypto.randomUUID(),
+        id: id ? id : crypto.randomUUID(),
         title: title ? title : 'config',
-        dataResolution: '0.5',
-        selectedStates: [],
-        selectedCities: [],
-        expandedItems: [],
+        address: {
+            dataResolution: '0.5',
+            selectedStates: selectedStates ? selectedStates : [],
+            selectedCities: [],
+            expandedItems: [],
+        },
+        wca: {
+            enabled: false,
+            selectedEvents: [],
+            includeCancelled: 'both',
+            featureValueMode: 'none',
+            filteredEvents: [],
+            eventFilterMethod: 'AND'
+        }
     };
 }

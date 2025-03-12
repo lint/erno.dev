@@ -1,84 +1,33 @@
-import { Button, Checkbox, Fieldset, getTreeExpandedState, Group, MultiSelect, RenderTreeNodePayload, Select, Tree, useTree } from '@mantine/core';
-import { IconChevronDown } from '@tabler/icons-react';
+import { Button, Fieldset, getTreeExpandedState, MultiSelect, Select, Tree, useTree } from '@mantine/core';
 import React, { useEffect } from 'react';
-import arraysEqual from '../../../../../util/arrays';
-import stateRegions, { stateList } from '../../../StateRegions';
-import topCities from '../../../TopCities';
-import { DataOptions } from '../../BinMapOptions';
-import styles from '../Controls/SidebarControls.module.css';
+import arraysEqual from '../../../../../../util/arrays';
+import { DataOptions } from '../../../BinMapOptions';
+import stateRegions, { stateList } from '../../../Data/StateRegions';
+import topCities from '../../../Data/TopCities';
+import styles from '../SidebarControls.module.css';
+import { getInitialExpandedValues, renderTreeNode } from '../tree';
 
-export interface DataControlProps {
+export interface AddressFieldsetProps {
     config: DataOptions;
     updateCallback?: any;
 };
 
-export default function DataControl({ config, updateCallback }: DataControlProps) {
+export default function AddressFieldset({ config, updateCallback }: AddressFieldsetProps) {
 
     const stateRegionTree = useTree({
         initialExpandedState: getTreeExpandedState(stateRegions, getInitialExpandedValues(stateRegions, 1, 0)),
-        // initialCheckedState: config.selectedStates,
     });
-
-    const renderTreeNode = ({
-        node,
-        expanded,
-        hasChildren,
-        elementProps,
-        tree,
-    }: RenderTreeNodePayload) => {
-        const checked = tree.isNodeChecked(node.value);
-        const indeterminate = tree.isNodeIndeterminate(node.value);
-
-        return (
-            <Group gap="xs" {...elementProps} classNames={{ root: styles.checkboxSection }}>
-                <Checkbox.Indicator
-                    checked={checked}
-                    indeterminate={indeterminate}
-                    onClick={() => {
-                        !checked ? tree.checkNode(node.value) : tree.uncheckNode(node.value);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                />
-
-                <Group gap={5} onClick={() => tree.toggleExpanded(node.value)} classNames={{ root: styles.checkboxLabelContainer }}>
-                    <span className={styles.checkboxLabel}>{node.label}</span>
-
-                    {hasChildren && (
-                        <IconChevronDown
-                            size={14}
-                            style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                        />
-                    )}
-                </Group>
-            </Group>
-        );
-    };
-
-    function getInitialExpandedValues(data: any[], levelMax: number, level: number) {
-
-        let result: any[] = [];
-
-        if (level >= levelMax || !data) {
-            return [];
-        }
-
-        for (let item of data) {
-            result = [item.value, ...result, ...getInitialExpandedValues(item.children, levelMax, level + 1)];
-        }
-
-        return result;
-    }
 
     useEffect(() => {
         let newSelectedStates = stateList.filter(value => stateRegionTree.isNodeChecked(value));
-        if (!arraysEqual(newSelectedStates, config.selectedStates)) {
+        if (!arraysEqual(newSelectedStates, config.address.selectedStates)) {
             console.log("new selected states:", newSelectedStates)
             updateCallback('selectedStates', newSelectedStates);
         }
     }, [stateRegionTree.checkedState]);
 
     useEffect(() => {
-        stateRegionTree.setCheckedState(config.selectedStates);
+        stateRegionTree.setCheckedState(config.address.selectedStates);
     }, [config.id]);
 
     return (<>
@@ -88,7 +37,7 @@ export default function DataControl({ config, updateCallback }: DataControlProps
                 <div style={{ width: 100 }}>
                     <Select
                         data={[{ value: '0.01', label: '0.01°' }, { value: '0.05', label: '0.05°' }, { value: '0.1', label: '0.1°' }, { value: '0.5', label: '0.5°' }, { value: '1', label: '1°' }]}
-                        value={config.dataResolution}
+                        value={config.address.dataResolution}
                         onChange={value => updateCallback('dataResolution', value)}
                         searchable
                     />
@@ -124,7 +73,7 @@ export default function DataControl({ config, updateCallback }: DataControlProps
                     pb={200}
                     maxDropdownHeight={180}
                     placeholder="Search ..."
-                    value={config.selectedCities}
+                    value={config.address.selectedCities}
                     onChange={value => updateCallback('selectedCities', value)}
                     searchable
                     comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false } }}

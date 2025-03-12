@@ -1,7 +1,7 @@
 import { Chip, Fieldset, Group, SegmentedControl } from "@mantine/core";
-import styles from './SidebarControls.module.css';
 import React, { ReactNode } from "react";
-import { BaseLayerOptions } from "../../BinMapOptions";
+import { BaseLayerOptions, DataOptions } from "../../BinMapOptions";
+import styles from './SidebarControls.module.css';
 
 // creates capatalized CombodivData for list of values
 export function capitalizeValues(values: string[]) {
@@ -19,13 +19,17 @@ export function chipsForValues(values: string[], capitalize: boolean, disabled: 
 }
 
 // create chips options item
-export function createSingleSelectOptionsItem(config: BaseLayerOptions, configKey: string, label: string, values: string[], capitalize: boolean, disabled: boolean, style: string, handleInputChange: (key: string, value: any) => void) {
+export function createSingleSelectOptionsItem(config: BaseLayerOptions | DataOptions, configKey: string, label: string, values: string[], capitalize: boolean, disabled: boolean, style: string, handleInputChange: (key: string, value: any) => void) {
 
+    let keyParts = configKey.split('.');
+    let mainKey = keyParts[0] as keyof typeof config;
+    let subKey = keyParts[1];
+    let value = keyParts.length === 1 ? config[configKey as keyof typeof config] : config[mainKey][subKey as any];
     let item;
     switch (style) {
         case 'chip':
             item = (
-                <Chip.Group multiple={false} value={`${config[configKey as keyof typeof config]}`} onChange={value => handleInputChange(configKey, value)} >
+                <Chip.Group multiple={false} value={`${value}`} onChange={value => handleInputChange(configKey, value)} >
                     <Group gap="5px">{chipsForValues(values, capitalize, disabled)}</Group>
                 </Chip.Group>
             );
@@ -35,7 +39,7 @@ export function createSingleSelectOptionsItem(config: BaseLayerOptions, configKe
             item = (
                 <SegmentedControl
                     data={capitalize ? capitalizeValues(values) : values}
-                    value={`${config[configKey as keyof typeof config]}`}
+                    value={`${value}`}
                     onChange={value => handleInputChange(configKey, value)}
                     color={disabled ? "gray" : "blue"}
                     disabled={disabled}

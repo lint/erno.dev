@@ -1,8 +1,9 @@
 import { Accordion, ActionIcon, Divider, InputBase, Pill, TextInput } from '@mantine/core';
-import { IconCopy, IconHome, IconPlus } from '@tabler/icons-react';
+import { IconCopy, IconCube, IconHome, IconPlus } from '@tabler/icons-react';
 import React from 'react';
 import { createNewDataOptions, DataOptions } from '../../BinMapOptions';
-import DataControl from '../Controls/DataControl';
+import AddressFieldset from '../Controls/DataFieldsets/AddressFieldset';
+import WcaFieldset from '../Controls/DataFieldsets/WcaFieldset';
 import styles from '../Controls/SidebarControls.module.css';
 
 export interface DataTabProps {
@@ -54,10 +55,10 @@ export default function DataTab({ configs, selectedConfigId, handleSelectConfig,
             <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap', padding: 5 }}>
                 <TextInput
                     placeholder='New Data Config ...'
-                    value={selectedConfig.title}
                     styles={{ input: { cursor: 'pointer', width: '100%' } }}
                     inputSize='10'
                     onChange={e => handleUpdateConfig('title', e.currentTarget.value)}
+                    value={selectedConfig.title}
                 />
                 <ActionIcon
                     onClick={() => { handleCopyConfig(selectedConfig.id) }}
@@ -76,7 +77,7 @@ export default function DataTab({ configs, selectedConfigId, handleSelectConfig,
         <Divider color='var(--color-highlight)' />
         <Accordion
             multiple
-            defaultValue={['addresses']}
+            // defaultValue={['addresses']}
             className={styles.layerConfigs}
             classNames={{
                 label: styles.label,
@@ -93,7 +94,21 @@ export default function DataTab({ configs, selectedConfigId, handleSelectConfig,
                     <div className={styles.title}>Address Numbers</div>
                 </Accordion.Control>
                 <Accordion.Panel>
-                    <DataControl
+                    <AddressFieldset
+                        updateCallback={handleUpdateConfig}
+                        config={selectedConfig}
+                    />
+                </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value='wca'>
+                <Accordion.Control
+                    classNames={{ icon: styles.title }}
+                    icon={<IconCube />}
+                >
+                    <div className={styles.title}>WCA Competitions</div>
+                </Accordion.Control>
+                <Accordion.Panel>
+                    <WcaFieldset
                         updateCallback={handleUpdateConfig}
                         config={selectedConfig}
                     />

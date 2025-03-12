@@ -2,8 +2,8 @@ import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
 import Projection from "ol/proj/Projection";
 import Vector, { VectorSourceEvent } from "ol/source/Vector";
-import { cityDataForValue } from "../TopCities";
 import { BaseLayerOptions, BinLayerOptions, DataOptions } from "./BinMapOptions";
+import { cityDataForValue } from "./Data/TopCities";
 
 const stateBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/aggregate/{dataset}/us/{state}/data.geojson';
 const cityBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/us_50_cities/{state}/{city}.geojson';
@@ -14,19 +14,17 @@ export default class DataManager {
     cachedRegionSources: { [key: string]: Vector } = {};
     features: { [key: string]: Vector } = {};
 
-    constructor() {
-
-    }
+    constructor() { }
 
     // format selected states into urls
     getStateUrls(dataConfig: DataOptions) {
-        return dataConfig.selectedStates.map(state => stateBaseUrl.replace('{dataset}', dataConfig.dataResolution).replace('{state}', state.toLowerCase()));
+        return dataConfig.address.selectedStates.map(state => stateBaseUrl.replace('{dataset}', dataConfig.address.dataResolution).replace('{state}', state.toLowerCase()));
     }
 
     // format selected cities into urls
     getCityUrls(dataConfig: DataOptions) {
         let cityUrls = [];
-        for (let city of dataConfig.selectedCities) {
+        for (let city of dataConfig.address.selectedCities) {
             let cityData = cityDataForValue(city);
             if (!cityData) continue;
 
