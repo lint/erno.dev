@@ -1,17 +1,17 @@
 import { Divider, Text } from '@mantine/core';
 import chroma from 'chroma-js';
 import React from 'react';
-import styles from '../BinMap.module.css';
-import { BaseLayerOptions, BinLayerOptions, getRangeValue, LayerDisplayInfoSet } from '../BinMapOptions';
+import styles from '../Map.module.css';
+import { BaseLayerOptions, BinLayerOptions, getRangeValue, LayerDisplayInfoSet } from '../MapOptions';
 
-export interface BinMapLegendProps {
+export interface LegendProps {
     layerConfigs: BaseLayerOptions[];
     layerDisplayInfo: LayerDisplayInfoSet;
     visible: boolean;
     scaleVisible: boolean;
 };
 
-export default function Legend({ layerConfigs, layerDisplayInfo, visible, scaleVisible }: BinMapLegendProps) {
+export default function Legend({ layerConfigs, layerDisplayInfo, visible, scaleVisible }: LegendProps) {
 
     const legend = (
         <div className={styles.legend} style={{ bottom: scaleVisible ? 40 : 'var(--mantine-spacing-xs' }}>

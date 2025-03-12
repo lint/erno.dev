@@ -1,9 +1,9 @@
 import { Button, Fieldset, getTreeExpandedState, MultiSelect, Select, Tree, useTree } from '@mantine/core';
 import React, { useEffect } from 'react';
 import arraysEqual from '../../../../../util/arrays';
-import { DataOptions } from '../../../BinMapOptions';
 import stateRegions, { stateList } from '../../../Data/StateRegions';
 import topCities from '../../../Data/TopCities';
+import { DataOptions } from '../../../MapOptions';
 import styles from '../SidebarControls.module.css';
 import { getInitialExpandedValues, renderTreeNode } from '../tree';
 

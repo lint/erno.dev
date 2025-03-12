@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { BaseLayerOptions, BinLayerOptions, getRangeValue, HeatmapLayerOptions, TileLayerOptions } from '../../BinMapOptions';
+import { BaseLayerOptions, BinLayerOptions, getRangeValue, HeatmapLayerOptions, TileLayerOptions } from '../../MapOptions';
 import BinLayerFieldset from './LayerFieldsets/BinLayerFieldset';
 import GeneralLayerFieldset from './LayerFieldsets/GeneralLayerFieldset';
 import HeatmapLayerFieldset from './LayerFieldsets/HeatmapLayerFieldset';

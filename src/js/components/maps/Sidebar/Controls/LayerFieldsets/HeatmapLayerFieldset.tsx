@@ -1,7 +1,7 @@
 import { NumberInput, Select, Slider } from '@mantine/core';
 import chroma from 'chroma-js';
 import React from 'react';
-import { HeatmapLayerOptions } from '../../../BinMapOptions';
+import { HeatmapLayerOptions } from '../../../MapOptions';
 import { createFieldset, createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
 import styles from '../SidebarControls.module.css';
 

@@ -1,7 +1,7 @@
 import { Accordion, ActionIcon, Divider, InputBase, Pill, TextInput } from '@mantine/core';
 import { IconCopy, IconCube, IconHome, IconPlus } from '@tabler/icons-react';
 import React from 'react';
-import { createNewDataOptions, DataOptions } from '../../BinMapOptions';
+import { createNewDataOptions, DataOptions } from '../../MapOptions';
 import AddressFieldset from '../Controls/DataFieldsets/AddressFieldset';
 import WcaFieldset from '../Controls/DataFieldsets/WcaFieldset';
 import styles from '../Controls/SidebarControls.module.css';

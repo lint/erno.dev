@@ -1,7 +1,7 @@
 import { Checkbox, Fieldset, MultiSelect, Select } from '@mantine/core';
 import React from 'react';
-import { DataOptions } from '../../../BinMapOptions';
 import { eventsSelectData } from '../../../Data/WCA';
+import { DataOptions } from '../../../MapOptions';
 import { createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
 import styles from '../SidebarControls.module.css';
 

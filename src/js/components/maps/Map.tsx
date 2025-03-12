@@ -7,7 +7,9 @@ import "ol/ol.css";
 import { Vector } from "ol/source";
 import React, { useEffect, useState } from "react";
 import SideBar from "../layout/sidebar";
-import styles from "./BinMap.module.css";
+import { stateList } from "./Data/StateRegions";
+import { dataManager } from "./DataManager";
+import styles from "./Map.module.css";
 import {
     BaseLayerOptions,
     createBinOptions,
@@ -17,14 +19,12 @@ import {
     DataOptions,
     LayerDisplayInfo,
     LayerDisplayInfoSet
-} from "./BinMapOptions";
-import { BinMapView } from "./BinMapView";
-import { stateList } from "./Data/StateRegions";
-import { dataManager } from "./DataManager";
+} from "./MapOptions";
+import { MapView } from "./MapView";
 import DataTab from "./Sidebar/Tabs/DataTab";
 import LayersTab from "./Sidebar/Tabs/LayersTab";
 
-export function BinMap() {
+export function Map() {
     // console.log("BinMap function called ...");
     const [cachedRegionSources, setCachedRegionSources] = useState<{ [key: string]: Vector }>({});
     const [features, setFeatures] = useState<{ [key: string]: Vector }>({});
@@ -279,7 +279,7 @@ export function BinMap() {
     return (
         <div className={styles.page}>
             <SideBar items={sidebarItems} activeItem="" cookieKey="binmap" />
-            <BinMapView
+            <MapView
                 features={features}
                 layerConfigs={layerConfigs}
                 regionSources={cachedRegionSources}

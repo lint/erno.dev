@@ -1,6 +1,6 @@
 import { SegmentedControl, Select } from '@mantine/core';
 import React from 'react';
-import { TileLayerOptions } from '../../../BinMapOptions';
+import { TileLayerOptions } from '../../../MapOptions';
 import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
 import styles from '../SidebarControls.module.css';
 

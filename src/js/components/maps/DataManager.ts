@@ -3,8 +3,8 @@ import GeoJSON from "ol/format/GeoJSON";
 import { Point } from "ol/geom";
 import Projection from "ol/proj/Projection";
 import Vector, { VectorSourceEvent } from "ol/source/Vector";
-import { BaseLayerOptions, BinLayerOptions, DataOptions } from "./BinMapOptions";
 import { cityDataForValue } from "./Data/TopCities";
+import { BaseLayerOptions, BinLayerOptions, DataOptions } from "./MapOptions";
 
 const stateBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/aggregate/{dataset}/us/{state}/data.geojson';
 const cityBaseUrl = 'https://raw.githubusercontent.com/lint/AggregatedAddresses/master/data/us_50_cities/{state}/{city}.geojson';

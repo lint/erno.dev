@@ -27,20 +27,20 @@ import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import React, { useEffect, useRef, useState } from 'react';
 import downloadFileFromURL from '../../util/download';
-import styles from './BinMap.module.css';
-import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
+import styles from './Map.module.css';
+import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './MapOptions';
 import Legend from './ViewControls/Legend';
 import { ExportMapControl, ToggleLegendControl, ToggleScaleLineControl } from './ViewControls/ViewControls';
 import './ViewControls/ViewControls.css';
 
-export interface BinMapViewProps {
+export interface MapViewProps {
     features: { [key: string]: VectorSource };
     regionSources: { [key: string]: VectorSource };
     layerConfigs: BaseLayerOptions[];
     rangesCallback: (binLayerRanges: LayerDisplayInfoSet) => void;
 };
 
-export function BinMapView({ features, layerConfigs, regionSources, rangesCallback }: BinMapViewProps) {
+export function MapView({ features, layerConfigs, regionSources, rangesCallback }: MapViewProps) {
 
     // console.log("BinMapView called ...");
 

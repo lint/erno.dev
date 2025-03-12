@@ -1,7 +1,7 @@
 import { ColorInput, Divider, NumberInput, RangeSlider, SegmentedControl, Select } from '@mantine/core';
 import chroma from 'chroma-js';
 import React from 'react';
-import { BinLayerOptions, getBackgroundColor } from '../../../BinMapOptions';
+import { BinLayerOptions, getBackgroundColor } from '../../../MapOptions';
 import { capitalizeValues, createFieldset, createOptionsItem, createSingleSelectOptionsItem } from '../SidebarControls';
 import styles from '../SidebarControls.module.css';
 

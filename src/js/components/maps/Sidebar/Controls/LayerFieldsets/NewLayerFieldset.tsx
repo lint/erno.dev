@@ -1,6 +1,6 @@
 import { Button, Input, SegmentedControl } from '@mantine/core';
 import React from 'react';
-import { BaseLayerOptions } from '../../../BinMapOptions';
+import { BaseLayerOptions } from '../../../MapOptions';
 import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
 
 export interface NewLayerFieldsetProps {

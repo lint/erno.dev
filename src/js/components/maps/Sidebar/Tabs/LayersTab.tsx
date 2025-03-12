@@ -1,8 +1,8 @@
 import { Accordion } from '@mantine/core';
 import { IconFlame, IconHexagons, IconMap, IconPlus } from '@tabler/icons-react';
 import React from 'react';
-import styles from '../../BinMap.module.css';
-import { BaseLayerOptions, LayerDisplayInfoSet } from '../../BinMapOptions';
+import styles from '../../Map.module.css';
+import { BaseLayerOptions, LayerDisplayInfoSet } from '../../MapOptions';
 import LayerControl from '../Controls/LayerControl';
 import NewLayerFieldset from '../Controls/LayerFieldsets/NewLayerFieldset';
 

@@ -1,6 +1,6 @@
 import { Chip, Fieldset, Group, SegmentedControl } from "@mantine/core";
 import React, { ReactNode } from "react";
-import { BaseLayerOptions, DataOptions } from "../../BinMapOptions";
+import { BaseLayerOptions, DataOptions } from "../../MapOptions";
 import styles from './SidebarControls.module.css';
 
 // creates capatalized CombodivData for list of values
