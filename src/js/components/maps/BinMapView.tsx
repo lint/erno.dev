@@ -26,7 +26,7 @@ import RegularShape from 'ol/style/RegularShape.js';
 import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import React, { useEffect, useRef, useState } from 'react';
-import downloadFileFromURL from '../../../util/download';
+import downloadFileFromURL from '../../util/download';
 import styles from './BinMap.module.css';
 import { BaseLayerOptions, BinLayerOptions, BinRange, getBackgroundColor, getRangeValue, HeatmapLayerOptions, LayerDisplayInfoSet, TileLayerOptions } from './BinMapOptions';
 import Legend from './ViewControls/Legend';

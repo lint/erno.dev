@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BinMap } from '../../components/maps/BinMap/BinMap';
+import { BinMap } from '../../components/maps/BinMap';
 import BasePage from '../base_page';
 // import { useParams } from 'react-router-dom';
 // import ErrorPage from '../error/error_page';

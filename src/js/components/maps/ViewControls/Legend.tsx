@@ -1,9 +1,8 @@
+import { Divider, Text } from '@mantine/core';
+import chroma from 'chroma-js';
 import React from 'react';
 import styles from '../BinMap.module.css';
-import { Divider } from '@mantine/core';
 import { BaseLayerOptions, BinLayerOptions, getRangeValue, LayerDisplayInfoSet } from '../BinMapOptions';
-import chroma from 'chroma-js';
-import { Text } from '@mantine/core';
 
 export interface BinMapLegendProps {
     layerConfigs: BaseLayerOptions[];

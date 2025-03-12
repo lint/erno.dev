@@ -1,6 +1,6 @@
 import { Button, Fieldset, getTreeExpandedState, MultiSelect, Select, Tree, useTree } from '@mantine/core';
 import React, { useEffect } from 'react';
-import arraysEqual from '../../../../../../util/arrays';
+import arraysEqual from '../../../../../util/arrays';
 import { DataOptions } from '../../../BinMapOptions';
 import stateRegions, { stateList } from '../../../Data/StateRegions';
 import topCities from '../../../Data/TopCities';

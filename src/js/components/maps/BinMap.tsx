@@ -6,7 +6,7 @@ import "ol-ext/dist/ol-ext.css";
 import "ol/ol.css";
 import { Vector } from "ol/source";
 import React, { useEffect, useState } from "react";
-import SideBar from "../../layout/sidebar";
+import SideBar from "../layout/sidebar";
 import styles from "./BinMap.module.css";
 import {
     BaseLayerOptions,
