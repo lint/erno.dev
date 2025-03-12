@@ -59,6 +59,7 @@ export function Map() {
         return displaySet;
     });
     const [expandedLayerConfigId, setExpandedLayerConfigId] = useState<string>();
+    const [expandedDataItemId, handleSetExpandedDataItemId] = useState<string>();
 
     function handleRangesCallback(displaySet: LayerDisplayInfoSet) {
         for (let id in displaySet) {
@@ -257,11 +258,13 @@ export function Map() {
             content: <DataTab
                 configs={dataConfigs}
                 selectedConfigId={selectedDataConfigId}
+                expandedItemId={expandedDataItemId}
                 handleSelectConfig={setSelectedDataConfigId}
                 handleUpdateConfig={handleDataControlChange}
                 handleCopyConfig={handleCopyDataConfig}
                 handleRemoveConfig={handleRemoveDataConfig}
                 handleCreateConfig={handleCreateDataConfig}
+                handleSetExpandedDataItemId={handleSetExpandedDataItemId as any}
             />,
         },
         // {

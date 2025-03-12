@@ -9,14 +9,16 @@ import styles from '../Controls/SidebarControls.module.css';
 export interface DataTabProps {
     configs: DataOptions[];
     selectedConfigId: string;
+    expandedItemId: string | undefined;
     handleSelectConfig: (configId: string) => void;
     handleUpdateConfig: (key: string, value: any) => void;
     handleCopyConfig: (configId: string) => void;
     handleRemoveConfig: (configId: string) => void;
     handleCreateConfig: () => void;
+    handleSetExpandedDataItemId: (itemId: string | null) => void;
 };
 
-export default function DataTab({ configs, selectedConfigId, handleSelectConfig, handleRemoveConfig, handleUpdateConfig, handleCreateConfig, handleCopyConfig }: DataTabProps) {
+export default function DataTab({ configs, selectedConfigId, expandedItemId, handleSelectConfig, handleRemoveConfig, handleUpdateConfig, handleCreateConfig, handleCopyConfig, handleSetExpandedDataItemId }: DataTabProps) {
 
     let selectedConfig = findSelectedConfig();
 
@@ -76,8 +78,6 @@ export default function DataTab({ configs, selectedConfigId, handleSelectConfig,
         </div>
         <Divider color='var(--color-highlight)' />
         <Accordion
-            multiple
-            // defaultValue={['addresses']}
             className={styles.layerConfigs}
             classNames={{
                 label: styles.label,
@@ -85,6 +85,8 @@ export default function DataTab({ configs, selectedConfigId, handleSelectConfig,
                 control: styles.control,
                 item: styles.item,
             }}
+            value={expandedItemId}
+            onChange={handleSetExpandedDataItemId}
         >
             <Accordion.Item value='addresses'>
                 <Accordion.Control
