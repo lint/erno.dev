@@ -3,9 +3,14 @@ import React, { ReactNode } from "react";
 import { BaseLayerOptions, DataOptions } from "../../MapOptions";
 import styles from './SidebarControls.module.css';
 
+// captialize a string
+export function capitalizeValue(value: string) {
+    return String(value).charAt(0).toUpperCase() + String(value).slice(1);
+}
+
 // creates capatalized CombodivData for list of values
 export function capitalizeValues(values: string[]) {
-    return values.map(value => ({ value: value, label: String(value).charAt(0).toUpperCase() + String(value).slice(1) }))
+    return values.map(value => ({ value: value, label: capitalizeValue(value) }))
 }
 
 // creates chips for list of values

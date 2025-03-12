@@ -1,7 +1,7 @@
 import { Button, Input, SegmentedControl } from '@mantine/core';
 import React from 'react';
 import { BaseLayerOptions } from '../../../MapOptions';
-import { capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
+import { capitalizeValue, capitalizeValues, createFieldset, createOptionsItem } from '../SidebarControls';
 
 export interface NewLayerFieldsetProps {
     config: BaseLayerOptions;
@@ -15,7 +15,7 @@ export default function NewLayerFieldset({ config, handleInputChange, handleCrea
         {createOptionsItem('Name',
             <Input
                 value={config.title}
-                placeholder='New Layer'
+                placeholder={`${capitalizeValue(config.layerType)} Layer`}
                 onChange={event => handleInputChange!('title', event.currentTarget.value)}
             />
         )}

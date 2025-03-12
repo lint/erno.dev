@@ -15,12 +15,14 @@ import {
     createBinOptions,
     createHeatmapOptions,
     createNewDataOptions,
+    createNewLayerOptions,
     createTileOptions,
     DataOptions,
     LayerDisplayInfo,
     LayerDisplayInfoSet
 } from "./MapOptions";
 import { MapView } from "./MapView";
+import { capitalizeValue } from "./Sidebar/Controls/SidebarControls";
 import DataTab from "./Sidebar/Tabs/DataTab";
 import LayersTab from "./Sidebar/Tabs/LayersTab";
 
@@ -39,14 +41,7 @@ export function Map() {
         createBinOptions('Bin Layer', 'bin_test', 2),
         createHeatmapOptions('Heatmap Layer', 'heatmap_test', 3, false),
     ];
-    const [newLayerConfig, setNewLayerConfig] = useState<BaseLayerOptions>({
-        title: '',
-        layerType: 'tile',
-        id: 'add_new_layer',
-        visible: true,
-        opacity: 100,
-        zIndex: 1,
-    });
+    const [newLayerConfig, setNewLayerConfig] = useState<BaseLayerOptions>(createNewLayerOptions());
     const [layerConfigs, setLayerConfigs] = useState<BaseLayerOptions[]>(defaultLayerConfigs);
     const [layerInfos, setLayerInfos] = useState<LayerDisplayInfoSet>(() => {
         let displaySet: LayerDisplayInfoSet = {};
@@ -183,7 +178,7 @@ export function Map() {
         console.log("creating new layer", newLayerConfig);
         let config;
 
-        let title = newLayerConfig.title ? newLayerConfig.title : 'New Layer';
+        let title = newLayerConfig.title ? newLayerConfig.title : `${capitalizeValue(newLayerConfig.layerType)} Layer`;
         let maxZIndex = 1;
         for (let layerConfig of layerConfigs) {
             if (layerConfig.zIndex > maxZIndex) maxZIndex = layerConfig.zIndex;
@@ -210,6 +205,7 @@ export function Map() {
                 binRanges: undefined,
             }
         }));
+        setNewLayerConfig(oldConfig => ({ ...oldConfig, title: '' }));
     }
 
     function handleDeleteLayer(id: string) {

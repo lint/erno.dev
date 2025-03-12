@@ -162,6 +162,19 @@ export function createHeatmapOptions(title?: string, id?: string, zIndex?: numbe
     } as HeatmapLayerOptions;
 }
 
+export function createNewLayerOptions() {
+    let config: BaseLayerOptions =
+    {
+        title: '',
+        layerType: 'tile',
+        id: 'add_new_layer',
+        visible: true,
+        opacity: 100,
+        zIndex: 1,
+    };
+    return config;
+}
+
 export function getRangeValue(binLayerConfig: BinLayerOptions, binRange: BinRange, isMax: boolean, modeOverride?: string) {
 
     switch (modeOverride ? modeOverride : binLayerConfig.intervalMode) {
