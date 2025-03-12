@@ -81,12 +81,27 @@ export default class DataManager {
                     point.transform('EPSG:4326', 'EPSG:3857');
 
                     let feature = new Feature(point);
-                    feature.set('num_events', comp.events.length);
-                    feature.set('num_delegates', comp.wcaDelegates.length);
-                    feature.set('num_organizers', comp.organisers.length);
-                    feature.set('num_days', comp.date.numberOfDays);
-                    feature.set('cancelled', comp.isCanceled);
+                    let value = 1;
+                    switch (dataConfig.wca.valueMethod) {
+                        case 'len':
+                            value = 1;
+                            break;
+                        case 'num_events':
+                            value = comp.events.length;
+                            break;
+                        case 'num_dels':
+                            value = comp.wcaDelegates.length;
+                            break;
+                        case 'num_orgs':
+                            value = comp.organisers.length;
+                            break;
+                        case 'num_days':
+                            value = comp.date.numberOfDays;
+                            break;
+                    }
+                    feature.set('number', value);
                     feature.set('name', comp.name);
+                    // feature.set('cancelled', comp.isCanceled);
 
                     return feature;
                 }));

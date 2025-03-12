@@ -24,6 +24,7 @@ export interface DataOptions {
         featureValueMode: string;
         filteredEvents: string[];
         eventFilterMethod: string;
+        valueMethod: string;
     };
 };
 
@@ -188,10 +189,11 @@ export function createNewDataOptions(title?: string, id?: string, selectedStates
         wca: {
             enabled: false,
             selectedEvents: [],
-            includeCancelled: 'both',
+            includeCancelled: 'no',
             featureValueMode: 'none',
             filteredEvents: [],
-            eventFilterMethod: 'AND'
+            eventFilterMethod: 'AND',
+            valueMethod: 'len',
         }
     };
 }

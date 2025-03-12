@@ -1,4 +1,4 @@
-import { Checkbox, Fieldset, MultiSelect } from '@mantine/core';
+import { Checkbox, Fieldset, MultiSelect, Select } from '@mantine/core';
 import React from 'react';
 import { DataOptions } from '../../../BinMapOptions';
 import { eventsSelectData } from '../../../Data/WCA';
@@ -21,15 +21,36 @@ export default function WcaFieldset({ config, updateCallback }: WcaFieldsetProps
                     style={{ cursor: 'pointer' }}
                 />
             </>)}
-            {createSingleSelectOptionsItem(config,
-                'wca.includeCancelled',
-                'Include Cancelled',
-                ['yes', 'no', 'both'],
-                true,
-                false,
-                'segmented',
-                updateCallback
-            )}
+            {createOptionsItem('Value', <>
+                <div style={{ width: '75%' }}>
+                    <Select
+                        value={config.wca.valueMethod}
+                        onChange={value => updateCallback('wca.valueMethod', value)}
+                        data={[
+                            {
+                                label: 'Count',
+                                value: 'len',
+                            },
+                            {
+                                label: 'Number of Events',
+                                value: 'num_events',
+                            },
+                            {
+                                label: 'Number of Days Long',
+                                value: 'num_days',
+                            },
+                            {
+                                label: 'Number of Delegates',
+                                value: 'num_dels',
+                            },
+                            {
+                                label: 'Number of Organizers',
+                                value: 'num_orgs',
+                            },
+                        ]}
+                    />
+                </div>
+            </>)}
             {createOptionsItem('Filter Events', <>
                 <div style={{ width: '75%' }}>
                     <MultiSelect
@@ -42,14 +63,22 @@ export default function WcaFieldset({ config, updateCallback }: WcaFieldsetProps
             </>)}
             {createSingleSelectOptionsItem(config,
                 'wca.eventFilterMethod',
-                'Filter Method',
+                'Filter Event Method',
                 ['AND', 'OR', 'NOT'],
                 false,
                 false,
                 'segmented',
                 updateCallback
             )}
-
+            {createSingleSelectOptionsItem(config,
+                'wca.includeCancelled',
+                'Show Cancelled',
+                ['yes', 'no', 'both'],
+                true,
+                false,
+                'segmented',
+                updateCallback
+            )}
         </Fieldset>
     </>);
 }
