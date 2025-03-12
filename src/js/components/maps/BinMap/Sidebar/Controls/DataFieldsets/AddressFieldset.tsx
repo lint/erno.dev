@@ -22,7 +22,7 @@ export default function AddressFieldset({ config, updateCallback }: AddressField
         let newSelectedStates = stateList.filter(value => stateRegionTree.isNodeChecked(value));
         if (!arraysEqual(newSelectedStates, config.address.selectedStates)) {
             console.log("new selected states:", newSelectedStates)
-            updateCallback('selectedStates', newSelectedStates);
+            updateCallback('address.selectedStates', newSelectedStates);
         }
     }, [stateRegionTree.checkedState]);
 
@@ -38,7 +38,7 @@ export default function AddressFieldset({ config, updateCallback }: AddressField
                     <Select
                         data={[{ value: '0.01', label: '0.01°' }, { value: '0.05', label: '0.05°' }, { value: '0.1', label: '0.1°' }, { value: '0.5', label: '0.5°' }, { value: '1', label: '1°' }]}
                         value={config.address.dataResolution}
-                        onChange={value => updateCallback('dataResolution', value)}
+                        onChange={value => updateCallback('address.dataResolution', value)}
                         searchable
                     />
                 </div>
@@ -74,7 +74,7 @@ export default function AddressFieldset({ config, updateCallback }: AddressField
                     maxDropdownHeight={180}
                     placeholder="Search ..."
                     value={config.address.selectedCities}
-                    onChange={value => updateCallback('selectedCities', value)}
+                    onChange={value => updateCallback('address.selectedCities', value)}
                     searchable
                     comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false } }}
                 />

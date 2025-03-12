@@ -31,7 +31,7 @@ export default function WcaFieldset({ config, updateCallback }: WcaFieldsetProps
                 updateCallback
             )}
             {createOptionsItem('Filter Events', <>
-                <div style={{ width: '80%' }}>
+                <div style={{ width: '75%' }}>
                     <MultiSelect
                         value={config.wca.filteredEvents}
                         onChange={value => updateCallback('wca.filteredEvents', value)}
@@ -43,7 +43,7 @@ export default function WcaFieldset({ config, updateCallback }: WcaFieldsetProps
             {createSingleSelectOptionsItem(config,
                 'wca.eventFilterMethod',
                 'Filter Method',
-                ['AND', 'OR', 'NOT', 'XOR'],
+                ['AND', 'OR', 'NOT'],
                 false,
                 false,
                 'segmented',
