@@ -28,10 +28,6 @@ export default function WcaFieldset({ config, updateCallback }: WcaFieldsetProps
                         onChange={value => updateCallback('wca.valueMethod', value)}
                         data={[
                             {
-                                label: 'Count',
-                                value: 'len',
-                            },
-                            {
                                 label: 'Number of Events',
                                 value: 'num_events',
                             },

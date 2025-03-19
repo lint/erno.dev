@@ -33,7 +33,6 @@ export function Map() {
 
     const [dataConfigs, setDataConfigs] = useState<DataOptions[]>([
         createNewDataOptions('default', 'default', [...stateList]),
-        // createNewDataOptions('default', 'default', [])
     ]);
     const [selectedDataConfigId, setSelectedDataConfigId] = useState(dataConfigs.length > 0 ? dataConfigs[0].id : '');
     const defaultLayerConfigs = [

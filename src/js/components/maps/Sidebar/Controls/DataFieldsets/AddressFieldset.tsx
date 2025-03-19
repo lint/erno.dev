@@ -16,6 +16,7 @@ export default function AddressFieldset({ config, updateCallback }: AddressField
 
     const stateRegionTree = useTree({
         initialExpandedState: getTreeExpandedState(stateRegions, getInitialExpandedValues(stateRegions, 1, 0)),
+        initialCheckedState: config.address.selectedStates,
     });
 
     useEffect(() => {

@@ -48,6 +48,8 @@ export interface SourceLayerOptions extends BaseLayerOptions {
     numColorSteps: number;
     colorScaleName: string;
     dataTag: string;
+    backgroundColorMode: string;
+    customBackgroundColor: string;
 };
 
 export interface HeatmapLayerOptions extends SourceLayerOptions {
@@ -68,8 +70,6 @@ export interface BinLayerOptions extends SourceLayerOptions {
     customMinBound: number;
     customMaxBound: number;
     intervalMode: string;
-    backgroundColorMode: string;
-    customBackgroundColor: string;
 };
 
 export interface BinRange {
@@ -88,14 +88,14 @@ export interface LayerDisplayInfoSet {
 };
 
 // returns the background color for a given bin config
-export function getBackgroundColor(binLayerConfig: BinLayerOptions) {
+export function getBackgroundColor(layerConfig: SourceLayerOptions) {
 
-    switch (binLayerConfig.backgroundColorMode) {
+    switch (layerConfig.backgroundColorMode) {
         case 'auto':
-            let color = chroma.scale(binLayerConfig.colorScaleName)(0).darken().alpha(binLayerConfig.opacity / 100).hex();
+            let color = chroma.scale(layerConfig.colorScaleName)(0).darken().alpha(layerConfig.opacity / 100).hex();
             return color ? color : '';
         case 'custom':
-            return binLayerConfig.customBackgroundColor;
+            return layerConfig.customBackgroundColor;
         case 'none':
         default:
             return '';
@@ -159,6 +159,8 @@ export function createHeatmapOptions(title?: string, id?: string, zIndex?: numbe
         numColorSteps: 5,
         colorScaleName: "Viridis",
         dataTag: 'default',
+        backgroundColorMode: "none",
+        customBackgroundColor: chroma.scale("Viridis")(0).darken().hex(),
     } as HeatmapLayerOptions;
 }
 
@@ -206,7 +208,7 @@ export function createNewDataOptions(title?: string, id?: string, selectedStates
             featureValueMode: 'none',
             filteredEvents: [],
             eventFilterMethod: 'AND',
-            valueMethod: 'len',
+            valueMethod: 'num_events',
         }
     };
 }

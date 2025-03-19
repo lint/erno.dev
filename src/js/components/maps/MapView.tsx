@@ -340,7 +340,7 @@ export function MapView({ features, layerConfigs, regionSources, rangesCallback 
                 value = (feature.get(heatmapLayerConfig.aggFuncName) - min) / (max - min);
                 return value;
             },
-            gradient: chroma.scale(heatmapLayerConfig.colorScaleName).colors(heatmapLayerConfig.numColorSteps)
+            gradient: chroma.scale(heatmapLayerConfig.colorScaleName).colors(heatmapLayerConfig.numColorSteps),
         });
 
         return heatmapLayer;
@@ -417,6 +417,7 @@ export function MapView({ features, layerConfigs, regionSources, rangesCallback 
 
                 layer.setRadius(heatmapLayerConfig.radius);
                 layer.setBlur(heatmapLayerConfig.blur);
+                layer.setBackground(getBackgroundColor(heatmapLayerConfig));
                 // layer.setSource(vectorSourceRef.current);
 
                 layer.setGradient(chroma.scale(heatmapLayerConfig.colorScaleName).colors(Math.max(2, heatmapLayerConfig.numColorSteps)));

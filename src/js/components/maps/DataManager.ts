@@ -83,9 +83,6 @@ export default class DataManager {
                     let feature = new Feature(point);
                     let value = 1;
                     switch (dataConfig.wca.valueMethod) {
-                        case 'len':
-                            value = 1;
-                            break;
                         case 'num_events':
                             value = comp.events.length;
                             break;
