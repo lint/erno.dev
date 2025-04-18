@@ -8,18 +8,20 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, } from "react-router-dom";
 
 // react components
-import HomePage from './pages/home/home_page';
 import ErrorPage from './pages/error/error_page';
-import TempPage from './pages/temp_page';
+import HomePage from './pages/home/home_page';
 import MapPage from './pages/maps/map_page';
+import TempPage from './pages/temp_page';
 
 // amplify
 import { Amplify } from 'aws-amplify';
 import outputs from '../../amplify_outputs.json';
 
 // mantine ui
-import '@mantine/core/styles.css';
 import { createTheme, MantineProvider, virtualColor } from '@mantine/core';
+import '@mantine/core/styles.css';
+import CanvasPage from './pages/canvas/canva_page';
+import CanvasDashboardPage from './pages/canvas/canvas_dashboard_page';
 
 // configure application
 Amplify.configure(outputs);
@@ -37,6 +39,14 @@ const router = createBrowserRouter([
     {
         path: "/map",
         element: <MapPage />
+    },
+    {
+        path: "/canvas",
+        element: <CanvasDashboardPage />
+    },
+    {
+        path: "/canvas/:id",
+        element: <CanvasPage />
     },
 ]);
 

@@ -1,12 +1,13 @@
 
+import { Divider, UnstyledButton, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
+import { IconBrandGithub, IconMoon, IconSun } from '@tabler/icons-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './navbar.module.css';
-import { Divider, UnstyledButton, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
-import { IconBrandGithub, IconMoon, IconSun } from '@tabler/icons-react';
 
 const linkData = [
     { label: 'map', url: '/map' },
+    { label: 'canvas', url: '/canvas' },
     { label: 'about', url: '/about' },
 ];
 
