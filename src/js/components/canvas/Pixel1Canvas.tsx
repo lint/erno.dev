@@ -17,9 +17,10 @@ export default function Pixel1Canvas() {
   const [tick, setTick] = useState(0);
 
   const [options, setOptions] = useState({
-    noiseScale: 1,
-    pixelSize: 1,
+    noiseScale: 10,
+    pixelSize: 4,
     speed: 1,
+    colorBuckets: 20,
   });
 
   // State for stage scale and position
@@ -93,12 +94,21 @@ export default function Pixel1Canvas() {
         //   x / options.noiseScale + tick * options.speed,
         //   y / options.noiseScale + tick * options.speed
         // );
-        const noiseVal = noise3D(
-          x / options.noiseScale,
-          y / options.noiseScale,
-          (tick * options.speed) / 10
-        );
-        const value = Math.floor(((noiseVal + 1) / 2) * 255);
+
+        let nx = x / options.noiseScale;
+        let ny = y / options.noiseScale;
+        let nz = (tick * options.speed) / 100;
+        let noiseVal = noise3D(nx, ny, nz);
+        noiseVal += 0.5 * noise3D(2 * nx, 2 * ny, nz);
+        // noiseVal += 0.25 * noise3D(4 * nx, 4 * ny, nz);
+
+        let value = Math.floor(((noiseVal + 1) / 2) * 255);
+        const buckets = options.colorBuckets;
+        if (buckets >= 2) {
+          const quantized = Math.floor((value / 256) * buckets);
+          value = Math.floor((quantized / (buckets - 1 || 1)) * 255);
+        }
+
         const index = (y * cols + x) * 4;
         data[index + 0] = value;
         data[index + 1] = value;
@@ -170,6 +180,20 @@ export default function Pixel1Canvas() {
           />
           Speed: {options.speed}
         </label>
+        <br />
+        <label>
+          <input
+            type="range"
+            min="1"
+            max="20"
+            value={options.colorBuckets}
+            onChange={(e) =>
+              handleInputChange("colorBuckets", Number(e.target.value))
+            }
+          />
+          Color Buckets: {options.colorBuckets}
+        </label>
+        <br />
       </div>
       <div ref={divRef} style={{ width: "100%", height: "100%" }}>
         <canvas
