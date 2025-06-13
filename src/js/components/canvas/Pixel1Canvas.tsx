@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Image, Layer, Rect, Stage } from "react-konva";
-import { createNoise2D } from "simplex-noise";
+import { Image, Layer, Stage } from "react-konva";
+import { createNoise2D, createNoise3D } from "simplex-noise";
 import useWindowSize from "../../hooks/resize";
 
 const noise2D = createNoise2D();
+const noise3D = createNoise3D();
 
 export default function Pixel1Canvas() {
   const divRef = useRef<HTMLDivElement>(null);
@@ -13,11 +14,11 @@ export default function Pixel1Canvas() {
     height: 0,
   });
   const [ticking, _] = useState(true);
-  const [count, setCount] = useState(0);
+  const [tick, setTick] = useState(0);
 
   const [options, setOptions] = useState({
     noiseScale: 1,
-    pixelSize: 10,
+    pixelSize: 1,
     speed: 1,
   });
 
@@ -25,14 +26,13 @@ export default function Pixel1Canvas() {
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
 
-  const itemsRef = useRef(new Map());
   const imageRef = useRef<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => ticking && setCount(count + 1), 10);
+    const timer = setTimeout(() => ticking && setTick(tick + 1), 10);
     return () => clearTimeout(timer);
-  }, [count, ticking]);
+  }, [tick, ticking]);
 
   useEffect(() => {
     if (!(divRef.current?.offsetHeight || divRef.current?.offsetWidth)) {
@@ -74,58 +74,6 @@ export default function Pixel1Canvas() {
     }));
   }
 
-  // useEffect(() => {
-  //   updateSquares();
-  // }, [count.current]);
-
-  // function updateSquares() {
-  //   console.log("updateSquares");
-  //   let i = 0;
-  //   let cols = Math.ceil(canvasSize.width / options.pixelSize);
-  //   let rows = Math.ceil(canvasSize.height / options.pixelSize);
-
-  //   // console.log(cols, rows, canvasSize);
-  //   if (rows * cols == 0) return;
-
-  //   for (let row = 0; row <= rows; row++) {
-  //     for (let col = 0; col <= cols; col++) {
-  //       let y = (row / rows) * canvasSize.height;
-  //       let x = (col / cols) * canvasSize.width;
-
-  //       let noiseVal = noise2D(
-  //         row / options.noiseScale,
-  //         col / options.noiseScale + count.current * options.speed
-  //       );
-  //       let colorVal = Math.round(noiseVal * 255);
-  //       let color = `rgb(${colorVal},${colorVal},${colorVal})`;
-  //       let square = itemsRef.current.get(i);
-  //       if (!square) continue;
-
-  //       square.size({ width: options.pixelSize, height: options.pixelSize });
-  //       square.fill(row % 2 == 0 ? "blue" : "red");
-  //       // square.x(col % 2 == 0 ? 100 : 0);
-  //       // console.log(x);
-  //       // square.y(y);
-
-  //       // squares.push(
-  //       //   <Rect
-  //       //     key={`rect-${row}-${col}`}
-  //       //     x={x}
-  //       //     y={y}
-  //       //     fill={
-  //       //       // (row % 2 == 0 && col % 2 != 0) || (row % 2 != 0 && col % 2 == 0)
-  //       //       //   ? "white"
-  //       //       //   : "gray"
-  //       //       color
-  //       //     }
-  //       //     width={options.pixelSize}
-  //       //     height={options.pixelSize}
-  //       //   />
-  //       // );
-  //     }
-  //   }
-  // }
-
   useEffect(() => {
     if (!canvasRef.current || canvasSize.width == 0 || canvasSize.height == 0)
       return;
@@ -133,17 +81,22 @@ export default function Pixel1Canvas() {
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
 
-    const cols = Math.floor(canvasSize.width / options.pixelSize);
-    const rows = Math.floor(canvasSize.height / options.pixelSize);
+    const cols = Math.ceil(canvasSize.width / options.pixelSize);
+    const rows = Math.ceil(canvasSize.height / options.pixelSize);
 
     const imageData = ctx.createImageData(cols, rows);
     const { data } = imageData;
 
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
-        const noiseVal = noise2D(
+        // const noiseVal = noise2D(
+        //   x / options.noiseScale + tick * options.speed,
+        //   y / options.noiseScale + tick * options.speed
+        // );
+        const noiseVal = noise3D(
           x / options.noiseScale,
-          y / options.noiseScale + count * options.speed
+          y / options.noiseScale,
+          (tick * options.speed) / 10
         );
         const value = Math.floor(((noiseVal + 1) / 2) * 255);
         const index = (y * cols + x) * 4;
@@ -160,54 +113,7 @@ export default function Pixel1Canvas() {
       imageRef.current.image(canvasRef.current);
       imageRef.current.getLayer().batchDraw(); // force rerender
     }
-  }, [count, canvasSize, options]);
-
-  function createShapes() {
-    console.log("createShapes");
-
-    const shapes = [];
-
-    let cols = Math.ceil(canvasSize.width / options.pixelSize);
-    let rows = Math.ceil(canvasSize.height / options.pixelSize);
-    // console.log(canvasSize, rows, cols);
-
-    for (let row = 0; row <= rows; row++) {
-      for (let col = 0; col <= cols; col++) {
-        let y = (row / rows) * canvasSize.height;
-        let x = (col / cols) * canvasSize.width;
-        let noiseVal = noise2D(
-          row / options.noiseScale,
-          col / options.noiseScale + count * options.speed
-        );
-        let colorVal = Math.round(noiseVal * 255);
-        let color = `rgb(${colorVal},${colorVal},${colorVal})`;
-        let key = `rect-${row}-${col}`;
-        shapes.push(
-          <Rect
-            key={key}
-            x={x}
-            y={y}
-            fill={
-              // (row % 2 == 0 && col % 2 != 0) || (row % 2 != 0 && col % 2 == 0)
-              //   ? "white"
-              //   : "gray"
-              color
-            }
-            width={options.pixelSize}
-            height={options.pixelSize}
-            ref={(node) => {
-              itemsRef.current.set(key, node);
-              return () => {
-                itemsRef.current.delete(key);
-              };
-            }}
-          />
-        );
-      }
-    }
-
-    return <>{...shapes}</>;
-  }
+  }, [tick, canvasSize, options]);
 
   return (
     <div
@@ -231,7 +137,7 @@ export default function Pixel1Canvas() {
             <input
               type="range"
               min="1"
-              max="500"
+              max="100"
               value={options.pixelSize}
               onChange={(e) =>
                 handleInputChange("pixelSize", Number(e.target.value))
@@ -244,8 +150,8 @@ export default function Pixel1Canvas() {
             <input
               type="range"
               min="0"
-              max="10"
-              step="0.1"
+              max="1000"
+              step="0.5"
               value={options.noiseScale}
               onChange={(e) =>
                 handleInputChange("noiseScale", Number(e.target.value))
@@ -257,8 +163,8 @@ export default function Pixel1Canvas() {
           <input
             type="range"
             min="0"
-            max="5"
-            step="0.01"
+            max="2"
+            step="0.005"
             value={options.speed}
             onChange={(e) => handleInputChange("speed", Number(e.target.value))}
           />
