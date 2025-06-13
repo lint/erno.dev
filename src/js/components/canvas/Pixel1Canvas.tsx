@@ -117,9 +117,18 @@ export default function Pixel1Canvas() {
       data[index + 3] = 255;
     }
 
+    const halfCols = Math.floor(cols / 2);
+
     for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
+      for (let x = 0; x < halfCols; x++) {
         let value = valueForCoord(x, y);
+        setValueForCoord(x, y, value);
+      }
+    }
+
+    for (let y = 0; y < rows; y++) {
+      for (let x = halfCols; x < cols; x++) {
+        let value = valueForCoord(x - halfCols, y);
         setValueForCoord(x, y, value);
       }
     }
