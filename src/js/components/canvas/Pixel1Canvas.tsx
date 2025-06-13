@@ -17,10 +17,11 @@ export default function Pixel1Canvas() {
   const [tick, setTick] = useState(0);
 
   const [options, setOptions] = useState({
-    noiseScale: 10,
+    noiseScale: 20,
     pixelSize: 4,
     speed: 1,
     colorBuckets: 20,
+    exp: 1,
   });
 
   // State for stage scale and position
@@ -88,32 +89,38 @@ export default function Pixel1Canvas() {
     const imageData = ctx.createImageData(cols, rows);
     const { data } = imageData;
 
+    function valueForCoord(x: number, y: number) {
+      let nx = x / options.noiseScale;
+      let ny = y / options.noiseScale;
+      let nz = (tick * options.speed) / 100;
+      let noiseVal = noise3D(nx, ny, nz);
+      noiseVal += 0.5 * noise3D(2 * nx, 2 * ny, 2 * nz);
+      noiseVal += 0.25 * noise3D(4 * nx, 4 * ny, 4 * nz);
+      noiseVal += 0.125 * noise3D(8 * nx, 8 * ny, 8 * nz);
+      noiseVal /= 1 + 0.5 + 0.25 + 0.125;
+      noiseVal = Math.pow(noiseVal, options.exp);
+
+      let value = Math.floor(((noiseVal + 1) / 2) * 255);
+      const buckets = options.colorBuckets;
+      if (buckets >= 2) {
+        const quantized = Math.floor((value / 256) * buckets);
+        value = Math.floor((quantized / (buckets - 1 || 1)) * 255);
+      }
+      return value;
+    }
+
+    function setValueForCoord(x: number, y: number, value: number) {
+      const index = (y * cols + x) * 4;
+      data[index + 0] = value;
+      data[index + 1] = value;
+      data[index + 2] = value;
+      data[index + 3] = 255;
+    }
+
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
-        // const noiseVal = noise2D(
-        //   x / options.noiseScale + tick * options.speed,
-        //   y / options.noiseScale + tick * options.speed
-        // );
-
-        let nx = x / options.noiseScale;
-        let ny = y / options.noiseScale;
-        let nz = (tick * options.speed) / 100;
-        let noiseVal = noise3D(nx, ny, nz);
-        noiseVal += 0.5 * noise3D(2 * nx, 2 * ny, nz);
-        // noiseVal += 0.25 * noise3D(4 * nx, 4 * ny, nz);
-
-        let value = Math.floor(((noiseVal + 1) / 2) * 255);
-        const buckets = options.colorBuckets;
-        if (buckets >= 2) {
-          const quantized = Math.floor((value / 256) * buckets);
-          value = Math.floor((quantized / (buckets - 1 || 1)) * 255);
-        }
-
-        const index = (y * cols + x) * 4;
-        data[index + 0] = value;
-        data[index + 1] = value;
-        data[index + 2] = value;
-        data[index + 3] = 255;
+        let value = valueForCoord(x, y);
+        setValueForCoord(x, y, value);
       }
     }
 
@@ -159,7 +166,7 @@ export default function Pixel1Canvas() {
           <label>
             <input
               type="range"
-              min="0"
+              min="0.01"
               max="1000"
               step="0.5"
               value={options.noiseScale}
@@ -185,13 +192,25 @@ export default function Pixel1Canvas() {
           <input
             type="range"
             min="1"
-            max="20"
+            max="40"
             value={options.colorBuckets}
             onChange={(e) =>
               handleInputChange("colorBuckets", Number(e.target.value))
             }
           />
           Color Buckets: {options.colorBuckets}
+        </label>
+        <br />
+        <label>
+          <input
+            type="range"
+            min="0"
+            max="10"
+            step="0.1"
+            value={options.exp}
+            onChange={(e) => handleInputChange("exp", Number(e.target.value))}
+          />
+          Exp: {options.exp}
         </label>
         <br />
       </div>
