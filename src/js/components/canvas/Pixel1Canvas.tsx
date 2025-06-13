@@ -1,18 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Image, Layer, Stage } from "react-konva";
-import { createNoise2D, createNoise3D } from "simplex-noise";
+import { createNoise3D } from "simplex-noise";
 import useWindowSize from "../../hooks/resize";
 
-const noise2D = createNoise2D();
 const noise3D = createNoise3D();
 
 export default function Pixel1Canvas() {
   const divRef = useRef<HTMLDivElement>(null);
   const [windowWidth, windowHeight] = useWindowSize();
-  const [canvasSize, setCanvasSize] = useState({
-    width: 0,
-    height: 0,
-  });
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [ticking, _] = useState(true);
   const [tick, setTick] = useState(0);
 
@@ -22,9 +18,9 @@ export default function Pixel1Canvas() {
     speed: 1,
     colorBuckets: 20,
     exp: 1,
+    depthStrength: 20,
   });
 
-  // State for stage scale and position
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
 
@@ -37,9 +33,7 @@ export default function Pixel1Canvas() {
   }, [tick, ticking]);
 
   useEffect(() => {
-    if (!(divRef.current?.offsetHeight || divRef.current?.offsetWidth)) {
-      return;
-    }
+    if (!(divRef.current?.offsetHeight || divRef.current?.offsetWidth)) return;
     setCanvasSize({
       width: divRef.current.offsetWidth,
       height: divRef.current.offsetHeight,
@@ -48,20 +42,15 @@ export default function Pixel1Canvas() {
 
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
-
     const scaleBy = 1.1;
     const stage = e.target.getStage();
-    if (!stage) {
-      return;
-    }
+    if (!stage) return;
     const oldScale = stage.scaleX();
     const mousePointTo = {
       x: stage.getPointerPosition()!.x / oldScale - stage.x() / oldScale,
       y: stage.getPointerPosition()!.y / oldScale - stage.y() / oldScale,
     };
-
     const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
-
     setStageScale(newScale);
     setStagePos({
       x: (stage.getPointerPosition()!.x / newScale - mousePointTo.x) * newScale,
@@ -70,14 +59,11 @@ export default function Pixel1Canvas() {
   };
 
   function handleInputChange(key: string, value: any) {
-    setOptions((oldConfig) => ({
-      ...oldConfig,
-      [key]: value,
-    }));
+    setOptions((old) => ({ ...old, [key]: value }));
   }
 
   useEffect(() => {
-    if (!canvasRef.current || canvasSize.width == 0 || canvasSize.height == 0)
+    if (!canvasRef.current || canvasSize.width === 0 || canvasSize.height === 0)
       return;
 
     const ctx = canvasRef.current.getContext("2d");
@@ -85,21 +71,21 @@ export default function Pixel1Canvas() {
 
     const cols = Math.ceil(canvasSize.width / options.pixelSize);
     const rows = Math.ceil(canvasSize.height / options.pixelSize);
+    const halfCols = Math.floor(cols / 2);
 
     const imageData = ctx.createImageData(cols, rows);
     const { data } = imageData;
 
     function valueForCoord(x: number, y: number) {
-      let nx = x / options.noiseScale;
-      let ny = y / options.noiseScale;
-      let nz = (tick * options.speed) / 100;
+      const nx = x / options.noiseScale;
+      const ny = y / options.noiseScale;
+      const nz = (tick * options.speed) / 100;
       let noiseVal = noise3D(nx, ny, nz);
       noiseVal += 0.5 * noise3D(2 * nx, 2 * ny, 2 * nz);
       noiseVal += 0.25 * noise3D(4 * nx, 4 * ny, 4 * nz);
       noiseVal += 0.125 * noise3D(8 * nx, 8 * ny, 8 * nz);
       noiseVal /= 1 + 0.5 + 0.25 + 0.125;
       noiseVal = Math.pow(noiseVal, options.exp);
-
       let value = Math.floor(((noiseVal + 1) / 2) * 255);
       const buckets = options.colorBuckets;
       if (buckets >= 2) {
@@ -109,35 +95,57 @@ export default function Pixel1Canvas() {
       return value;
     }
 
-    function setValueForCoord(x: number, y: number, value: number) {
-      const index = (y * cols + x) * 4;
-      data[index + 0] = value;
-      data[index + 1] = value;
-      data[index + 2] = value;
-      data[index + 3] = 255;
+    function setPixel(
+      data: Uint8ClampedArray,
+      x: number,
+      y: number,
+      width: number,
+      value: number
+    ) {
+      const idx = (y * width + x) * 4;
+      data[idx + 0] = value;
+      data[idx + 1] = value;
+      data[idx + 2] = value;
+      data[idx + 3] = 255;
     }
 
-    const halfCols = Math.floor(cols / 2);
+    const leftImage = new Uint8ClampedArray(halfCols * rows * 4);
 
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < halfCols; x++) {
-        let value = valueForCoord(x, y);
-        setValueForCoord(x, y, value);
+        const val = valueForCoord(x, y);
+        setPixel(leftImage, x, y, halfCols, val);
       }
     }
 
     for (let y = 0; y < rows; y++) {
-      for (let x = halfCols; x < cols; x++) {
-        let value = valueForCoord(x - halfCols, y);
-        setValueForCoord(x, y, value);
+      for (let x = 0; x < halfCols; x++) {
+        const idx = (y * cols + x) * 4;
+        const val = valueForCoord(x, y);
+        const disparity = Math.floor(
+          (val / 255 - 0.5) * 2 * options.depthStrength
+        );
+        const shiftedX = Math.max(0, Math.min(halfCols - 1, x - disparity));
+        const srcIdx = (y * halfCols + shiftedX) * 4;
+
+        // Left image
+        data[idx + 0] = leftImage[(y * halfCols + x) * 4 + 0];
+        data[idx + 1] = leftImage[(y * halfCols + x) * 4 + 1];
+        data[idx + 2] = leftImage[(y * halfCols + x) * 4 + 2];
+        data[idx + 3] = 255;
+
+        // Right image
+        data[idx + halfCols * 4 + 0] = leftImage[srcIdx + 0];
+        data[idx + halfCols * 4 + 1] = leftImage[srcIdx + 1];
+        data[idx + halfCols * 4 + 2] = leftImage[srcIdx + 2];
+        data[idx + halfCols * 4 + 3] = 255;
       }
     }
 
     ctx.putImageData(imageData, 0, 0);
-
     if (imageRef.current) {
       imageRef.current.image(canvasRef.current);
-      imageRef.current.getLayer().batchDraw(); // force rerender
+      imageRef.current.getLayer().batchDraw();
     }
   }, [tick, canvasSize, options]);
 
@@ -159,33 +167,33 @@ export default function Pixel1Canvas() {
         }}
       >
         <label>
-          <label>
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={options.pixelSize}
-              onChange={(e) =>
-                handleInputChange("pixelSize", Number(e.target.value))
-              }
-            />
-            Pixel Size: {options.pixelSize}
-            <br />
-          </label>
-          <label>
-            <input
-              type="range"
-              min="0.01"
-              max="1000"
-              step="0.5"
-              value={options.noiseScale}
-              onChange={(e) =>
-                handleInputChange("noiseScale", Number(e.target.value))
-              }
-            />
-            Noise Scale: {options.noiseScale}
-          </label>
-          <br />
+          <input
+            type="range"
+            min="1"
+            max="100"
+            value={options.pixelSize}
+            onChange={(e) =>
+              handleInputChange("pixelSize", Number(e.target.value))
+            }
+          />
+          Pixel Size: {options.pixelSize}
+        </label>
+        <br />
+        <label>
+          <input
+            type="range"
+            min="0.01"
+            max="1000"
+            step="0.5"
+            value={options.noiseScale}
+            onChange={(e) =>
+              handleInputChange("noiseScale", Number(e.target.value))
+            }
+          />
+          Noise Scale: {options.noiseScale}
+        </label>
+        <br />
+        <label>
           <input
             type="range"
             min="0"
@@ -222,6 +230,20 @@ export default function Pixel1Canvas() {
           Exp: {options.exp}
         </label>
         <br />
+        <label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={options.depthStrength}
+            onChange={(e) =>
+              handleInputChange("depthStrength", Number(e.target.value))
+            }
+          />
+          Depth Strength: {options.depthStrength}
+        </label>
+        <br />
       </div>
       <div ref={divRef} style={{ width: "100%", height: "100%" }}>
         <canvas
@@ -230,7 +252,6 @@ export default function Pixel1Canvas() {
           height={Math.ceil(canvasSize.height / options.pixelSize)}
           style={{ display: "none" }}
         />
-
         <Stage
           width={canvasSize.width}
           height={canvasSize.height}
@@ -239,24 +260,16 @@ export default function Pixel1Canvas() {
           scaleY={stageScale}
           x={stagePos.x}
           y={stagePos.y}
-          draggable // Enables panning
-          onDragEnd={(e) => {
-            // Updates stage position after dragging
-            setStagePos({
-              x: e.target.x(),
-              y: e.target.y(),
-            });
-          }}
+          draggable
+          onDragEnd={(e) => setStagePos({ x: e.target.x(), y: e.target.y() })}
         >
           <Layer>
-            {/* {createShapes()} */}
             <Image
               ref={imageRef}
               x={0}
               y={0}
               width={canvasSize.width}
               height={canvasSize.height}
-              filters={[]}
               image={undefined}
             />
           </Layer>
