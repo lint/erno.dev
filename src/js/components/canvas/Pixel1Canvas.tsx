@@ -5,6 +5,96 @@ import useWindowSize from "../../hooks/resize";
 
 const noise3D = createNoise3D();
 
+function Controls({
+  options,
+  handleInputChange,
+}: {
+  options: any;
+  handleInputChange: (key: string, value: any) => void;
+}) {
+  return (
+    <div style={{ padding: "10px", color: "white" }}>
+      <label>
+        <input
+          type="range"
+          min="1"
+          max="100"
+          value={options.pixelSize}
+          onChange={(e) =>
+            handleInputChange("pixelSize", Number(e.target.value))
+          }
+        />
+        Pixel Size: {options.pixelSize}
+      </label>
+      <br />
+      <label>
+        <input
+          type="range"
+          min="0.01"
+          max="1000"
+          step="0.5"
+          value={options.noiseScale}
+          onChange={(e) =>
+            handleInputChange("noiseScale", Number(e.target.value))
+          }
+        />
+        Noise Scale: {options.noiseScale}
+      </label>
+      <br />
+      <label>
+        <input
+          type="range"
+          min="0"
+          max="2"
+          step="0.005"
+          value={options.speed}
+          onChange={(e) => handleInputChange("speed", Number(e.target.value))}
+        />
+        Speed: {options.speed}
+      </label>
+      <br />
+      <label>
+        <input
+          type="range"
+          min="1"
+          max="40"
+          value={options.colorBuckets}
+          onChange={(e) =>
+            handleInputChange("colorBuckets", Number(e.target.value))
+          }
+        />
+        Color Buckets: {options.colorBuckets}
+      </label>
+      <br />
+      <label>
+        <input
+          type="range"
+          min="0"
+          max="10"
+          step="0.1"
+          value={options.exp}
+          onChange={(e) => handleInputChange("exp", Number(e.target.value))}
+        />
+        Exp: {options.exp}
+      </label>
+      <br />
+      <label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={options.depthStrength}
+          onChange={(e) =>
+            handleInputChange("depthStrength", Number(e.target.value))
+          }
+        />
+        Depth Strength: {options.depthStrength}
+      </label>
+    </div>
+  );
+}
+
 export default function Pixel1Canvas() {
   const divRef = useRef<HTMLDivElement>(null);
   const [windowWidth, windowHeight] = useWindowSize();
@@ -156,95 +246,26 @@ export default function Pixel1Canvas() {
         height: "100%",
         overflow: "hidden",
         background: "#111",
+        position: "relative",
       }}
     >
+      {/* LEFT Controls */}
+      <div style={{ position: "absolute", left: 0, top: 0, zIndex: 10 }}>
+        <Controls options={options} handleInputChange={handleInputChange} />
+      </div>
+
+      {/* RIGHT Controls - Centered on Right Half */}
       <div
         style={{
           position: "absolute",
+          left: "50%",
+          top: 0,
           zIndex: 10,
-          padding: "10px",
-          color: "white",
         }}
       >
-        <label>
-          <input
-            type="range"
-            min="1"
-            max="100"
-            value={options.pixelSize}
-            onChange={(e) =>
-              handleInputChange("pixelSize", Number(e.target.value))
-            }
-          />
-          Pixel Size: {options.pixelSize}
-        </label>
-        <br />
-        <label>
-          <input
-            type="range"
-            min="0.01"
-            max="1000"
-            step="0.5"
-            value={options.noiseScale}
-            onChange={(e) =>
-              handleInputChange("noiseScale", Number(e.target.value))
-            }
-          />
-          Noise Scale: {options.noiseScale}
-        </label>
-        <br />
-        <label>
-          <input
-            type="range"
-            min="0"
-            max="2"
-            step="0.005"
-            value={options.speed}
-            onChange={(e) => handleInputChange("speed", Number(e.target.value))}
-          />
-          Speed: {options.speed}
-        </label>
-        <br />
-        <label>
-          <input
-            type="range"
-            min="1"
-            max="40"
-            value={options.colorBuckets}
-            onChange={(e) =>
-              handleInputChange("colorBuckets", Number(e.target.value))
-            }
-          />
-          Color Buckets: {options.colorBuckets}
-        </label>
-        <br />
-        <label>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            step="0.1"
-            value={options.exp}
-            onChange={(e) => handleInputChange("exp", Number(e.target.value))}
-          />
-          Exp: {options.exp}
-        </label>
-        <br />
-        <label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={options.depthStrength}
-            onChange={(e) =>
-              handleInputChange("depthStrength", Number(e.target.value))
-            }
-          />
-          Depth Strength: {options.depthStrength}
-        </label>
-        <br />
+        <Controls options={options} handleInputChange={handleInputChange} />
       </div>
+
       <div ref={divRef} style={{ width: "100%", height: "100%" }}>
         <canvas
           ref={canvasRef}
