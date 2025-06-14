@@ -7,10 +7,10 @@ export default function CanvasDashboardPage() {
     <BasePage>
       <ul>
         <li>
-          <Link to="/canvas/test">Test</Link>
+          <Link to="/canvas/test">test</Link>
         </li>
         <li>
-          <Link to="/canvas/pixel1">Pixel1</Link>
+          <Link to="/canvas/stereo_noise">stereo noise</Link>
         </li>
       </ul>
     </BasePage>

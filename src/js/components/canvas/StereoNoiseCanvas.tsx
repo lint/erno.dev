@@ -95,7 +95,7 @@ function Controls({
   );
 }
 
-export default function Pixel1Canvas() {
+export default function StereoNoiseCanvas() {
   const divRef = useRef<HTMLDivElement>(null);
   const [windowWidth, windowHeight] = useWindowSize();
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -103,12 +103,12 @@ export default function Pixel1Canvas() {
   const [tick, setTick] = useState(0);
 
   const [options, setOptions] = useState({
-    noiseScale: 20,
+    noiseScale: 30,
     pixelSize: 4,
     speed: 1,
     colorBuckets: 20,
     exp: 1,
-    depthStrength: 20,
+    depthStrength: 10,
   });
 
   const [stageScale, setStageScale] = useState(1);
